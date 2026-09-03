@@ -211,8 +211,10 @@ legend{display:block;inline-size:100%;padding:0}
   background:var(--primary);color:#fff;
   font-size:23px;font-weight:600;line-height:1;
 }
-.tutor-name{font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
-.tutor-program{margin-block-start:3px;font-size:14px;color:var(--muted)}
+/* display:block porque el motor los crea como <span>, que es inline: sin esto
+   el nombre y el programa se pegan ("Daniela R.Ingenieria Industrial"). */
+.tutor-name{display:block;font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.tutor-program{display:block;margin-block-start:3px;font-size:14px;color:var(--muted)}
 .chips{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-block-start:16px}
 .chip{
   display:inline-flex;align-items:center;
@@ -252,6 +254,12 @@ legend{display:block;inline-size:100%;padding:0}
 
 /* ---------- 11. Pie de pantalla y botones ---------- */
 .footer{flex:0 0 auto;margin-block-start:auto;padding-block-start:16px}
+/* Solo el pie de primer nivel lleva la linea: deja claro que el contenido de
+   arriba se desplaza por debajo, en vez de parecer recortado. Los .footer que
+   el motor crea dentro de una pantalla (E5) no la llevan, para no duplicarla. */
+.screen>.footer{border-block-start:1px solid var(--border)}
+/* Los bloques de M5 necesitan aire entre si. */
+#panel-contenido>section+section{margin-block-start:24px}
 .footer>*+*{margin-block-start:12px}
 .btn{
   display:flex;align-items:center;justify-content:center;
@@ -2073,8 +2081,11 @@ function pintarPanel() {
   // Bloque 1: proxima sesion
   var bloque1 = document.createElement('section');
   bloque1.appendChild(crear('h2', 'eyebrow', 'Próxima sesión'));
+  // El brief (seccion 7) pide "Manana 4:00 p. m. con Juan D.": van los dos campos.
+  var cuando = campoDe(s, ['cuando', 'titulo', 'encabezado'], 'Mañana 4:00 p. m.');
+  var quien = campoDe(s, ['estudiante', 'alumno'], '');
   bloque1.appendChild(crear('p', 'subtitle',
-    campoDe(s, ['cuando', 'titulo', 'encabezado'], 'Mañana 4:00 p. m. con Juan D.')));
+    quien ? (cuando + ' con ' + quien) : cuando));
 
   var brief = crear('div', 'brief-sesion');
   brief.appendChild(lineaBrief('Subtema',
