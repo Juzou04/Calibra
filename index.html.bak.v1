@@ -1,0 +1,2300 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FFFDF5">
+<meta name="description" content="Calibra: prototipo navegable. Llega a la monitoria y que el monitor ya sepa que explicarte.">
+<title>Calibra · Prototipo</title>
+
+<!-- Inter desde Google Fonts, CARGA NO BLOQUEANTE.
+     Si no hay internet (salon de clase, USB, portal cautivo) la pagina
+     se pinta igual con la pila del sistema. Nada se rompe. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+
+<style>
+/* =========================================================================
+   CALIBRA - hoja de estilos unica del MVP
+   Portada del mockup verificado (calibrar.html / diagnostico.html /
+   monitor.html) mas los bloques nuevos del contrato.
+   Mobile-first 390x844, comprobada tambien a 360x640.
+   Ningun font-size por debajo de 14px. Sin degradados. Sin iconos.
+   ========================================================================= */
+
+/* ---------- 1. Variables ---------- */
+:root{
+  --bg:#FFFDF5;
+  --surface:#FFFFFF;
+  --primary:#005EFF;
+  --alert:#E5484D;          /* solo RELLENO: barra, fondo de chip */
+  --success:#0F9D58;        /* solo RELLENO */
+  --alert-text:#C62A2F;     /* rojo para TEXTO, 5,46:1 sobre --bg */
+  --success-text:#0B7A44;   /* verde para TEXTO, 5,31:1 sobre --bg */
+  --text:#0B1B33;
+  --muted-disabled:#55606F; /* texto sobre el gris del boton inactivo: 4,95:1 */
+  --muted:#636F81;          /* pasa AA sobre --bg */
+  --border:#DDE3EC;
+  --r:14px;
+
+  --col:430px;              /* ancho maximo de la columna de contenido */
+  --pie-h:52px;             /* alto de la barra fija inferior */
+  --pad-x:20px;
+}
+
+/* ---------- 2. Reset ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{block-size:100%;overflow-x:hidden}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+  overflow-wrap:break-word;
+}
+img,svg{max-inline-size:100%;block-size:auto}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none !important}
+
+/* Foco visible en todo lo interactivo */
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:4px}
+
+/* ---------- 3. Pantalla ---------- */
+/* Cada <section class="screen"> ocupa el alto util y lo reparte en tres
+   franjas: cabecera fija, .body (la unica que se desplaza) y .footer fijo.
+   Asi E4 y M5 caben sin que la pagina scrollee ni se mueva el pie. */
+.screen{
+  block-size:100dvh;
+  max-inline-size:var(--col);
+  margin-inline:auto;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  padding-block-start:max(28px,env(safe-area-inset-top));
+  padding-block-end:calc(var(--pie-h) + 10px + env(safe-area-inset-bottom));
+  padding-inline:max(var(--pad-x),env(safe-area-inset-left)) max(var(--pad-x),env(safe-area-inset-right));
+}
+.screen[hidden]{display:none}
+
+/* Franja central desplazable. Los pseudoelementos hacen de muelles: centran
+   el contenido cuando sobra sitio y se colapsan a cero cuando falta, que es
+   lo que rompia el centrado del mockup en cuanto habia overflow. */
+.body{
+  flex:1 1 auto;
+  min-block-size:0;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  padding-block:2px;        /* para que el outline de foco no se recorte */
+}
+.body::before,.body::after{content:"";display:block;flex:1 0 0;min-block-size:0}
+.body>*{min-inline-size:0}
+
+/* Variante sin centrado vertical, para listas largas (E4, M5, P1) */
+.body.is-top::before,.body.is-top::after{display:none}
+
+.screen>form{flex:1 1 auto;display:flex;flex-direction:column;min-block-size:0}
+fieldset{border:0;min-inline-size:0;padding:0}
+legend{display:block;inline-size:100%;padding:0}
+
+/* ---------- 4. Cabeceras y tipografia ---------- */
+.title{font-size:clamp(23px,6.4vw,26px);line-height:1.2;font-weight:700;letter-spacing:-.02em}
+.subtitle{margin-block-start:6px;font-size:15px;color:var(--muted)}
+.eyebrow{font-size:14px;font-weight:600;color:var(--primary);letter-spacing:.01em}
+
+.topbar{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.course{font-size:15px;font-weight:600;letter-spacing:-.01em;min-inline-size:0}
+.count{font-size:15px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- 5. Barra de avance, compartida ---------- */
+.track{
+  margin-block-start:14px;
+  block-size:8px;
+  border-radius:999px;
+  background:var(--border);
+  overflow:hidden;
+}
+.track>span{
+  display:block;
+  block-size:100%;
+  inline-size:0;
+  background:var(--primary);
+  border-radius:999px;
+  transition:inline-size 150ms ease;
+}
+
+/* ---------- 6. Pregunta y opciones (E2 y M3) ---------- */
+.topic{
+  display:inline-block;
+  margin-block-start:30px;
+  font-size:14px;font-weight:600;color:var(--primary);
+  letter-spacing:.01em;
+}
+.question{
+  margin-block-start:10px;
+  font-size:clamp(22px,6.2vw,26px);line-height:1.25;font-weight:700;letter-spacing:-.02em;
+  overflow-wrap:break-word;
+}
+.options{
+  list-style:none;
+  margin-block-start:24px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.opt{
+  display:flex;align-items:center;gap:14px;
+  min-block-size:68px;padding:12px 16px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  cursor:pointer;
+  transition:border-color 150ms ease,box-shadow 150ms ease;
+}
+.opt input{position:absolute;inline-size:1px;block-size:1px;opacity:0;pointer-events:none}
+.key{
+  flex:0 0 auto;
+  display:grid;place-items:center;
+  inline-size:34px;block-size:34px;border-radius:9px;
+  border:1px solid var(--border);
+  font-size:15px;font-weight:600;color:var(--muted);
+}
+.txt{font-size:17px;font-weight:500;letter-spacing:-.01em;min-inline-size:0;overflow-wrap:break-word}
+.opt:has(input:checked){border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+.opt:has(input:checked) .txt{color:var(--primary);font-weight:600}
+.opt:has(input:checked) .key{border-color:var(--primary);color:var(--primary)}
+.opt:has(input:focus-visible){outline:3px solid var(--primary);outline-offset:2px}
+
+/* ---------- 7. Barras de dominio (E3) ---------- */
+.bars{list-style:none;display:flex;flex-direction:column;gap:22px}
+.bar-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.bar-name{font-size:16px;font-weight:500;letter-spacing:-.01em;min-inline-size:0}
+.bar-pct{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bars .track{margin-block-start:10px;block-size:12px}
+/* Punto debil: TEXTO en --alert-text (AA), RELLENO en --alert */
+.is-weak .bar-name,.is-weak .bar-pct{color:var(--alert-text);font-weight:600}
+.is-weak .track>span{background:var(--alert)}
+
+/* ---------- 8. Tarjeta destacada ---------- */
+.callout{
+  margin-block-start:28px;
+  background:var(--surface);
+  border:1px solid var(--primary);
+  border-radius:var(--r);
+  padding:20px;
+  font-size:15px;line-height:1.5;
+}
+.callout h2{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+.callout p{margin-block-start:8px;font-size:15px;color:var(--muted);line-height:1.5}
+.callout strong{font-weight:600;color:var(--text)}
+
+/* ---------- 9. Ficha de monitor (E5) ---------- */
+.tutor{
+  margin-block-start:12px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;
+}
+.tutor-id{display:flex;align-items:center;gap:14px}
+.avatar{
+  flex:0 0 auto;display:grid;place-items:center;
+  inline-size:56px;block-size:56px;border-radius:50%;
+  background:var(--primary);color:#fff;
+  font-size:23px;font-weight:600;line-height:1;
+}
+/* display:block porque el motor los crea como <span>, que es inline: sin esto
+   el nombre y el programa se pegan ("Daniela R.Ingenieria Industrial"). */
+.tutor-name{display:block;font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.tutor-program{display:block;margin-block-start:3px;font-size:14px;color:var(--muted)}
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-block-start:16px}
+.chip{
+  display:inline-flex;align-items:center;
+  min-block-size:32px;padding:5px 12px;
+  border:1px solid var(--border);border-radius:999px;
+  font-size:14px;font-weight:500;color:var(--text);
+}
+.chip.is-destacado{border-color:var(--primary);color:var(--primary);font-weight:600}
+.specialty{margin-block-start:14px;font-size:15px;font-weight:500;color:var(--muted)}
+.price{
+  margin-block-start:22px;
+  font-size:24px;font-weight:700;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+}
+.price span{font-size:16px;font-weight:500;color:var(--muted);letter-spacing:0}
+
+/* ---------- 10. Horarios (E5) ---------- */
+.slots{margin-block-start:18px}
+.slots legend,.slots-legend{font-size:14px;font-weight:600;color:var(--muted)}
+.slot-grid{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-block-start:10px}
+.slot{
+  display:flex;align-items:center;justify-content:center;
+  min-block-size:60px;padding:10px 8px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  font-size:16px;font-weight:500;letter-spacing:-.01em;text-align:center;
+  cursor:pointer;
+  transition:border-color 150ms ease,box-shadow 150ms ease;
+}
+.slot input{position:absolute;inline-size:1px;block-size:1px;opacity:0;pointer-events:none}
+.slot:has(input:checked){
+  border-color:var(--primary);
+  box-shadow:inset 0 0 0 1px var(--primary);
+  color:var(--primary);font-weight:600;
+}
+.slot:has(input:focus-visible){outline:3px solid var(--primary);outline-offset:2px}
+
+/* ---------- 11. Pie de pantalla y botones ---------- */
+.footer{flex:0 0 auto;margin-block-start:auto;padding-block-start:16px}
+/* Solo el pie de primer nivel lleva la linea: deja claro que el contenido de
+   arriba se desplaza por debajo, en vez de parecer recortado. Los .footer que
+   el motor crea dentro de una pantalla (E5) no la llevan, para no duplicarla. */
+.screen>.footer{border-block-start:1px solid var(--border)}
+/* Los bloques de M5 necesitan aire entre si. */
+#panel-contenido>section+section{margin-block-start:24px}
+.footer>*+*{margin-block-start:12px}
+.btn{
+  display:flex;align-items:center;justify-content:center;
+  inline-size:100%;min-block-size:56px;padding:10px 16px;
+  background:var(--primary);color:#fff;
+  border:1px solid var(--primary);border-radius:var(--r);
+  font-family:inherit;font-size:17px;font-weight:600;letter-spacing:-.01em;
+  text-align:center;text-decoration:none;
+  cursor:pointer;
+  transition:opacity 150ms ease;
+}
+.btn:disabled,.btn[aria-disabled="true"]{
+  background:var(--border);
+  border-color:var(--border);
+  color:var(--muted-disabled);
+  cursor:not-allowed;
+}
+.btn-sec{
+  display:flex;align-items:center;justify-content:center;
+  inline-size:100%;min-block-size:52px;padding:10px 16px;
+  background:transparent;color:var(--primary);
+  border:1px solid var(--primary);border-radius:var(--r);
+  font-family:inherit;font-size:16px;font-weight:600;letter-spacing:-.01em;
+  text-align:center;text-decoration:none;
+  cursor:pointer;
+  transition:background-color 150ms ease;
+}
+.note{margin-block-start:12px;text-align:center;font-size:14px;color:var(--muted)}
+.enlace-sec{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-block-size:44px;padding:10px 8px;
+  background:none;border:0;
+  color:var(--primary);font-size:15px;font-weight:600;
+  text-decoration:underline;text-underline-offset:3px;
+  cursor:pointer;
+}
+/* .footer es un bloque, no un flex: se centra con margenes automaticos */
+.footer .enlace-sec,.body .enlace-sec{
+  display:flex;              /* de nivel bloque: ya lo centran los margenes */
+  inline-size:fit-content;
+  margin-inline:auto;
+  align-self:center;
+}
+
+/* ---------- 12. Selector de materia (E1 y M2) ---------- */
+.materias{list-style:none;display:flex;flex-direction:column;gap:12px;margin-block-start:20px}
+.materia{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  inline-size:100%;min-block-size:60px;padding:12px 16px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  font-family:inherit;font-size:17px;font-weight:600;color:var(--text);
+  letter-spacing:-.01em;text-align:start;
+  cursor:pointer;
+  transition:border-color 150ms ease,box-shadow 150ms ease;
+}
+.materia>span:first-child{min-inline-size:0;overflow-wrap:break-word}
+.materia[aria-pressed="true"],.materia.is-activa,.materia:has(input:checked){
+  border-color:var(--primary);
+  box-shadow:inset 0 0 0 1px var(--primary);
+  color:var(--primary);
+}
+.materia.is-pronto{
+  background:transparent;
+  border-color:var(--border);
+  box-shadow:none;
+  color:var(--muted);
+  font-weight:500;
+  cursor:not-allowed;
+}
+.etiqueta-pronto{
+  flex:0 0 auto;
+  display:inline-flex;align-items:center;
+  min-block-size:26px;padding:2px 10px;
+  border:1px solid var(--border);border-radius:999px;
+  font-size:14px;font-weight:500;color:var(--muted);
+  white-space:nowrap;
+}
+
+/* ---------- 13. Lista de monitores (E4) ---------- */
+.lista-monitores{list-style:none;display:flex;flex-direction:column;gap:14px;margin-block-start:18px}
+.monitor-card{
+  display:flex;flex-direction:column;gap:10px;
+  inline-size:100%;padding:16px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  font-family:inherit;color:var(--text);text-align:start;
+  cursor:pointer;
+  transition:border-color 150ms ease,box-shadow 150ms ease;
+}
+.monitor-card.is-recomendado{
+  border-color:var(--primary);
+  box-shadow:inset 0 0 0 1px var(--primary);
+}
+.monitor-card .eyebrow{margin-block-end:2px}
+.monitor-card .tutor-id{gap:12px}
+.monitor-card .avatar{inline-size:48px;block-size:48px;font-size:20px}
+.monitor-card .tutor-name{font-size:18px}
+.monitor-card .chips{margin-block-start:0}
+.monitor-card .specialty{margin-block-start:0;font-size:14px}
+.monitor-card .price{margin-block-start:0;font-size:19px}
+.monitor-card .price span{font-size:14px}
+
+/* ---------- 14. Beneficios (M1) ---------- */
+.beneficios{list-style:none;display:flex;flex-direction:column;gap:18px;margin-block-start:26px}
+.beneficios li{
+  position:relative;
+  padding-inline-start:26px;
+  font-size:16px;line-height:1.45;
+}
+.beneficios li::before{
+  content:"";
+  position:absolute;
+  inset-block-start:9px;inset-inline-start:0;
+  inline-size:10px;block-size:10px;border-radius:3px;
+  background:var(--primary);
+}
+.beneficios strong{font-weight:600}
+
+/* ---------- 15. Estado de certificacion (M4) ---------- */
+.estado-cert{
+  display:inline-flex;align-items:center;
+  min-block-size:34px;padding:6px 14px;
+  border-radius:999px;
+  border:1px solid var(--success-text);
+  background:var(--surface);
+  color:var(--success-text);
+  font-size:15px;font-weight:600;letter-spacing:-.01em;
+}
+.estado-cert.is-no,.estado-cert.is-fallido,.estado-cert.is-pendiente{
+  border-color:var(--alert-text);
+  color:var(--alert-text);
+}
+
+/* ---------- 16. Brief de sesion (M5) ---------- */
+.brief-sesion{
+  margin-block-start:14px;
+  background:var(--surface);
+  border:1px solid var(--primary);border-radius:var(--r);
+  padding:18px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.brief-linea{
+  display:flex;flex-wrap:wrap;gap:4px 8px;
+  font-size:15px;line-height:1.45;
+}
+.brief-linea>span:first-child,.brief-linea strong,.brief-linea b{
+  flex:0 0 auto;
+  color:var(--muted);font-weight:600;
+}
+.brief-linea>span:last-child{flex:1 1 160px;min-inline-size:0;font-weight:500;color:var(--text)}
+
+/* ---------- 17. Progreso de nivel (M5) ---------- */
+.progreso{margin-block-start:14px}
+.progreso .track{block-size:12px}
+.progreso p{font-size:15px;color:var(--muted)}
+.progreso .track+p{margin-block-start:10px}
+.progreso p+p{margin-block-start:8px}
+
+/* ---------- 18. Captura de correo ---------- */
+.captura{
+  margin-block-start:20px;
+  padding:18px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+}
+.captura h2,.captura h3{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+.captura p{font-size:15px;color:var(--muted);margin-block-start:6px}
+.campo{display:block;inline-size:100%;margin-block-start:14px}
+.captura input[type="email"],input.campo,.campo input{
+  display:block;
+  inline-size:100%;
+  min-block-size:52px;
+  padding:12px 14px;
+  background:var(--bg);
+  color:var(--text);
+  border:1px solid var(--border);border-radius:var(--r);
+  font-family:inherit;font-size:16px;
+  transition:border-color 150ms ease;
+}
+.captura input[type="email"]::placeholder{color:var(--muted)}
+.captura input[type="email"]:focus-visible{border-color:var(--primary)}
+.captura button,.captura .btn,.captura .btn-sec{margin-block-start:12px}
+.gracias{
+  margin-block-start:14px;
+  font-size:15px;font-weight:600;color:var(--success-text);
+}
+
+/* ---------- 19. Pie global y boton de reinicio ---------- */
+.pie-prototipo{
+  position:fixed;
+  inset-inline:0;
+  inset-block-end:0;
+  z-index:20;
+  display:flex;align-items:center;justify-content:center;
+  min-block-size:var(--pie-h);
+  padding-inline:max(var(--pad-x),calc(50% - (var(--col) / 2) + var(--pad-x)));
+  padding-block-end:env(safe-area-inset-bottom);
+  background:var(--bg);
+  border-block-start:1px solid var(--border);
+  color:var(--muted);
+  font-size:14px;line-height:1.3;
+  pointer-events:none;
+}
+/* Si el boton de reinicio cuelga de <body> comparte franja con el pie:
+   el pie se alinea a la izquierda para que nunca se solapen, ni a 360px. */
+body:has(>.btn-reiniciar) .pie-prototipo{justify-content:flex-start}
+
+.btn-reiniciar{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-block-size:44px;min-inline-size:44px;padding:10px 16px;
+  background:var(--surface);
+  color:var(--muted);
+  border:1px solid var(--border);border-radius:999px;
+  font-family:inherit;font-size:14px;font-weight:600;
+  text-decoration:none;white-space:nowrap;
+  cursor:pointer;
+  transition:border-color 150ms ease,color 150ms ease;
+}
+/* Colocacion global: solo si cuelga directamente de <body>. */
+body>.btn-reiniciar{
+  position:fixed;
+  z-index:21;
+  inset-block-end:calc(env(safe-area-inset-bottom) + 4px);
+  inset-inline-end:max(var(--pad-x),calc(50vw - (var(--col) / 2) + var(--pad-x)));
+}
+
+/* ---------- 20. Ajustes por alto y por ancho ---------- */
+@media (max-height:700px){
+  .screen{padding-block-start:max(18px,env(safe-area-inset-top))}
+  .topic{margin-block-start:20px}
+  .options{margin-block-start:18px;gap:10px}
+  .opt{min-block-size:60px}
+  .bars{gap:18px}
+  .callout{margin-block-start:20px}
+  .beneficios{gap:14px;margin-block-start:20px}
+}
+@media (max-width:370px){
+  :root{--pad-x:16px}
+  .opt{gap:12px;padding:12px 14px}
+  .txt{font-size:16px}
+  .slot-grid{grid-template-columns:1fr}
+}
+
+/* ---------- 21. Movimiento reducido ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ====================== FLUJO DEL ESTUDIANTE (E1-E6) + PROFESOR (P1) ====================== -->
+<!-- ==========================================================
+     PIEZA 02 - Flujo del estudiante (E1-E6) + canal profesor (P1)
+     Solo markup. Sin <style> ni <script>.
+     Todos los textos de pantalla son literales del BRIEF.md.
+     Acentos escritos con entidades HTML (igual que el mockup
+     verificado) para sobrevivir al ensamblado del archivo unico.
+     ========================================================== -->
+
+<!-- ===================== E1 - Inicio ===================== -->
+<section id="s-inicio" class="screen" hidden aria-labelledby="t-inicio">
+  <header>
+    <p class="eyebrow">Calibra</p>
+    <h1 class="title" id="t-inicio">Llega a la monitor&iacute;a y que el monitor ya sepa qu&eacute; explicarte</h1>
+  </header>
+
+  <div class="body">
+    <p class="subtitle" id="lbl-materias">Elige tu materia</p>
+    <!-- El motor pinta aqu&iacute; MATERIAS: <li class="materia"> y <li class="materia is-pronto"> -->
+    <ul class="materias" id="lista-materias" aria-labelledby="lbl-materias"></ul>
+  </div>
+
+  <div class="footer">
+    <button class="btn" type="button" data-ir="prueba">Empezar la prueba</button>
+    <p class="note"><a class="enlace-sec" href="#monitor" data-ir="monitor">Soy monitor</a></p>
+    <p class="note"><a class="enlace-sec" href="#profesor" data-ir="profesor">Soy profesor</a></p>
+  </div>
+</section>
+
+<!-- ===================== E2 - Prueba ===================== -->
+<section id="s-prueba" class="screen" hidden aria-labelledby="prueba-enunciado">
+  <header>
+    <div class="topbar">
+      <span class="course">C&aacute;lculo Integral</span>
+      <span class="count" id="prueba-contador">Pregunta 1 de 4</span>
+    </div>
+    <div class="track" id="prueba-track" role="progressbar" aria-label="Avance de la prueba" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <span id="prueba-track-fill" style="inline-size:0%"></span>
+    </div>
+  </header>
+
+  <div class="body">
+    <span class="topic" id="prueba-topic"></span>
+    <h1 class="question" id="prueba-enunciado"></h1>
+    <!-- El motor pinta aqu&iacute; las 4 opciones:
+         <li><label class="opt"><input type="radio" name="opcion" value="A">
+         <span class="key" aria-hidden="true">A</span><span class="txt">...</span></label></li> -->
+    <ul class="options" id="prueba-opciones"></ul>
+  </div>
+
+  <div class="footer">
+    <button class="btn" type="button" id="prueba-siguiente" disabled>Siguiente</button>
+    <p class="note">Sin nota. Solo para saber qu&eacute; explicarte.</p>
+  </div>
+</section>
+
+<!-- ================== E3 - Diagn&oacute;stico ================== -->
+<section id="s-diagnostico" class="screen" hidden aria-labelledby="t-diagnostico">
+  <header>
+    <h1 class="title" id="t-diagnostico">Tu diagn&oacute;stico</h1>
+    <p class="subtitle">C&aacute;lculo Integral &middot; antes del parcial 2</p>
+  </header>
+
+  <div class="body">
+    <!-- El motor pinta aqu&iacute; una barra por subtema:
+         <li> o <li class="is-weak"> con .bar-head (.bar-name + .bar-pct)
+         y un .track con role="progressbar" -->
+    <ul class="bars" id="diag-barras"></ul>
+
+    <div class="callout" role="group" aria-labelledby="diag-debil-titulo">
+      <h2 id="diag-debil-titulo"></h2>
+      <p id="diag-debil-error"></p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn" type="button" data-ir="monitores">Ver monitores de este subtema</button>
+  </div>
+</section>
+
+<!-- =================== E4 - Monitores =================== -->
+<section id="s-monitores" class="screen" hidden aria-labelledby="t-monitores">
+  <header>
+    <h1 class="title" id="t-monitores">Monitores de este subtema</h1>
+    <p class="subtitle">C&aacute;lculo Integral</p>
+  </header>
+
+  <div class="body">
+    <!-- El motor pinta aqu&iacute; MONITORES: <li class="monitor-card"> o
+         <li class="monitor-card is-recomendado">, cada una con data-ir="perfil" -->
+    <ul class="lista-monitores" id="lista-monitores"></ul>
+  </div>
+</section>
+
+<!-- =============== E5 - Perfil y agendar =============== -->
+<section id="s-perfil" class="screen" hidden aria-labelledby="t-perfil">
+  <header>
+    <h1 class="eyebrow" id="t-perfil">Perfil del monitor</h1>
+  </header>
+
+  <div class="body">
+    <!-- El motor rellena este bloque entero: tarjeta .tutor, .callout,
+         .price, los dos .slot y el bot&oacute;n "Agendar y pagar".
+         El nombre del monitor va como <h2 class="tutor-name">. -->
+    <div id="perfil-contenido"></div>
+  </div>
+</section>
+
+<!-- ================= E6 - Confirmaci&oacute;n ================= -->
+<section id="s-confirmacion" class="screen" hidden aria-labelledby="t-confirmacion">
+  <header>
+    <h1 class="title" id="t-confirmacion">Listo. Tu sesi&oacute;n quedar&iacute;a agendada.</h1>
+  </header>
+
+  <div class="body">
+    <!-- El motor rellena aqu&iacute; el resumen de lo agendado -->
+    <div id="confirmacion-resumen"></div>
+
+    <p class="subtitle">Calibra todav&iacute;a no est&aacute; abierta. D&eacute;janos tu correo y eres de los primeros.</p>
+
+    <form class="captura" data-rol="estudiante">
+      <div class="campo">
+        <label for="correo-estudiante">Tu correo</label>
+        <input id="correo-estudiante" name="correo" type="email" inputmode="email" autocomplete="email" required placeholder="nombre@uniandes.edu.co">
+      </div>
+      <button class="btn" type="submit">Av&iacute;senme</button>
+      <p class="gracias" hidden>Gracias. Te avisamos apenas Calibra abra.</p>
+    </form>
+  </div>
+
+  <div class="footer">
+    <button class="btn btn-sec" type="button" data-ir="inicio">Empezar de nuevo</button>
+  </div>
+</section>
+
+<!-- ================== P1 - Profesor ==================== -->
+<section id="s-profesor" class="screen" hidden aria-labelledby="t-profesor">
+  <header>
+    <p class="eyebrow">Para profesores</p>
+    <h1 class="title" id="t-profesor">Aplica la calibraci&oacute;n en tu curso y mira qu&eacute; subtema tiene flojo antes del parcial. Gratis.</h1>
+  </header>
+
+  <div class="body">
+    <form class="captura" data-rol="profesor">
+      <div class="campo">
+        <label for="correo-profesor">Tu correo</label>
+        <input id="correo-profesor" name="correo" type="email" inputmode="email" autocomplete="email" required placeholder="nombre@uniandes.edu.co">
+      </div>
+      <button class="btn" type="submit">Av&iacute;senme</button>
+      <p class="gracias" hidden>Gracias. Te avisamos apenas Calibra abra.</p>
+    </form>
+  </div>
+
+  <div class="footer">
+    <button class="btn btn-sec" type="button" data-ir="inicio">Volver al inicio</button>
+  </div>
+</section>
+
+<!-- ====================== FLUJO DEL MONITOR (M1-M5) ====================== -->
+<!-- ============================================================
+     PIEZA 3 · Flujo del monitor (M1 a M5)
+     Solo markup. El CSS y el motor viven en otras piezas.
+     ============================================================ -->
+
+<!-- M1 · Inicio monitor -->
+<section id="s-monitor" class="screen" hidden aria-labelledby="monitor-titulo">
+  <header>
+    <p class="eyebrow">Calibra para monitores</p>
+    <h1 class="title" id="monitor-titulo">Gana dinero explicando lo que ya sabes.</h1>
+  </header>
+
+  <div class="body">
+    <ul class="beneficios">
+      <li>Te certificas por materia con una prueba corta.</li>
+      <li>Te llegan estudiantes con el diagn&oacute;stico hecho, as&iacute; sabes qu&eacute; explicar antes de sentarte.</li>
+      <li>Subes de nivel para cobrar m&aacute;s por hora.</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <button class="btn" type="button" data-ir="monitor-materia">Presentar la prueba de certificaci&oacute;n</button>
+  </div>
+</section>
+
+
+<!-- M2 · Selecci&oacute;n de materia (monitor) -->
+<section id="s-monitor-materia" class="screen" hidden aria-labelledby="monitor-materia-titulo">
+  <header>
+    <h1 class="title" id="monitor-materia-titulo">Elige tu materia</h1>
+    <p class="subtitle">Por ahora solo est&aacute; abierta C&aacute;lculo Integral.</p>
+  </header>
+
+  <div class="body">
+    <ul class="materias" id="lista-materias-monitor" aria-labelledby="monitor-materia-titulo"></ul>
+  </div>
+
+  <div class="footer">
+    <button class="btn" type="button" data-ir="certificacion">Continuar</button>
+  </div>
+</section>
+
+
+<!-- M3 · Prueba de certificaci&oacute;n (3 preguntas) -->
+<section id="s-certificacion" class="screen" hidden aria-labelledby="cert-enunciado">
+  <header>
+    <div class="topbar">
+      <span class="course">C&aacute;lculo Integral &middot; Certificaci&oacute;n</span>
+      <span class="count" id="cert-contador">Pregunta 1 de 3</span>
+    </div>
+    <div class="track" id="cert-track" role="progressbar"
+         aria-label="Avance de la prueba de certificaci&oacute;n"
+         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <span id="cert-track-fill" style="inline-size:0%"></span>
+    </div>
+  </header>
+
+  <div class="body">
+    <div>
+      <span class="topic" id="cert-topic"></span>
+      <h1 class="question" id="cert-enunciado"></h1>
+    </div>
+    <ul class="options" id="cert-opciones" aria-labelledby="cert-enunciado"></ul>
+  </div>
+
+  <div class="footer">
+    <button class="btn" type="button" id="cert-siguiente" disabled>Siguiente</button>
+  </div>
+</section>
+
+
+<!-- M4 · Resultado de la certificaci&oacute;n -->
+<section id="s-monitor-resultado" class="screen" hidden aria-labelledby="monitor-resultado-titulo">
+  <header>
+    <h1 class="title" id="monitor-resultado-titulo">Resultado de tu certificaci&oacute;n</h1>
+  </header>
+
+  <div class="body">
+    <div id="cert-resultado"></div>
+
+    <form class="captura" data-rol="monitor">
+      <p class="subtitle">&iquest;Quieres ser de los primeros monitores? D&eacute;janos tu correo.</p>
+      <p class="campo">
+        <label for="correo-monitor-resultado">Tu correo</label>
+        <input id="correo-monitor-resultado" name="correo" type="email"
+               inputmode="email" autocomplete="email" required
+               placeholder="tucorreo@uniandes.edu.co">
+      </p>
+      <button class="btn" type="submit">Av&iacute;senme</button>
+      <p class="gracias" role="status" hidden>Gracias. Te escribimos apenas Calibra abra.</p>
+    </form>
+  </div>
+</section>
+
+
+<!-- M5 · Panel del monitor -->
+<section id="s-panel" class="screen" hidden aria-labelledby="panel-titulo">
+  <header>
+    <h1 class="title" id="panel-titulo">Tu panel</h1>
+    <p class="subtitle">C&aacute;lculo Integral</p>
+  </header>
+
+  <div class="body">
+    <div id="panel-contenido"></div>
+
+    <form class="captura" data-rol="monitor">
+      <p class="subtitle">&iquest;Quieres ser de los primeros monitores? D&eacute;janos tu correo.</p>
+      <p class="campo">
+        <label for="correo-panel">Tu correo</label>
+        <input id="correo-panel" name="correo" type="email"
+               inputmode="email" autocomplete="email" required
+               placeholder="tucorreo@uniandes.edu.co">
+      </p>
+      <button class="btn" type="submit">Av&iacute;senme</button>
+      <p class="gracias" role="status" hidden>Gracias. Te escribimos apenas Calibra abra.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ====================== PIE GLOBAL — regla de honestidad del brief ======================
+     "Prototipo · datos de ejemplo" va en TODAS las pantallas. Se escribe una sola vez,
+     fuera de las secciones, y queda fijo abajo. No negociable. -->
+<p class="pie-prototipo">Prototipo &middot; datos de ejemplo</p>
+<button type="button" class="btn-reiniciar" id="btn-reiniciar">Empezar de nuevo</button>
+
+<script>
+/* ==================== CONTENIDO EDITABLE ==================== */
+/*
+  TODO lo que se puede cambiar del prototipo vive en este bloque.
+  Si quieres otras materias, otras preguntas u otros textos, edita aqui
+  y no toques nada mas abajo: el motor lee estas constantes y arma las
+  pantallas solo.
+
+  Reglas para editar sin romper nada:
+  - No borres una constante: si no la necesitas, dejala vacia ([] o '').
+  - Respeta las comas al final de cada linea de una lista.
+  - Los textos van entre comillas simples. Si un texto lleva una comilla
+    simple por dentro, escribela como \' o usa comillas dobles.
+  - Los simbolos matematicos se escriben directamente (∫ · ² ˣ ∞ −).
+    No hace falta ninguna libreria.
+*/
+
+
+/* ---------- 1. Captura de correos ---------- */
+
+/*
+  Pega aqui la URL de tu formulario (Formspree, Google Forms, etc.).
+  Si la dejas vacia el prototipo NO envia nada: muestra igual el mensaje
+  de gracias y sirve para demostrar sin depender de internet.
+*/
+const FORM_ENDPOINT = ""; // pegar aquí la URL de Formspree o Google Forms
+
+
+/* ---------- 2. Materias del selector (pantallas E1 y M2) ---------- */
+
+/*
+  Cada materia es un objeto:
+    id     -> identificador interno, sin espacios ni tildes. No se ve.
+    nombre -> lo que lee el estudiante en pantalla.
+    activa -> true  = se puede elegir y lleva a la prueba.
+              false = se pinta en gris con la etiqueta "pronto".
+
+  Si activas mas de una materia el prototipo seguira usando el mismo
+  banco de preguntas de abajo, porque en este MVP hay un solo banco.
+*/
+const MATERIAS = [
+  { id: 'calculo-integral',    nombre: 'Cálculo Integral',           activa: true  },
+  { id: 'calculo-diferencial', nombre: 'Cálculo Diferencial',        activa: false },
+  { id: 'calculo-vectorial',   nombre: 'Cálculo Vectorial',          activa: false },
+  { id: 'algebra-lineal',      nombre: 'Álgebra Lineal',             activa: false },
+  { id: 'fisica-1',            nombre: 'Física I',                   activa: false },
+  { id: 'probabilidad',        nombre: 'Probabilidad y Estadística', activa: false },
+];
+
+
+/* ---------- 3. El curso que se esta calibrando ---------- */
+
+/*
+  nombre   -> aparece en la barra superior de la prueba y en el diagnostico.
+  contexto -> el "cuando" del diagnostico. Cambialo si la prueba apunta a
+              otro momento del semestre (por ejemplo 'antes del final').
+  Juntos forman el subtitulo: "Cálculo Integral · antes del parcial 2".
+*/
+const CURSO = {
+  nombre: 'Cálculo Integral',
+  contexto: 'antes del parcial 2',
+};
+
+
+/* ---------- 4. Subtemas evaluados ---------- */
+
+/*
+  A la izquierda la clave interna (la que usan las preguntas de abajo),
+  a la derecha el nombre visible en las barras del diagnostico.
+  Si agregas un subtema nuevo, agrega tambien preguntas que lo usen:
+  un subtema sin preguntas no aparece en el diagnostico.
+*/
+const SUBTEMAS = {
+  partes: 'Integración por partes',
+  sustitucion: 'Sustitución',
+  impropias: 'Integrales impropias',
+};
+
+
+/* ---------- 5. Banco de preguntas ---------- */
+
+/*
+  Cada pregunta:
+    id        -> identificador unico ('p1', 'p2', ...). Lo usan las listas
+                 CALIBRACION y CERTIFICACION de mas abajo.
+    subtema   -> una de las claves de SUBTEMAS. Define en que barra suma.
+    enunciado -> lo que se lee en grande.
+    opciones  -> cuatro tarjetas, en el orden en que se muestran.
+
+  Cada opcion:
+    letra    -> la letra del cuadrito (A, B, C, D).
+    texto    -> la respuesta que ve el estudiante.
+    correcta -> true en UNA sola opcion por pregunta. Las demas van en false.
+    error    -> SOLO en las incorrectas. Es el error conceptual que delata
+                esa opcion. Este texto es el que el diagnostico muestra
+                como "Error detectado", asi que escribelo pensando en que
+                el estudiante lo lea tal cual, en minuscula y sin punto final.
+
+  Ojo: el prototipo nunca le dice al estudiante si acerto o fallo. Las
+  respuestas solo sirven para armar el diagnostico.
+*/
+const PREGUNTAS = [
+  {
+    id: 'p1',
+    subtema: 'partes',
+    enunciado: 'En ∫ x·ln(x) dx, ¿qué eliges como u?',
+    opciones: [
+      { letra: 'A', texto: 'x',        correcta: false, error: 'eliges u por orden de aparición, no por prioridad ILATE' },
+      { letra: 'B', texto: 'ln(x)',    correcta: true },
+      { letra: 'C', texto: 'dx',       correcta: false, error: 'confundes u con dv' },
+      { letra: 'D', texto: 'x · ln(x)', correcta: false, error: 'no separas el producto en u y dv' },
+    ],
+  },
+  {
+    id: 'p2',
+    subtema: 'sustitucion',
+    enunciado: 'En ∫ 2x·cos(x²) dx, ¿qué método aplicas?',
+    opciones: [
+      { letra: 'A', texto: 'Integración por partes',    correcta: false, error: 'no reconoces que 2x es la derivada de x²' },
+      { letra: 'B', texto: 'Sustitución con u = x²',    correcta: true },
+      { letra: 'C', texto: 'Fracciones parciales',      correcta: false, error: 'aplicas un método que no corresponde a esta forma' },
+      { letra: 'D', texto: 'Integral directa de tabla', correcta: false, error: 'ignoras la regla de la cadena' },
+    ],
+  },
+  {
+    id: 'p3',
+    subtema: 'impropias',
+    enunciado: '∫ desde 1 hasta ∞ de (1/x²) dx:',
+    opciones: [
+      { letra: 'A', texto: 'Converge a 1',           correcta: true },
+      { letra: 'B', texto: 'Diverge',                correcta: false, error: 'la confundes con 1/x, que sí diverge' },
+      { letra: 'C', texto: 'Converge a 0',           correcta: false, error: 'evalúas mal el límite superior' },
+      { letra: 'D', texto: 'No se puede determinar', correcta: false, error: 'no reconoces una impropia convergente' },
+    ],
+  },
+  {
+    id: 'p4',
+    subtema: 'partes',
+    enunciado: 'En ∫ x·eˣ dx, con u = x y dv = eˣ dx, el resultado es:',
+    opciones: [
+      { letra: 'A', texto: 'x·eˣ − eˣ + C',  correcta: true },
+      { letra: 'B', texto: 'x·eˣ + eˣ + C',  correcta: false, error: 'te equivocas en el signo de la fórmula de partes' },
+      { letra: 'C', texto: 'eˣ + C',         correcta: false, error: 'omites el término u·v' },
+      { letra: 'D', texto: 'x²·eˣ/2 + C',    correcta: false, error: 'integras como si fuera un producto de potencias' },
+    ],
+  },
+];
+
+
+/* ---------- 6. Que preguntas usa cada prueba ---------- */
+
+/*
+  CALIBRACION  -> las que responde el estudiante (pantalla E2).
+  CERTIFICACION-> las que responde el monitor candidato (pantalla M3).
+                  minimoAciertos es cuantas debe acertar para certificarse.
+
+  Se listan por id, en el orden en que se muestran. Puedes repetir una
+  pregunta en ambas listas, como pasa ahora con p1, p2 y p3.
+  Si cambias la cantidad, el contador ("Pregunta N de 4") se ajusta solo.
+*/
+const CALIBRACION = { preguntas: ['p1', 'p2', 'p3', 'p4'] };
+const CERTIFICACION = { preguntas: ['p1', 'p2', 'p3'], minimoAciertos: 2 };
+
+
+/* ---------- 7. Reglas del diagnostico ---------- */
+
+/*
+  MAPA_PORCENTAJE existe por una razon de credibilidad, no de matematicas.
+  Con pocas preguntas por subtema los porcentajes reales solo pueden ser
+  0, 50 o 100, y esas cifras redondas se ven falsas ("100% de dominio"
+  con dos preguntas no se lo cree nadie). Este mapa traduce el porcentaje
+  crudo a uno mostrado, mas creible y sin premiar de mas:
+
+      0 crudo  ->  34 mostrado
+     50 crudo  ->  61 mostrado
+    100 crudo  ->  82 mostrado
+
+  Si un porcentaje crudo no esta en la tabla (porque agregaste mas
+  preguntas por subtema), el motor lo muestra tal cual.
+  Cambia los numeros de la derecha si quieres barras mas o menos duras.
+*/
+const MAPA_PORCENTAJE = { 0: 34, 50: 61, 100: 82 };
+
+/*
+  Si dos subtemas empatan en el porcentaje mas bajo, este es el que gana
+  y se muestra como punto debil. Tiene que ser una clave de SUBTEMAS.
+*/
+const SUBTEMA_DESEMPATE = 'partes';
+
+/*
+  Que se muestra en "Error detectado" cuando el estudiante no fallo
+  ninguna pregunta del subtema mas bajo.
+*/
+const TEXTO_SIN_FALLOS = 'Vas bien. Refuerza este subtema antes del parcial.';
+
+
+/* ---------- 8. Monitores de ejemplo (pantallas E4 y E5) ---------- */
+
+/*
+  Son datos de ejemplo: no hay monitores reales todavia.
+    inicial       -> la letra del circulo.
+    nombre        -> nombre visible.
+    programa      -> carrera y semestre, en una linea.
+    nivel         -> numero que se pinta como chip "Nivel N".
+    calificacion  -> texto, con coma decimal como se escribe en Colombia.
+    resenas       -> cuantas resenas respaldan esa calificacion.
+    precio        -> numero entero en pesos, sin puntos ni signo.
+                     El formato ($28.000 / hora) lo pone el motor.
+    encaje        -> la linea de por que le sirve a este estudiante.
+    mismoProfesor -> true agrega el chip "Cursó con tu mismo profesor".
+    recomendado   -> true marca la tarjeta como recomendada. Ponlo en una
+                     sola de la lista; conviene que sea la primera.
+*/
+const MONITORES = [
+  {
+    inicial: 'D',
+    nombre: 'Daniela R.',
+    programa: 'Ingeniería Industrial · 7º semestre',
+    nivel: 3,
+    calificacion: '4,8',
+    resenas: 37,
+    precio: 28000,
+    encaje: 'Especializada en integración por partes',
+    mismoProfesor: true,
+    recomendado: true,
+  },
+  {
+    inicial: 'S',
+    nombre: 'Santiago M.',
+    programa: 'Matemáticas · 6º semestre',
+    nivel: 2,
+    calificacion: '4,6',
+    resenas: 19,
+    precio: 24000,
+    encaje: 'Fuerte en sustitución e impropias',
+    mismoProfesor: false,
+    recomendado: false,
+  },
+  {
+    inicial: 'V',
+    nombre: 'Valeria C.',
+    programa: 'Ingeniería Civil · 8º semestre',
+    nivel: 3,
+    calificacion: '4,9',
+    resenas: 52,
+    precio: 30000,
+    encaje: 'La mejor calificada del semestre',
+    mismoProfesor: false,
+    recomendado: false,
+  },
+];
+
+
+/* ---------- 9. Horarios que se ofrecen al agendar (pantalla E5) ---------- */
+
+/*
+  Textos tal como los lee el estudiante. Agrega o quita lineas si quieres
+  mas opciones; el primero queda seleccionado por defecto.
+*/
+const HORARIOS = [
+  'Hoy 7:00 p. m.',
+  'Mañana 4:00 p. m.',
+];
+
+
+/* ---------- 10. El monitor recien certificado (pantallas M4 y M5) ---------- */
+
+/*
+  Perfil que se le genera al monitor apenas pasa la certificacion.
+    nivel      -> con el que arranca todo el mundo.
+    tarifa     -> tarifa sugerida por hora, en pesos, como numero entero.
+    monitorias -> cuantas lleva hechas. Arranca en 0.
+*/
+const PERFIL_MONITOR_NUEVO = { nivel: 1, tarifa: 25000, monitorias: 0 };
+
+/*
+  La barra de progreso del panel: "8 de 15 monitorías para Nivel 2",
+  y la promesa de cuanto cobraria en el nivel siguiente.
+    hechas          -> monitorias completadas (numerador).
+    meta            -> las que se necesitan para subir (denominador).
+    siguienteNivel  -> a que nivel sube.
+    tarifaSiguiente -> tarifa por hora en ese nivel, en pesos.
+*/
+const PROGRESO_NIVEL = { hechas: 8, meta: 15, siguienteNivel: 2, tarifaSiguiente: 35000 };
+
+/*
+  La proxima sesion que ve el monitor en su panel, con el brief que le
+  llega antes de empezar. Es OTRO estudiante y OTRA sesion, distinta de la
+  que acaba de agendar el estudiante en el flujo E1-E6: por eso el error
+  detectado no coincide con ninguno del banco de preguntas de arriba.
+  Esta puesto asi a proposito, para que el panel se vea vivo.
+*/
+const SESION_EJEMPLO = {
+  cuando: 'Mañana 4:00 p. m.',
+  estudiante: 'Juan D.',
+  subtema: 'Integración por partes',
+  error: 'elige u por orden alfabético, no por prioridad ILATE',
+  plan: '3 ejercicios, arrancar por el caso con logaritmo',
+};
+
+
+/* ---------- 11. Textos de pantalla ---------- */
+
+/*
+  Todas las frases que el motor escribe en pantalla. Cambia el texto de la
+  derecha, nunca el nombre de la izquierda.
+  Las llaves { } son huecos que el motor rellena. No los borres ni les
+  cambies el nombre: {nombre}, {subtema}, {error}, {materia}, {contexto},
+  {n}, {total}, {hechas}, {meta}, {nivel}, {tarifa}, {precio}, {horario}.
+*/
+const TEXTOS = {
+
+  /* Marca y pie */
+  marca: 'Calibra',
+  pie: 'Prototipo · datos de ejemplo',
+  reiniciar: 'Empezar de nuevo',
+
+  /* E1 · Inicio */
+  e1Titular: 'Llega a la monitoría y que el monitor ya sepa qué explicarte',
+  e1Materias: 'Elige tu materia',
+  e1EtiquetaPronto: 'pronto',
+  e1Boton: 'Empezar la prueba',
+  e1EnlaceMonitor: 'Soy monitor',
+  e1EnlaceProfesor: 'Soy profesor',
+
+  /* E2 · Prueba */
+  e2Contador: 'Pregunta {n} de {total}',
+  e2Boton: 'Siguiente',
+  e2Nota: 'Sin nota. Solo para saber qué explicarte.',
+
+  /* E3 · Diagnóstico */
+  e3Titulo: 'Tu diagnóstico',
+  e3Subtitulo: '{materia} · {contexto}',
+  e3PuntoDebil: 'Tu punto débil: {subtema}',
+  e3Error: 'Error detectado: {error}',
+  e3Boton: 'Ver monitores de este subtema',
+
+  /* E4 · Monitores */
+  e4Titulo: 'Monitores para {subtema}',
+  e4Recomendado: 'Monitor recomendado',
+  e4ChipMismoProfesor: 'Cursó con tu mismo profesor',
+  e4ChipNivel: 'Nivel {nivel}',
+  e4PrecioHora: '{precio} / hora',
+
+  /* E5 · Perfil y agendar */
+  e5Callout: '{nombre} recibirá tu diagnóstico antes de la sesión: qué explicarte, en qué orden y con qué ejercicio arrancar.',
+  e5Horarios: 'Elige un horario',
+  e5Boton: 'Agendar y pagar',
+
+  /* E6 · Confirmación y lista de espera */
+  e6Titulo: 'Listo. Tu sesión quedaría agendada.',
+  e6ResumenMonitor: 'Con {nombre}',
+  e6ResumenHorario: '{horario}',
+  e6ResumenSubtema: 'Sobre {subtema}',
+  e6ResumenPrecio: '{precio} / hora',
+  e6CapturaTitulo: 'Calibra todavía no está abierta. Déjanos tu correo y eres de los primeros.',
+  e6CapturaBoton: 'Avísenme',
+
+  /* Formularios de correo (los tres) */
+  correoEtiqueta: 'Tu correo',
+  correoPlaceholder: 'nombre@uniandes.edu.co',
+  gracias: 'Gracias. Te escribimos apenas abramos.',
+
+  /* M1 · Inicio monitor */
+  m1Titular: 'Gana dinero explicando lo que ya sabes.',
+  m1Beneficio1: 'Te certificas por materia.',
+  m1Beneficio2: 'Te llegan estudiantes con el diagnóstico hecho.',
+  m1Beneficio3: 'Subes de nivel para cobrar más.',
+  m1Boton: 'Presentar la prueba de certificación',
+
+  /* M2 · Materia del monitor */
+  m2Titulo: 'Elige la materia en la que te quieres certificar',
+  m2Boton: 'Empezar la prueba de certificación',
+
+  /* M3 · Prueba de certificación */
+  m3Contador: 'Pregunta {n} de {total}',
+  m3Boton: 'Siguiente',
+
+  /* M4 · Resultado */
+  m4Certificado: 'Certificado en {materia}',
+  m4PerfilTitulo: 'Tu perfil',
+  m4PerfilNivel: 'Nivel {nivel}',
+  m4PerfilTarifa: 'Tarifa sugerida {tarifa} / hora',
+  m4PerfilMonitorias: '0 monitorías',
+  m4Boton: 'Ver mi panel',
+  m4Fallido: 'Todavía no. Puedes reintentar en 7 días.',
+  m4CapturaTitulo: '¿Quieres ser de los primeros monitores? Déjanos tu correo.',
+  m4CapturaBoton: 'Avísenme',
+
+  /* M5 · Panel del monitor */
+  m5ProximaSesion: 'Próxima sesión',
+  m5Cuando: '{cuando} con {estudiante}',
+  m5BriefSubtema: 'Subtema · {subtema}',
+  m5BriefError: 'Error detectado · {error}',
+  m5BriefPlan: 'Plan de 60 min · {plan}',
+  m5ProgresoTitulo: 'Tu progreso',
+  m5ProgresoBarra: '{hechas} de {meta} monitorías para Nivel {nivel}',
+  m5ProgresoTarifa: 'En Nivel {nivel} tu tarifa sube a {tarifa}/hora',
+  m5CapturaTitulo: '¿Quieres ser de los primeros monitores? Déjanos tu correo.',
+  m5CapturaBoton: 'Avísenme',
+
+  /* P1 · Profesor */
+  p1Titulo: 'Aplica la calibración en tu curso y mira qué subtema tiene flojo antes del parcial. Gratis.',
+  p1CapturaBoton: 'Quiero probarlo',
+};
+
+/* ================== FIN CONTENIDO EDITABLE ================== */
+
+/* ===========================================================================
+   CALIBRA · MOTOR
+   Va dentro del mismo <script>, justo despues del bloque de contenido.
+   Lee las constantes del contenido, no las redefine.
+   El estado vive solo en memoria. Sin almacenamiento del navegador, sin dependencias.
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   0. Lectura tolerante del bloque de contenido
+   Si una constante faltara, el motor no revienta: avisa en consola y sigue
+   con el valor literal del brief. Asi una pieza incompleta no tumba la demo.
+   --------------------------------------------------------------------------- */
+
+function leerContenido(fn, porDefecto) {
+  try {
+    var v = fn();
+    return v === undefined || v === null ? porDefecto : v;
+  } catch (e) {
+    console.error('[Calibra] falta una constante del bloque de contenido:', e.message);
+    return porDefecto;
+  }
+}
+
+var CONTENIDO = {
+  materias:   leerContenido(function () { return MATERIAS; }, []),
+  curso:      leerContenido(function () { return CURSO; }, { nombre: 'Cálculo Integral', contexto: 'antes del parcial 2' }),
+  subtemas:   leerContenido(function () { return SUBTEMAS; }, {}),
+  preguntas:  leerContenido(function () { return PREGUNTAS; }, []),
+  calibracion: leerContenido(function () { return CALIBRACION; }, null),
+  certificacion: leerContenido(function () { return CERTIFICACION; }, null),
+  mapaPct:    leerContenido(function () { return MAPA_PORCENTAJE; }, { 0: 34, 50: 61, 100: 82 }),
+  desempate:  leerContenido(function () { return SUBTEMA_DESEMPATE; }, 'partes'),
+  sinFallos:  leerContenido(function () { return TEXTO_SIN_FALLOS; }, 'Vas bien. Refuerza este subtema antes del parcial.'),
+  monitores:  leerContenido(function () { return MONITORES; }, []),
+  horarios:   leerContenido(function () { return HORARIOS; }, []),
+  perfilNuevo: leerContenido(function () { return PERFIL_MONITOR_NUEVO; }, {}),
+  progreso:   leerContenido(function () { return PROGRESO_NIVEL; }, {}),
+  sesion:     leerContenido(function () { return SESION_EJEMPLO; }, {}),
+  textos:     leerContenido(function () { return TEXTOS; }, {}),
+  endpoint:   leerContenido(function () { return FORM_ENDPOINT; }, '')
+};
+
+/* Devuelve el primer valor definido entre varias claves posibles del objeto. */
+function campoDe(objeto, claves, porDefecto) {
+  if (!objeto) return porDefecto;
+  for (var i = 0; i < claves.length; i++) {
+    var v = objeto[claves[i]];
+    if (v !== undefined && v !== null && v !== '') return v;
+  }
+  return porDefecto;
+}
+
+/* Busca una pregunta del banco por su id. */
+function preguntaPorId(id) {
+  var lista = CONTENIDO.preguntas;
+  for (var i = 0; i < lista.length; i++) {
+    if (lista[i] && lista[i].id === id) return lista[i];
+  }
+  return null;
+}
+
+/* Normaliza una configuracion de prueba a un arreglo de preguntas completas.
+   Acepta: arreglo de ids, arreglo de preguntas, u objeto con .preguntas/.ids. */
+function preguntasDe(config, porDefecto) {
+  var bruto = null;
+  if (Array.isArray(config)) bruto = config;
+  else if (config && typeof config === 'object') bruto = config.preguntas || config.ids || config.orden || null;
+  if (!bruto) bruto = porDefecto;
+  var salida = [];
+  for (var i = 0; i < bruto.length; i++) {
+    var item = bruto[i];
+    var p = typeof item === 'string' ? preguntaPorId(item) : item;
+    if (p) salida.push(p);
+  }
+  return salida;
+}
+
+/* Las 4 primeras preguntas calibran al estudiante; las 3 primeras certifican. */
+function preguntasEstudiante() {
+  return preguntasDe(CONTENIDO.calibracion, CONTENIDO.preguntas.slice(0, 4));
+}
+function preguntasMonitor() {
+  return preguntasDe(CONTENIDO.certificacion, CONTENIDO.preguntas.slice(0, 3));
+}
+function minimoAciertos() {
+  var n = Number(campoDe(CONTENIDO.certificacion, ['minimoAciertos', 'minimo'], 2));
+  return isNaN(n) ? 2 : n;
+}
+
+/* Horarios: acepta textos sueltos o objetos {id, texto}. */
+function horariosNormalizados() {
+  var lista = Array.isArray(CONTENIDO.horarios) ? CONTENIDO.horarios : [];
+  return lista.map(function (h, i) {
+    if (typeof h === 'string') return { id: 'h' + i, texto: h };
+    return { id: campoDe(h, ['id'], 'h' + i), texto: campoDe(h, ['texto', 'etiqueta', 'nombre', 'label'], '') };
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   1. Estado (vive solo en memoria; el boton de reinicio lo limpia)
+   --------------------------------------------------------------------------- */
+
+const estado = {
+  respuestasEstudiante: {},
+  respuestasMonitor: {},
+  monitorElegido: null,
+  horarioElegido: null,
+  indicePregunta: 0,
+  indiceCertificacion: 0,
+  certificado: null
+};
+
+/* ---------------------------------------------------------------------------
+   2. Utilidades de DOM y formato
+   --------------------------------------------------------------------------- */
+
+function $(sel) { return document.querySelector(sel); }
+
+/* Crea un elemento con clase y texto. El texto siempre por textContent. */
+function crear(tag, clase, texto) {
+  var el = document.createElement(tag);
+  if (clase) el.className = clase;
+  if (texto !== undefined && texto !== null) el.textContent = String(texto);
+  return el;
+}
+
+/* Vacia un contenedor sin usar innerHTML con datos. */
+function vaciar(el) {
+  if (!el) return;
+  while (el.firstChild) el.removeChild(el.firstChild);
+}
+
+/* Ancho de una barra: se escribe en las dos propiedades por compatibilidad. */
+function anchoBarra(el, pct) {
+  if (!el) return;
+  el.style.setProperty('inline-size', pct + '%');
+  el.style.setProperty('width', pct + '%');
+}
+
+/* 28000 -> "$28.000" (punto como separador de miles, formato colombiano). */
+function formatoPesos(n) {
+  var numero = Number(n);
+  if (isNaN(numero)) return String(n);
+  var entero = Math.round(Math.abs(numero)).toString();
+  var conPuntos = entero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (numero < 0 ? '-$' : '$') + conPuntos;
+}
+
+/* Un precio puede venir como numero (28000) o ya formateado ("$28.000"). */
+function precioTexto(valor) {
+  return typeof valor === 'number' ? formatoPesos(valor) : String(valor === undefined ? '' : valor);
+}
+
+/* "Daniela R." -> "Daniela" (para el texto de la tarjeta destacada de E5). */
+function nombrePila(nombre) {
+  return String(nombre || '').replace(/\s+\S\.?\s*$/, '').trim() || String(nombre || '');
+}
+
+/* Nombre visible de un subtema. */
+function nombreSubtema(clave) {
+  return CONTENIDO.subtemas[clave] || clave;
+}
+
+/* ---------------------------------------------------------------------------
+   3. Diagnostico (determinista, reglas de la seccion 8 del brief)
+   --------------------------------------------------------------------------- */
+
+/*
+  respuestas: { p1:'A', p2:'B', ... } con la LETRA elegida.
+  Devuelve { barras:[{subtema,nombre,pct}], debil:{subtema,nombre,pct}, error }
+*/
+function calcularDiagnostico(respuestas) {
+  var preguntas = preguntasEstudiante();
+  var orden = [];          // claves de subtema en orden de aparicion
+  var conteo = {};         // { clave: {aciertos, total} }
+
+  // 1. Aciertos por subtema
+  for (var i = 0; i < preguntas.length; i++) {
+    var p = preguntas[i];
+    var clave = p.subtema;
+    if (!conteo[clave]) { conteo[clave] = { aciertos: 0, total: 0 }; orden.push(clave); }
+    conteo[clave].total++;
+    if (esCorrecta(p, respuestas[p.id])) conteo[clave].aciertos++;
+  }
+
+  // 2. Porcentaje crudo -> porcentaje de presentacion
+  var barras = [];
+  for (var j = 0; j < orden.length; j++) {
+    var c = orden[j];
+    var crudo = Math.round((conteo[c].aciertos / conteo[c].total) * 100);
+    var pct = CONTENIDO.mapaPct[crudo];
+    if (pct === undefined) {
+      // No inventamos un numero: se avisa y se deja el crudo.
+      console.error('[Calibra] porcentaje crudo sin equivalente en MAPA_PORCENTAJE: ' + crudo + ' (subtema "' + c + '")');
+      pct = crudo;
+    }
+    barras.push({ subtema: c, nombre: nombreSubtema(c), pct: pct });
+  }
+
+  // 3. Punto debil: el pct mostrado mas bajo; en empate gana SUBTEMA_DESEMPATE
+  var debil = null;
+  if (barras.length) {
+    var minimo = barras[0].pct;
+    for (var k = 1; k < barras.length; k++) if (barras[k].pct < minimo) minimo = barras[k].pct;
+    var empatados = barras.filter(function (b) { return b.pct === minimo; });
+    debil = empatados.filter(function (b) { return b.subtema === CONTENIDO.desempate; })[0] || empatados[0];
+  }
+
+  // 4. Error: texto de la PRIMERA opcion incorrecta elegida en ese subtema,
+  //    recorriendo las preguntas en orden.
+  var error = CONTENIDO.sinFallos;
+  if (debil) {
+    for (var m = 0; m < preguntas.length; m++) {
+      var pr = preguntas[m];
+      if (pr.subtema !== debil.subtema) continue;
+      var elegida = opcionPorLetra(pr, respuestas[pr.id]);
+      if (elegida && !elegida.correcta) { error = elegida.error; break; }
+    }
+  }
+
+  return { barras: barras, debil: debil, error: error };
+}
+
+/* Busca la opcion elegida por su letra. */
+function opcionPorLetra(pregunta, letra) {
+  if (!pregunta || !letra) return null;
+  var ops = pregunta.opciones || [];
+  for (var i = 0; i < ops.length; i++) if (ops[i].letra === letra) return ops[i];
+  return null;
+}
+
+/* ¿La letra elegida es la opcion correcta de esa pregunta? */
+function esCorrecta(pregunta, letra) {
+  var op = opcionPorLetra(pregunta, letra);
+  return !!(op && op.correcta);
+}
+
+/* Expuesta para que las pruebas la puedan llamar desde fuera. */
+window.calcularDiagnostico = calcularDiagnostico;
+
+/* ---------------------------------------------------------------------------
+   4. Navegacion
+   --------------------------------------------------------------------------- */
+
+/* hash -> id de la <section> */
+var SECCIONES = {
+  'inicio': 's-inicio',
+  'prueba': 's-prueba',
+  'diagnostico': 's-diagnostico',
+  'monitores': 's-monitores',
+  'perfil': 's-perfil',
+  'confirmacion': 's-confirmacion',
+  'monitor': 's-monitor',
+  'monitor-materia': 's-monitor-materia',
+  'certificacion': 's-certificacion',
+  'monitor-resultado': 's-monitor-resultado',
+  'panel': 's-panel',
+  'profesor': 's-profesor'
+};
+
+/* hash -> pintor que se ejecuta al entrar */
+var PINTORES = {
+  'inicio': pintarMaterias,
+  'monitor-materia': pintarMaterias,
+  'prueba': pintarPrueba,
+  'diagnostico': pintarDiagnostico,
+  'monitores': pintarMonitores,
+  'perfil': pintarPerfil,
+  'confirmacion': pintarConfirmacion,
+  'certificacion': pintarCertificacion,
+  'monitor-resultado': pintarResultadoCert,
+  'panel': pintarPanel
+};
+
+var primeraPintada = true;
+
+/* '#perfil' | 'perfil' | '' -> 'perfil' (o 'inicio' si no se reconoce) */
+function normalizarHash(valor) {
+  var h = String(valor || '').replace(/^#/, '').trim();
+  return SECCIONES[h] ? h : 'inicio';
+}
+
+/* ¿Cuantas respuestas lleva cada flujo? */
+function respuestasContadas(objeto) {
+  return Object.keys(objeto).length;
+}
+
+/*
+  Guarda de acceso. Devuelve el hash al que realmente se puede entrar.
+  - diagnostico / monitores / perfil / confirmacion: exigen las 4 respuestas
+    del estudiante; perfil y confirmacion ademas un monitor elegido.
+  - monitor-resultado / panel: exigen las 3 respuestas del monitor.
+*/
+function hashPermitido(hash) {
+  var totalEstudiante = preguntasEstudiante().length;
+  var totalMonitor = preguntasMonitor().length;
+  var flujoEstudiante = ['diagnostico', 'monitores', 'perfil', 'confirmacion'];
+  var flujoMonitor = ['monitor-resultado', 'panel'];
+
+  if (flujoEstudiante.indexOf(hash) !== -1) {
+    if (respuestasContadas(estado.respuestasEstudiante) < totalEstudiante) return 'inicio';
+    if ((hash === 'perfil' || hash === 'confirmacion') && !estado.monitorElegido) return 'inicio';
+    if (hash === 'confirmacion' && !estado.horarioElegido) return 'inicio';
+  }
+  if (flujoMonitor.indexOf(hash) !== -1) {
+    if (respuestasContadas(estado.respuestasMonitor) < totalMonitor) return 'monitor';
+    if (hash === 'panel' && estado.certificado !== true) return 'monitor';
+  }
+  return hash;
+}
+
+/* Muestra una sola seccion. Solo con la propiedad hidden, nunca style.display. */
+function mostrar(idSeccion) {
+  var secciones = document.querySelectorAll('.screen');
+  for (var i = 0; i < secciones.length; i++) {
+    secciones[i].hidden = secciones[i].id !== idSeccion;
+  }
+}
+
+/* Lee el hash actual, aplica la guarda, muestra y pinta. */
+function aplicarHash() {
+  var crudo = String(location.hash || '').replace(/^#/, '').trim();
+  var pedido = normalizarHash(crudo);
+  var permitido = hashPermitido(pedido);
+
+  // Corregimos el hash cuando la guarda redirige y cuando el hash no existe
+  // (p. ej. #no-existe), para no dejar una URL que miente sobre la pantalla.
+  if (permitido !== pedido || (crudo !== '' && crudo !== permitido)) {
+    // Redireccion sin dejar una entrada rota en el historial.
+    // El propio cambio de hash vuelve a disparar aplicarHash().
+    location.replace('#' + permitido);
+    return;
+  }
+
+  mostrar(SECCIONES[permitido]);
+  var pintor = PINTORES[permitido];
+  if (typeof pintor === 'function') pintor();
+  enfocarPantalla(permitido);
+}
+
+/* Navega a un hash. Es lo que usan los botones con data-ir. */
+function ir(hash) {
+  var destino = normalizarHash(hash);
+  if (normalizarHash(location.hash) === destino) {
+    aplicarHash();           // mismo hash: no hay hashchange, pintamos a mano
+  } else {
+    location.hash = '#' + destino;   // dispara hashchange -> aplicarHash()
+  }
+}
+
+/* Mueve el foco al h1 de la seccion para que el lector de pantalla anuncie. */
+function enfocarPantalla(hash) {
+  var seccion = document.getElementById(SECCIONES[hash]);
+  if (!seccion) return;
+  seccion.scrollTop = 0;
+  if (window.scrollY) window.scrollTo(0, 0);
+  if (primeraPintada) { primeraPintada = false; return; }
+  var titulo = seccion.querySelector('h1');
+  if (!titulo) return;
+  if (!titulo.hasAttribute('tabindex')) titulo.setAttribute('tabindex', '-1');
+  try { titulo.focus({ preventScroll: true }); } catch (e) { titulo.focus(); }
+}
+
+/* ---------------------------------------------------------------------------
+   5. Reinicio
+   --------------------------------------------------------------------------- */
+
+function reiniciar() {
+  estado.respuestasEstudiante = {};
+  estado.respuestasMonitor = {};
+  estado.monitorElegido = null;
+  estado.horarioElegido = null;
+  estado.indicePregunta = 0;
+  estado.indiceCertificacion = 0;
+  estado.certificado = null;
+
+  // Los formularios de captura vuelven a estar disponibles.
+  var capturas = document.querySelectorAll('.captura');
+  for (var i = 0; i < capturas.length; i++) {
+    var form = capturas[i];
+    form.reset();
+    form.hidden = false;
+    form.classList.remove('is-enviado');
+    var campo = form.querySelector('.campo');
+    if (campo) campo.hidden = false;
+    var envio = form.querySelector('button[type="submit"]');
+    if (envio) { envio.hidden = false; envio.disabled = false; }
+    var email = form.querySelector('input[type="email"]');
+    if (email) email.disabled = false;
+    var gracias = graciasDe(form);
+    if (gracias) gracias.hidden = true;
+    limpiarErrorCorreo(form);
+  }
+
+  // Hash limpio, sin dejar basura en el historial.
+  history.replaceState(null, '', location.pathname + location.search);
+  primeraPintada = true;
+  mostrar(SECCIONES['inicio']);
+  pintarMaterias();
+  primeraPintada = false;
+}
+
+/* ---------------------------------------------------------------------------
+   6. Componente de prueba (estudiante y monitor comparten codigo)
+   --------------------------------------------------------------------------- */
+
+/* Configuracion de cada una de las dos pruebas. */
+function configEstudiante() {
+  return {
+    prefijo: 'prueba',
+    preguntas: preguntasEstudiante(),
+    respuestas: estado.respuestasEstudiante,
+    indice: function () { return estado.indicePregunta; },
+    fijarIndice: function (n) { estado.indicePregunta = n; },
+    ids: {
+      contador: '#prueba-contador',
+      track: '#prueba-track',
+      fill: '#prueba-track-fill',
+      topic: '#prueba-topic',
+      enunciado: '#prueba-enunciado',
+      opciones: '#prueba-opciones',
+      siguiente: '#prueba-siguiente'
+    },
+    alTerminar: function () { ir('diagnostico'); }
+  };
+}
+
+function configMonitor() {
+  return {
+    prefijo: 'cert',
+    preguntas: preguntasMonitor(),
+    respuestas: estado.respuestasMonitor,
+    indice: function () { return estado.indiceCertificacion; },
+    fijarIndice: function (n) { estado.indiceCertificacion = n; },
+    ids: {
+      contador: '#cert-contador',
+      track: '#cert-track',
+      fill: '#cert-track-fill',
+      topic: '#cert-topic',
+      enunciado: '#cert-enunciado',
+      opciones: '#cert-opciones',
+      siguiente: '#cert-siguiente'
+    },
+    alTerminar: function () {
+      estado.certificado = aciertosMonitor() >= minimoAciertos();
+      ir('monitor-resultado');
+    }
+  };
+}
+
+/* Pinta la pregunta actual de la prueba que se le pase. */
+function pintarPruebaGenerica(cfg) {
+  var preguntas = cfg.preguntas;
+  if (!preguntas.length) return;
+
+  // Si se vuelve atras despues de terminar, nos quedamos en la ultima.
+  var i = Math.min(Math.max(cfg.indice(), 0), preguntas.length - 1);
+  cfg.fijarIndice(i);
+  var pregunta = preguntas[i];
+
+  var contador = $(cfg.ids.contador);
+  if (contador) contador.textContent = 'Pregunta ' + (i + 1) + ' de ' + preguntas.length;
+
+  var pct = Math.round(((i + 1) / preguntas.length) * 100);
+  var track = $(cfg.ids.track);
+  if (track) {
+    track.setAttribute('role', 'progressbar');
+    track.setAttribute('aria-valuemin', '0');
+    track.setAttribute('aria-valuemax', '100');
+    track.setAttribute('aria-valuenow', String(pct));
+    track.setAttribute('aria-label', 'Avance de la prueba');
+  }
+  anchoBarra($(cfg.ids.fill), pct);
+
+  var topic = $(cfg.ids.topic);
+  if (topic) topic.textContent = nombreSubtema(pregunta.subtema);
+
+  var enunciado = $(cfg.ids.enunciado);
+  if (enunciado) enunciado.textContent = pregunta.enunciado;
+
+  // Opciones. Nombre de grupo unico por pregunta para no arrastrar la seleccion.
+  var lista = $(cfg.ids.opciones);
+  var yaElegida = cfg.respuestas[pregunta.id] || null;
+  if (lista) {
+    vaciar(lista);
+    var grupo = cfg.prefijo + '-' + pregunta.id;
+    (pregunta.opciones || []).forEach(function (op) {
+      var li = document.createElement('li');
+      var label = crear('label', 'opt');
+
+      var radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = grupo;
+      radio.value = op.letra;
+      if (yaElegida === op.letra) radio.checked = true;
+
+      var key = crear('span', 'key', op.letra);
+      key.setAttribute('aria-hidden', 'true');
+
+      var txt = crear('span', 'txt', op.texto);
+
+      label.appendChild(radio);
+      label.appendChild(key);
+      label.appendChild(txt);
+      li.appendChild(label);
+      lista.appendChild(li);
+    });
+  }
+
+  // El boton arranca deshabilitado; se habilita al elegir.
+  var siguiente = $(cfg.ids.siguiente);
+  if (siguiente) siguiente.disabled = !yaElegida;
+}
+
+function pintarPrueba() { pintarPruebaGenerica(configEstudiante()); }
+function pintarCertificacion() { pintarPruebaGenerica(configMonitor()); }
+
+/* Avanza una pregunta. Blindado contra doble clic: si el boton ya esta
+   deshabilitado, el segundo clic no hace nada. */
+function avanzarPrueba(cfg) {
+  var siguiente = $(cfg.ids.siguiente);
+  if (siguiente && siguiente.disabled) return;
+
+  var preguntas = cfg.preguntas;
+  var i = cfg.indice();
+  var pregunta = preguntas[i];
+  if (!pregunta) return;
+
+  var lista = $(cfg.ids.opciones);
+  var marcada = lista ? lista.querySelector('input[type="radio"]:checked') : null;
+  if (!marcada) return;
+
+  cfg.respuestas[pregunta.id] = marcada.value;
+  if (siguiente) siguiente.disabled = true;   // evita el segundo clic inmediato
+
+  if (i + 1 >= preguntas.length) {
+    cfg.fijarIndice(preguntas.length - 1);
+    cfg.alTerminar();
+  } else {
+    cfg.fijarIndice(i + 1);
+    pintarPruebaGenerica(cfg);
+  }
+}
+
+/* Aciertos del monitor en la prueba de certificacion. */
+function aciertosMonitor() {
+  var preguntas = preguntasMonitor();
+  var n = 0;
+  for (var i = 0; i < preguntas.length; i++) {
+    if (esCorrecta(preguntas[i], estado.respuestasMonitor[preguntas[i].id])) n++;
+  }
+  return n;
+}
+
+/* ---------------------------------------------------------------------------
+   7. Renderizadores
+   --------------------------------------------------------------------------- */
+
+/* E1 y M2: la lista de materias. Solo Calculo Integral es seleccionable. */
+function pintarMaterias() {
+  pintarListaMaterias('#lista-materias');
+  pintarListaMaterias('#lista-materias-monitor');
+}
+
+function pintarListaMaterias(selector) {
+  var contenedor = $(selector);
+  if (!contenedor) return;
+  vaciar(contenedor);
+
+  CONTENIDO.materias.forEach(function (materia) {
+    var li = document.createElement('li');
+    var boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'materia' + (materia.activa ? '' : ' is-pronto');
+    boton.appendChild(crear('span', 'materia-nombre', materia.nombre));
+
+    if (materia.activa) {
+      // La materia se SELECCIONA. Iniciar la prueba es cosa del boton principal
+      // de la pantalla ("Empezar la prueba" / "Continuar"), como manda el brief.
+      boton.classList.add('is-activa');
+      boton.setAttribute('aria-pressed', 'true');
+    } else {
+      // Ni enfocable ni accionable, y anunciada como deshabilitada.
+      boton.disabled = true;
+      boton.setAttribute('aria-disabled', 'true');
+      boton.setAttribute('tabindex', '-1');
+      boton.appendChild(crear('span', 'chip', 'pronto'));
+    }
+
+    li.appendChild(boton);
+    contenedor.appendChild(li);
+  });
+}
+
+/* E3: barras por subtema y tarjeta del punto debil. */
+function pintarDiagnostico() {
+  var diag = calcularDiagnostico(estado.respuestasEstudiante);
+
+  var barras = $('#diag-barras');
+  if (barras) {
+    vaciar(barras);
+    diag.barras.forEach(function (b) {
+      var esDebil = diag.debil && b.subtema === diag.debil.subtema;
+      var li = document.createElement('li');
+      if (esDebil) li.className = 'is-weak';
+
+      var head = crear('div', 'bar-head');
+      head.appendChild(crear('span', 'bar-name', b.nombre));
+      head.appendChild(crear('span', 'bar-pct', b.pct + '%'));
+
+      var track = crear('div', 'track');
+      track.setAttribute('role', 'progressbar');
+      track.setAttribute('aria-valuemin', '0');
+      track.setAttribute('aria-valuemax', '100');
+      track.setAttribute('aria-valuenow', String(b.pct));
+      track.setAttribute('aria-label',
+        'Dominio de ' + b.nombre + (esDebil ? ', tu punto más bajo' : ''));
+      var fill = document.createElement('span');
+      anchoBarra(fill, b.pct);
+      track.appendChild(fill);
+
+      li.appendChild(head);
+      li.appendChild(track);
+      barras.appendChild(li);
+    });
+  }
+
+  var titulo = $('#diag-debil-titulo');
+  if (titulo) titulo.textContent = diag.debil ? 'Tu punto débil: ' + diag.debil.nombre : '';
+
+  var error = $('#diag-debil-error');
+  if (error) {
+    // Cuando no fallo ninguna, el texto va tal cual, sin "Error detectado:".
+    error.textContent = diag.error === CONTENIDO.sinFallos
+      ? diag.error
+      : 'Error detectado: ' + diag.error;
+  }
+}
+
+/* E4: las tres tarjetas de monitor. La recomendada va primera y marcada. */
+function pintarMonitores() {
+  var contenedor = $('#lista-monitores');
+  if (!contenedor) return;
+  vaciar(contenedor);
+
+  var ordenados = CONTENIDO.monitores.slice().sort(function (a, b) {
+    return (b.recomendado ? 1 : 0) - (a.recomendado ? 1 : 0);
+  });
+
+  ordenados.forEach(function (m) {
+    var li = document.createElement('li');
+    var card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'monitor-card' + (m.recomendado ? ' is-recomendado' : '');
+    card.setAttribute('aria-label', 'Ver el perfil de ' + m.nombre + ' y agendar');
+    // Marcador declarativo del contrato: la navegacion la hace el manejador
+    // delegado de [data-ir]. El listener de abajo solo fija el estado, y corre
+    // antes porque burbujea desde la tarjeta hasta document.
+    card.setAttribute('data-ir', 'perfil');
+
+    if (m.recomendado) card.appendChild(crear('span', 'eyebrow', 'Monitor recomendado'));
+
+    var id = crear('div', 'tutor-id');
+    var avatar = crear('div', 'avatar', m.inicial);
+    avatar.setAttribute('aria-hidden', 'true');
+    var datos = document.createElement('div');
+    datos.appendChild(crear('span', 'tutor-name', m.nombre));
+    datos.appendChild(crear('span', 'tutor-program', m.programa));
+    id.appendChild(avatar);
+    id.appendChild(datos);
+    card.appendChild(id);
+
+    card.appendChild(chipsDe(m));
+    card.appendChild(crear('p', 'specialty', m.encaje));
+    card.appendChild(precioElemento(m.precio));
+
+    card.addEventListener('click', function () {
+      estado.monitorElegido = m;
+      estado.horarioElegido = null;
+    });
+
+    li.appendChild(card);
+    contenedor.appendChild(li);
+  });
+}
+
+/* Chips de nivel, calificacion y (si aplica) mismo profesor. */
+function chipsDe(m) {
+  var chips = crear('ul', 'chips');
+  var nivel = document.createElement('li');
+  nivel.className = 'chip';
+  nivel.textContent = 'Nivel ' + m.nivel;
+  chips.appendChild(nivel);
+
+  var calif = document.createElement('li');
+  calif.className = 'chip';
+  calif.textContent = m.calificacion + ' ★ (' + m.resenas + ')';
+  chips.appendChild(calif);
+
+  if (m.mismoProfesor) {
+    var prof = document.createElement('li');
+    prof.className = 'chip';
+    prof.textContent = 'Cursó con tu mismo profesor';
+    chips.appendChild(prof);
+  }
+  return chips;
+}
+
+/* "$28.000 / hora" con el "/ hora" en tono suave, como en el mockup. */
+function precioElemento(valor) {
+  var p = crear('p', 'price', precioTexto(valor) + ' ');
+  p.appendChild(crear('span', null, '/ hora'));
+  return p;
+}
+
+/* E5: perfil del monitor elegido, horarios y boton de agendar. */
+function pintarPerfil() {
+  var cont = $('#perfil-contenido');
+  var m = estado.monitorElegido;
+  if (!cont || !m) return;
+  vaciar(cont);
+
+  if (m.recomendado) cont.appendChild(crear('p', 'eyebrow', 'Monitor recomendado'));
+
+  // Tarjeta de identidad
+  var tutor = crear('article', 'tutor');
+  var id = crear('div', 'tutor-id');
+  var avatar = crear('div', 'avatar', m.inicial);
+  avatar.setAttribute('aria-hidden', 'true');
+  var datos = document.createElement('div');
+  var h1 = crear('h1', 'tutor-name', m.nombre);
+  h1.setAttribute('tabindex', '-1');
+  datos.appendChild(h1);
+  datos.appendChild(crear('p', 'tutor-program', m.programa));
+  id.appendChild(avatar);
+  id.appendChild(datos);
+  tutor.appendChild(id);
+  tutor.appendChild(chipsDe(m));
+  tutor.appendChild(crear('p', 'specialty', m.encaje));
+  cont.appendChild(tutor);
+
+  // Tarjeta destacada, texto literal del brief
+  var callout = crear('p', 'callout');
+  callout.appendChild(document.createTextNode(
+    nombrePila(m.nombre) + ' recibirá tu diagnóstico antes de la sesión: '));
+  callout.appendChild(crear('strong', null,
+    'qué explicarte, en qué orden y con qué ejercicio arrancar.'));
+  cont.appendChild(callout);
+
+  cont.appendChild(precioElemento(m.precio));
+
+  // Boton de agendar: se crea antes para que los radios puedan habilitarlo
+  var agendar = document.createElement('button');
+  agendar.type = 'button';
+  agendar.className = 'btn';
+  agendar.textContent = 'Agendar y pagar';
+  agendar.disabled = !estado.horarioElegido;
+  // Marcador declarativo del contrato. El manejador delegado de [data-ir] ignora
+  // los botones deshabilitados, asi que no hace falta comprobar el horario aqui.
+  agendar.setAttribute('data-ir', 'confirmacion');
+
+  // Horarios como radios
+  var horarios = horariosNormalizados();
+  var fs = crear('fieldset', 'slots');
+  var legend = crear('legend', 'slots-legend', 'Elige un horario');
+  fs.appendChild(legend);
+  var grid = crear('ul', 'slot-grid');
+  horarios.forEach(function (h) {
+    var li = document.createElement('li');
+    var label = crear('label', 'slot');
+    var radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'horario';
+    radio.value = h.id;
+    if (estado.horarioElegido && estado.horarioElegido.id === h.id) radio.checked = true;
+    radio.addEventListener('change', function () {
+      estado.horarioElegido = h;
+      agendar.disabled = false;
+    });
+    label.appendChild(radio);
+    label.appendChild(document.createTextNode(h.texto));
+    li.appendChild(label);
+    grid.appendChild(li);
+  });
+  fs.appendChild(grid);
+  cont.appendChild(fs);
+
+  // Pie con el boton de agendar (deshabilitado hasta elegir horario)
+  var pie = crear('div', 'footer');
+  pie.appendChild(agendar);
+  cont.appendChild(pie);
+}
+
+/* E6: resumen de lo agendado. */
+function pintarConfirmacion() {
+  var cont = $('#confirmacion-resumen');
+  var m = estado.monitorElegido;
+  if (!cont || !m) return;
+  vaciar(cont);
+
+  cont.appendChild(lineaResumen('Monitor', m.nombre));
+  cont.appendChild(lineaResumen('Horario', estado.horarioElegido ? estado.horarioElegido.texto : ''));
+  cont.appendChild(lineaResumen('Precio', precioTexto(m.precio) + ' / hora'));
+}
+
+/* Una linea "Etiqueta · Valor" del resumen. */
+function lineaResumen(etiqueta, valor) {
+  var p = crear('p', 'brief-linea');
+  p.appendChild(crear('span', 'eyebrow', etiqueta));
+  p.appendChild(crear('span', 'brief-valor', valor));
+  return p;
+}
+
+/* M4: resultado de la certificacion. */
+function pintarResultadoCert() {
+  var cont = $('#cert-resultado');
+  if (!cont) return;
+  vaciar(cont);
+
+  var aciertos = aciertosMonitor();
+  estado.certificado = aciertos >= minimoAciertos();
+
+  if (!estado.certificado) {
+    var no = crear('div', 'estado-cert');
+    no.appendChild(crear('h1', 'title', 'Todavía no. Puedes reintentar en 7 días.'));
+    cont.appendChild(no);
+    return;   // aqui termina el flujo: sin boton al panel
+  }
+
+  var ok = crear('div', 'estado-cert');
+  ok.appendChild(crear('h1', 'title',
+    'Certificado en ' + campoDe(CONTENIDO.curso, ['nombre'], 'Cálculo Integral')));
+  cont.appendChild(ok);
+
+  // Perfil generado
+  var perfil = crear('div', 'tutor');
+  var chips = crear('ul', 'chips');
+  var nivel = campoDe(CONTENIDO.perfilNuevo, ['nivel'], 1);
+  var tarifa = campoDe(CONTENIDO.perfilNuevo, ['tarifa', 'tarifaSugerida', 'precio'], 25000);
+  var monitorias = campoDe(CONTENIDO.perfilNuevo, ['monitorias'], 0);
+
+  var c1 = document.createElement('li'); c1.className = 'chip';
+  c1.textContent = 'Nivel ' + nivel; chips.appendChild(c1);
+  var c2 = document.createElement('li'); c2.className = 'chip';
+  c2.textContent = monitorias + ' monitorías'; chips.appendChild(c2);
+  perfil.appendChild(chips);
+  perfil.appendChild(crear('p', 'specialty',
+    'Tarifa sugerida ' + precioTexto(tarifa) + '/hora'));
+  cont.appendChild(perfil);
+
+  // Paso al panel
+  var pie = crear('div', 'footer');
+  var boton = document.createElement('button');
+  boton.type = 'button';
+  boton.className = 'btn';
+  boton.setAttribute('data-ir', 'panel');
+  boton.textContent = campoDe(CONTENIDO.textos, ['ctaPanel'], 'Ver mi panel');
+  pie.appendChild(boton);
+  cont.appendChild(pie);
+}
+
+/* M5: proxima sesion con el brief, y progreso de nivel. */
+function pintarPanel() {
+  var cont = $('#panel-contenido');
+  if (!cont) return;
+  vaciar(cont);
+
+  var s = CONTENIDO.sesion;
+
+  // Bloque 1: proxima sesion
+  var bloque1 = document.createElement('section');
+  bloque1.appendChild(crear('h2', 'eyebrow', 'Próxima sesión'));
+  // El brief (seccion 7) pide "Manana 4:00 p. m. con Juan D.": van los dos campos.
+  var cuando = campoDe(s, ['cuando', 'titulo', 'encabezado'], 'Mañana 4:00 p. m.');
+  var quien = campoDe(s, ['estudiante', 'alumno'], '');
+  bloque1.appendChild(crear('p', 'subtitle',
+    quien ? (cuando + ' con ' + quien) : cuando));
+
+  var brief = crear('div', 'brief-sesion');
+  brief.appendChild(lineaBrief('Subtema',
+    campoDe(s, ['subtema'], 'Integración por partes')));
+  brief.appendChild(lineaBrief('Error detectado',
+    campoDe(s, ['error'], 'elige u por orden alfabético, no por prioridad ILATE')));
+  brief.appendChild(lineaBrief('Plan de 60 min',
+    campoDe(s, ['plan'], '3 ejercicios, arrancar por el caso con logaritmo')));
+  bloque1.appendChild(brief);
+  cont.appendChild(bloque1);
+
+  // Bloque 2: progreso
+  var hechas = Number(campoDe(CONTENIDO.progreso, ['hechas', 'actual', 'completadas'], 8));
+  var meta = Number(campoDe(CONTENIDO.progreso, ['meta', 'total', 'objetivo'], 15));
+  var nivelSig = campoDe(CONTENIDO.progreso, ['nivelSiguiente', 'nivel', 'siguiente'], 2);
+  var tarifaSig = campoDe(CONTENIDO.progreso, ['tarifaSiguiente', 'tarifa', 'precio'], 35000);
+  var pct = meta ? Math.round((hechas / meta) * 100) : 0;
+
+  var bloque2 = document.createElement('section');
+  bloque2.appendChild(crear('h2', 'eyebrow', 'Tu progreso'));
+
+  var progreso = crear('div', 'progreso');
+  var head = crear('div', 'bar-head');
+  head.appendChild(crear('span', 'bar-name',
+    hechas + ' de ' + meta + ' monitorías para Nivel ' + nivelSig));
+  head.appendChild(crear('span', 'bar-pct', pct + '%'));
+  progreso.appendChild(head);
+
+  var track = crear('div', 'track');
+  track.setAttribute('role', 'progressbar');
+  track.setAttribute('aria-valuemin', '0');
+  track.setAttribute('aria-valuemax', String(meta));
+  track.setAttribute('aria-valuenow', String(hechas));
+  track.setAttribute('aria-label', 'Monitorías para Nivel ' + nivelSig);
+  var fill = document.createElement('span');
+  anchoBarra(fill, pct);
+  track.appendChild(fill);
+  progreso.appendChild(track);
+
+  progreso.appendChild(crear('p', 'note',
+    'En Nivel ' + nivelSig + ' tu tarifa sube a ' + precioTexto(tarifaSig) + '/hora'));
+  bloque2.appendChild(progreso);
+  cont.appendChild(bloque2);
+}
+
+/* Una linea del brief de sesion: "Etiqueta · Valor". */
+function lineaBrief(etiqueta, valor) {
+  var p = crear('p', 'brief-linea');
+  p.appendChild(crear('span', 'eyebrow', etiqueta));
+  p.appendChild(document.createTextNode(' · '));
+  p.appendChild(crear('span', 'brief-valor', valor));
+  return p;
+}
+
+/* ---------------------------------------------------------------------------
+   8. Captura de correo
+   --------------------------------------------------------------------------- */
+
+function correoValido(correo) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(correo || '').trim());
+}
+
+function graciasDe(form) {
+  var dentro = form.querySelector('.gracias');
+  if (dentro) return dentro;
+  var hermano = form.parentNode ? form.parentNode.querySelector('.gracias') : null;
+  return hermano;
+}
+
+/* Mensaje de error accesible bajo el campo. */
+function mostrarErrorCorreo(form, input) {
+  var aviso = form.querySelector('.aviso-correo');
+  if (!aviso) {
+    aviso = crear('p', 'note aviso-correo');
+    aviso.id = 'aviso-correo-' + Math.random().toString(36).slice(2, 8);
+    aviso.setAttribute('role', 'alert');
+    form.appendChild(aviso);
+  }
+  aviso.textContent = 'Escribe un correo válido.';
+  if (input) {
+    input.setAttribute('aria-invalid', 'true');
+    input.setAttribute('aria-describedby', aviso.id);
+    input.focus();
+  }
+}
+
+function limpiarErrorCorreo(form) {
+  var aviso = form.querySelector('.aviso-correo');
+  if (aviso && aviso.parentNode) aviso.parentNode.removeChild(aviso);
+  var input = form.querySelector('input[type="email"]');
+  if (input) {
+    input.removeAttribute('aria-invalid');
+    input.removeAttribute('aria-describedby');
+  }
+}
+
+/*
+  Envia el correo. En modo demo (FORM_ENDPOINT vacio) no envia nada.
+  Un error de red nunca bloquea la demo: el agradecimiento se muestra igual.
+*/
+function enviarCorreo(correo, rol) {
+  var endpoint = CONTENIDO.endpoint;
+  if (!endpoint) return Promise.resolve(false);   // modo demo
+
+  var cuerpo = { correo: correo, rol: rol, fecha: new Date().toISOString() };
+  try {
+    return fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(cuerpo)
+    }).then(function () { return true; })
+      .catch(function (e) { console.warn('[Calibra] no se pudo enviar el correo:', e); return false; });
+  } catch (e) {
+    console.warn('[Calibra] no se pudo enviar el correo:', e);
+    return Promise.resolve(false);
+  }
+}
+
+/* Engancha los tres formularios de captura (E6, M4/M5, P1). */
+function engancharCapturas() {
+  var forms = document.querySelectorAll('.captura');
+  for (var i = 0; i < forms.length; i++) {
+    forms[i].addEventListener('submit', function (evento) {
+      evento.preventDefault();
+      var form = evento.currentTarget;
+      var input = form.querySelector('input[type="email"]');
+      var correo = input ? input.value.trim() : '';
+      var rol = form.getAttribute('data-rol') || 'estudiante';
+
+      if (!correoValido(correo)) { mostrarErrorCorreo(form, input); return; }
+      limpiarErrorCorreo(form);
+
+      enviarCorreo(correo, rol);   // nunca esperamos a la red para agradecer
+
+      var gracias = graciasDe(form);
+      // El .gracias vive DENTRO del form, asi que NO se puede ocultar el form
+      // entero: se llevaria por delante el agradecimiento. Se oculta solo lo
+      // que se rellena, y se desactivan los controles para no enviar dos veces.
+      form.classList.add('is-enviado');
+      var campo = form.querySelector('.campo');
+      if (campo) campo.hidden = true;
+      var envio = form.querySelector('button[type="submit"]');
+      if (envio) { envio.hidden = true; envio.disabled = true; }
+      var email = form.querySelector('input[type="email"]');
+      if (email) email.disabled = true;
+      if (gracias) {
+        gracias.hidden = false;
+        if (!gracias.hasAttribute('tabindex')) gracias.setAttribute('tabindex', '-1');
+        gracias.setAttribute('role', 'status');
+        try { gracias.focus({ preventScroll: true }); } catch (e) { gracias.focus(); }
+      }
+    });
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   9. Arranque
+   --------------------------------------------------------------------------- */
+
+function engancharNavegacion() {
+  // Un solo listener de clic para toda la app.
+  document.addEventListener('click', function (evento) {
+    var reinicio = evento.target.closest ? evento.target.closest('#btn-reiniciar') : null;
+    if (reinicio) { evento.preventDefault(); reiniciar(); return; }
+
+    var destino = evento.target.closest ? evento.target.closest('[data-ir]') : null;
+    if (destino) {
+      if (destino.disabled || destino.getAttribute('aria-disabled') === 'true') return;
+      evento.preventDefault();
+      ir(destino.getAttribute('data-ir'));
+    }
+  });
+
+  // Botones Siguiente de las dos pruebas.
+  var sigPrueba = $('#prueba-siguiente');
+  if (sigPrueba) sigPrueba.addEventListener('click', function (e) {
+    e.preventDefault();
+    avanzarPrueba(configEstudiante());
+  });
+
+  var sigCert = $('#cert-siguiente');
+  if (sigCert) sigCert.addEventListener('click', function (e) {
+    e.preventDefault();
+    avanzarPrueba(configMonitor());
+  });
+
+  // Elegir una opcion habilita el boton (delegado en cada lista).
+  ['#prueba-opciones', '#cert-opciones'].forEach(function (sel) {
+    var lista = $(sel);
+    if (!lista) return;
+    var boton = $(sel === '#prueba-opciones' ? '#prueba-siguiente' : '#cert-siguiente');
+    lista.addEventListener('change', function () { if (boton) boton.disabled = false; });
+  });
+
+  // El boton atras del navegador funciona.
+  window.addEventListener('hashchange', aplicarHash);
+}
+
+function iniciar() {
+  engancharNavegacion();
+  engancharCapturas();
+  aplicarHash();   // lee el hash inicial y aplica la misma guarda
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', iniciar);
+} else {
+  iniciar();
+}
+</script>
+</body>
+</html>

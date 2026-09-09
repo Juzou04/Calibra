@@ -1,6 +1,7 @@
 {
-  "generado": "2026-09-03T02:36:40.821Z",
-  "base": "http://127.0.0.1:53744/index.html",
+  "generado": "2026-09-09T20:41:08.918Z",
+  "version": "v2",
+  "base": "http://127.0.0.1:57225/index.html",
   "bloques": [
     {
       "nombre": "Codigo fuente",
@@ -11,7 +12,12 @@
           "detalle": ""
         },
         {
-          "nombre": "contrato · las 12 secciones existen",
+          "nombre": "contrato · las 12 secciones originales existen",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "contrato v2 · las 2 secciones nuevas existen",
           "ok": true,
           "detalle": ""
         },
@@ -21,9 +27,74 @@
           "detalle": ""
         },
         {
+          "nombre": "contrato v2 · ids de la exploracion libre",
+          "ok": true,
+          "detalle": ""
+        },
+        {
           "nombre": "contrato · tres formularios .captura",
           "ok": true,
           "detalle": "encontrados: 4 (esperados 3: estudiante, monitor, profesor)"
+        },
+        {
+          "nombre": "determinismo · implementa mulberry32",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "determinismo · expone window.__calibraSemilla",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "determinismo · sin Math.random",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "contrato v2 · expone MATERIAS en window",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "contrato v2 · campos de la estructura de datos",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "seguridad · sin innerHTML con datos interpolados",
+          "ok": true,
+          "detalle": ""
+        }
+      ]
+    },
+    {
+      "nombre": "Ganchos de datos",
+      "comprobaciones": [
+        {
+          "nombre": "window.MATERIAS es legible",
+          "ok": true,
+          "detalle": "6 materia(s): calculo-integral, calculo-diferencial, calculo-vectorial, algebra-lineal, fisica-1, probabilidad-estadistica"
+        },
+        {
+          "nombre": "existe la materia \"calculo-integral\"",
+          "ok": true,
+          "detalle": "MATE-1214 · Cálculo Integral"
+        },
+        {
+          "nombre": "estructura de datos v2 de calculo-integral",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "configuracion de calculo-integral (prueba 4, certificacion 3 con minimo 2)",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "el arnes puede forzar { adaptativa:false, barajarOpciones:false }",
+          "ok": true,
+          "detalle": "{\"longitud\":4,\"adaptativa\":false,\"barajarOpciones\":false}"
         }
       ]
     },
@@ -42,6 +113,12 @@
         },
         {
           "nombre": "e-01-inicio · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-01-inicio · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -109,6 +186,12 @@
           "datos": []
         },
         {
+          "nombre": "e-02-pregunta-1 · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "e-02-pregunta-1 · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -161,6 +244,12 @@
         },
         {
           "nombre": "e-03-pregunta-2 · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-03-pregunta-2 · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -223,6 +312,12 @@
           "datos": []
         },
         {
+          "nombre": "e-04-pregunta-3 · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "e-04-pregunta-3 · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -275,6 +370,12 @@
         },
         {
           "nombre": "e-05-pregunta-4 · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-05-pregunta-4 · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -337,6 +438,12 @@
           "datos": []
         },
         {
+          "nombre": "e-06-diagnostico · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "e-06-diagnostico · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -389,6 +496,12 @@
         },
         {
           "nombre": "e-07-monitores · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-07-monitores · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -451,6 +564,12 @@
           "datos": []
         },
         {
+          "nombre": "e-08-perfil · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "e-08-perfil · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -492,6 +611,11 @@
           ]
         },
         {
+          "nombre": "E5 · con diagnostico, promete el brief al monitor",
+          "ok": true,
+          "detalle": ""
+        },
+        {
           "nombre": "e-09-confirmacion · scrollHorizontal",
           "ok": true,
           "detalle": "",
@@ -503,6 +627,12 @@
         },
         {
           "nombre": "e-09-confirmacion · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-09-confirmacion · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -560,6 +690,12 @@
         },
         {
           "nombre": "e-10-confirmacion-gracias · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-10-confirmacion-gracias · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -627,6 +763,12 @@
           "datos": []
         },
         {
+          "nombre": "e-11-profesor · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "e-11-profesor · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -679,6 +821,12 @@
         },
         {
           "nombre": "m-01-inicio · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-01-inicio · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -741,6 +889,12 @@
           "datos": []
         },
         {
+          "nombre": "m-02-materia · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "m-02-materia · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -793,6 +947,12 @@
         },
         {
           "nombre": "m-03-pregunta-1 · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-03-pregunta-1 · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -855,6 +1015,12 @@
           "datos": []
         },
         {
+          "nombre": "m-04-pregunta-2 · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "m-04-pregunta-2 · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -907,6 +1073,12 @@
         },
         {
           "nombre": "m-05-pregunta-3 · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-05-pregunta-3 · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -969,6 +1141,12 @@
           "datos": []
         },
         {
+          "nombre": "m-06-resultado-certificado · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "m-06-resultado-certificado · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -1010,6 +1188,200 @@
           ]
         },
         {
+          "nombre": "R1 · botón de M4 hacia #crear-perfil",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · scrollHorizontal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "scrollWidth": 390,
+            "clientWidth": 390,
+            "ok": true
+          }
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · areasTactiles",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · tipografia",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · pieProtitipo",
+          "ok": true,
+          "detalle": "html > body > p.pie-prototipo",
+          "datos": {
+            "encontrado": true,
+            "selector": "html > body > p.pie-prototipo"
+          }
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · sinComision",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · contraste",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-10-crear-perfil-vacio · unaSolaPantalla",
+          "ok": true,
+          "detalle": "s-crear-perfil",
+          "datos": [
+            "s-crear-perfil"
+          ]
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · scrollHorizontal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "scrollWidth": 390,
+            "clientWidth": 390,
+            "ok": true
+          }
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · areasTactiles",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · tipografia",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · pieProtitipo",
+          "ok": true,
+          "detalle": "html > body > p.pie-prototipo",
+          "datos": {
+            "encontrado": true,
+            "selector": "html > body > p.pie-prototipo"
+          }
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · sinComision",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · contraste",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-11-crear-perfil-errores · unaSolaPantalla",
+          "ok": true,
+          "detalle": "s-crear-perfil",
+          "datos": [
+            "s-crear-perfil"
+          ]
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · scrollHorizontal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "scrollWidth": 390,
+            "clientWidth": 390,
+            "ok": true
+          }
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · areasTactiles",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · tipografia",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · pieProtitipo",
+          "ok": true,
+          "detalle": "html > body > p.pie-prototipo",
+          "datos": {
+            "encontrado": true,
+            "selector": "html > body > p.pie-prototipo"
+          }
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · sinComision",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · contraste",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-12-crear-perfil-lleno · unaSolaPantalla",
+          "ok": true,
+          "detalle": "s-crear-perfil",
+          "datos": [
+            "s-crear-perfil"
+          ]
+        },
+        {
           "nombre": "m-07-panel · scrollHorizontal",
           "ok": true,
           "detalle": "",
@@ -1021,6 +1393,12 @@
         },
         {
           "nombre": "m-07-panel · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "m-07-panel · controlesNoRecortados",
           "ok": true,
           "detalle": "",
           "datos": []
@@ -1083,6 +1461,12 @@
           "datos": []
         },
         {
+          "nombre": "m-08-panel-gracias · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "m-08-panel-gracias · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -1140,6 +1524,12 @@
           "datos": []
         },
         {
+          "nombre": "m-09-resultado-no-certificado · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
           "nombre": "m-09-resultado-no-certificado · areasTactiles",
           "ok": true,
           "detalle": "",
@@ -1179,12 +1569,85 @@
           "datos": [
             "s-monitor-resultado"
           ]
+        },
+        {
+          "nombre": "e-12-buscar · scrollHorizontal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "scrollWidth": 390,
+            "clientWidth": 390,
+            "ok": true
+          }
+        },
+        {
+          "nombre": "e-12-buscar · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-12-buscar · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-12-buscar · areasTactiles",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-12-buscar · tipografia",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-12-buscar · pieProtitipo",
+          "ok": true,
+          "detalle": "html > body > p.pie-prototipo",
+          "datos": {
+            "encontrado": true,
+            "selector": "html > body > p.pie-prototipo"
+          }
+        },
+        {
+          "nombre": "e-12-buscar · sinComision",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-12-buscar · contraste",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-12-buscar · unaSolaPantalla",
+          "ok": true,
+          "detalle": "s-buscar",
+          "datos": [
+            "s-buscar"
+          ]
         }
       ]
     },
     {
-      "nombre": "Logica del diagnostico · 16 combinaciones",
+      "nombre": "Regresion del oraculo · 16 combinaciones en orden fijo",
       "comprobaciones": [
+        {
+          "nombre": "orden fijo · preguntas en el orden del banco (p1 p2 p3 p4)",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "orden fijo · opciones sin barajar (A,B,C,D en el orden de los datos)",
+          "ok": true,
+          "detalle": ""
+        },
         {
           "nombre": "combinacion FFFF",
           "ok": true,
@@ -1204,22 +1667,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "partes",
                   "debil": true
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Integración por partes",
               "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1241,22 +1772,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": true
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Sustitución",
               "error": "Error detectado: no reconoces que 2x es la derivada de x²"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1278,22 +1877,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "partes",
                   "debil": true
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Integración por partes",
               "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1315,22 +1982,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": true
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Sustitución",
               "error": "Error detectado: no reconoces que 2x es la derivada de x²"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1352,22 +2087,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "partes",
                   "debil": true
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Integración por partes",
               "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1389,22 +2192,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": true
                 }
               ],
               "titulo": "Tu punto débil: Integrales impropias",
               "error": "Error detectado: la confundes con 1/x, que sí diverge"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1426,22 +2297,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "partes",
                   "debil": true
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Integración por partes",
               "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1463,22 +2402,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": true
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Integración por partes",
               "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "eliges u por orden de aparición, no por prioridad ILATE",
+                "textoElegido": "x"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1500,22 +2507,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": true
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Sustitución",
               "error": "Error detectado: no reconoces que 2x es la derivada de x²"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1537,22 +2612,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": true
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Sustitución",
               "error": "Error detectado: no reconoces que 2x es la derivada de x²"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1574,22 +2717,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": true
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Sustitución",
               "error": "Error detectado: no reconoces que 2x es la derivada de x²"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1611,22 +2822,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
                   "debil": true
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Sustitución",
               "error": "Error detectado: no reconoces que 2x es la derivada de x²"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "no reconoces que 2x es la derivada de x²",
+                "textoElegido": "Integración por partes"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1648,22 +2927,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": true
                 }
               ],
               "titulo": "Tu punto débil: Integrales impropias",
               "error": "Error detectado: la confundes con 1/x, que sí diverge"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1685,22 +3032,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "partes",
                   "debil": false
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
                   "debil": true
                 }
               ],
               "titulo": "Tu punto débil: Integrales impropias",
               "error": "Error detectado: la confundes con 1/x, que sí diverge"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "la confundes con 1/x, que sí diverge",
+                "textoElegido": "Diverge"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1722,22 +3137,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
                   "debil": true
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Integración por partes",
               "error": "Error detectado: te equivocas en el signo de la fórmula de partes"
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": false,
+                "error": "te equivocas en el signo de la fórmula de partes",
+                "textoElegido": "x·eˣ + eˣ + C"
+              }
+            ]
           }
         },
         {
@@ -1759,22 +3242,90 @@
                 {
                   "nombre": "Integración por partes",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "partes",
                   "debil": true
                 },
                 {
                   "nombre": "Sustitución",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
                   "debil": false
                 },
                 {
                   "nombre": "Integrales impropias",
                   "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
                   "debil": false
                 }
               ],
               "titulo": "Tu punto débil: Integración por partes",
               "error": "Vas bien. Refuerza este subtema antes del parcial."
-            }
+            },
+            "traza": [
+              {
+                "paso": 0,
+                "preguntaId": "p1",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 1 de 4",
+                "topic": "Integración por partes",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "ln(x)"
+              },
+              {
+                "paso": 1,
+                "preguntaId": "p2",
+                "subtema": "sustitucion",
+                "dificultad": 2,
+                "contador": "Pregunta 2 de 4",
+                "topic": "Sustitución",
+                "letra": "B",
+                "idxDom": 1,
+                "idxDatos": 1,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Sustitución con u = x²"
+              },
+              {
+                "paso": 2,
+                "preguntaId": "p3",
+                "subtema": "impropias",
+                "dificultad": 3,
+                "contador": "Pregunta 3 de 4",
+                "topic": "Integrales impropias",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "Converge a 1"
+              },
+              {
+                "paso": 3,
+                "preguntaId": "p4",
+                "subtema": "partes",
+                "dificultad": 2,
+                "contador": "Pregunta 4 de 4",
+                "topic": "Integración por partes",
+                "letra": "A",
+                "idxDom": 0,
+                "idxDatos": 0,
+                "ordenOpciones": "0123",
+                "correcta": true,
+                "error": null,
+                "textoElegido": "x·eˣ − eˣ + C"
+              }
+            ]
           }
         }
       ]
@@ -1787,7 +3338,7 @@
           "ok": true,
           "detalle": "",
           "datos": {
-            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaVer mi panel"
+            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaCrear mi perfil de monitorVer mi panel"
           }
         },
         {
@@ -1795,7 +3346,7 @@
           "ok": true,
           "detalle": "",
           "datos": {
-            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaVer mi panel"
+            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaCrear mi perfil de monitorVer mi panel"
           }
         },
         {
@@ -1803,7 +3354,7 @@
           "ok": true,
           "detalle": "",
           "datos": {
-            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaVer mi panel"
+            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaCrear mi perfil de monitorVer mi panel"
           }
         },
         {
@@ -1811,7 +3362,7 @@
           "ok": true,
           "detalle": "",
           "datos": {
-            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaVer mi panel"
+            "texto": "Certificado en Cálculo IntegralNivel 10 monitoríasTarifa sugerida $25.000/horaCrear mi perfil de monitorVer mi panel"
           }
         },
         {
@@ -1849,6 +3400,2288 @@
       ]
     },
     {
+      "nombre": "Invariantes del modo adaptativo",
+      "comprobaciones": [
+        {
+          "nombre": "adaptativo · semilla 1 · todo-bien",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0312"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2103"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2301"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Vas bien. Refuerza este subtema antes del parcial."
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1 · todo-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0312"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "1320"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
+                "orden": "2103"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2301"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1 · alterna",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0312"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "1320"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2103"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2301"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": false
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": true
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Sustitución",
+            "error": "Error detectado: ignoras la regla de la cadena"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1 · primera-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0312"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2103"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2301"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1 · cada-tres-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0312"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2103"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2301"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 7 · todo-bien",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2031"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0321"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Vas bien. Refuerza este subtema antes del parcial."
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 7 · todo-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0231"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "0231"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
+                "orden": "2031"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0321"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 7 · alterna",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "0231"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2031"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0321"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": false
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": true
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Sustitución",
+            "error": "Error detectado: no reconoces que 2x es la derivada de x²"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 7 · primera-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0231"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2031"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0321"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 7 · cada-tres-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0231"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "2031"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0321"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 42 · todo-bien",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2013"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0123"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Vas bien. Refuerza este subtema antes del parcial."
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 42 · todo-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2013"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "0123"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
+                "orden": "0231"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: confundes u con dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 42 · alterna",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2013"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "0123"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": false
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": true
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Sustitución",
+            "error": "Error detectado: no reconoces que 2x es la derivada de x²"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 42 · primera-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2013"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0123"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: confundes u con dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 42 · cada-tres-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2013"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0123"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: confundes u con dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1234 · todo-bien",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "3120"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1203"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0123"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Vas bien. Refuerza este subtema antes del parcial."
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1234 · todo-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "3120"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "0321"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
+                "orden": "1203"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0123"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: no separas el producto en u y dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1234 · alterna",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "3120"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "0321"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1203"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0123"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": false
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": true
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Sustitución",
+            "error": "Error detectado: no reconoces que 2x es la derivada de x²"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1234 · primera-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "3120"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1203"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "0123"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: no separas el producto en u y dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 1234 · cada-tres-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "3120"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1203"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0123"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: no separas el producto en u y dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 99991 · todo-bien",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "3021"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Vas bien. Refuerza este subtema antes del parcial."
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 99991 · todo-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "3021"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "3201"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
+                "orden": "1320"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: no separas el producto en u y dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 99991 · alterna",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "3021"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "3201"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": false
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "sustitucion",
+                "debil": true
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Sustitución",
+            "error": "Error detectado: ignoras la regla de la cadena"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 99991 · primera-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "3021"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: no separas el producto en u y dv"
+          }
+        },
+        {
+          "nombre": "adaptativo · semilla 99991 · cada-tres-mal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "traza": [
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "3021"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              }
+            ],
+            "barras": [
+              {
+                "nombre": "Integración por partes",
+                "pct": 34,
+                "crudo": "0",
+                "subtema": "partes",
+                "debil": true
+              },
+              {
+                "nombre": "Sustitución",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
+                "nombre": "Integrales impropias",
+                "pct": 82,
+                "crudo": "100",
+                "subtema": "impropias",
+                "debil": false
+              }
+            ],
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: no separas el producto en u y dv"
+          }
+        },
+        {
+          "nombre": "determinismo · semilla 1 + alterna repite el mismo resultado",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "determinismo · semilla 1 + primera-mal repite el mismo resultado",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "barajado · semillas distintas producen ordenes de opciones distintos",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "p1": {
+              "1": "0312",
+              "7": "0231",
+              "42": "2013",
+              "1234": "3120",
+              "99991": "3021"
+            },
+            "p2": {
+              "1": "1320",
+              "7": "0231",
+              "42": "0123",
+              "1234": "0321",
+              "99991": "3201"
+            },
+            "p3": {
+              "1": "2103",
+              "7": "2031",
+              "42": "0231",
+              "1234": "1203",
+              "99991": "1320"
+            },
+            "p4": {
+              "1": "2301",
+              "7": "0321",
+              "42": "2031",
+              "1234": "0123",
+              "99991": "2031"
+            }
+          }
+        },
+        {
+          "nombre": "barajado · al menos una pregunta salio en orden distinto al de los datos",
+          "ok": true,
+          "detalle": ""
+        }
+      ]
+    },
+    {
+      "nombre": "Barajado correcto · la opcion se identifica por contenido",
+      "comprobaciones": [
+        {
+          "nombre": "barajado FFFF da el mismo diagnostico que en orden fijo",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "esperado": {
+              "pct": [
+                34,
+                34,
+                34
+              ],
+              "debil": "partes",
+              "error": "eliges u por orden de aparición, no por prioridad ILATE"
+            },
+            "letras": [
+              "p1 -> letra B = opcion de datos 0",
+              "p2 -> letra C = opcion de datos 0",
+              "p3 -> letra A = opcion de datos 1",
+              "p4 -> letra A = opcion de datos 1"
+            ],
+            "obtenido": {
+              "barras": [
+                {
+                  "nombre": "Integración por partes",
+                  "pct": 34,
+                  "crudo": "0",
+                  "subtema": "partes",
+                  "debil": true
+                },
+                {
+                  "nombre": "Sustitución",
+                  "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
+                  "debil": false
+                },
+                {
+                  "nombre": "Integrales impropias",
+                  "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
+                  "debil": false
+                }
+              ],
+              "titulo": "Tu punto débil: Integración por partes",
+              "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            }
+          }
+        },
+        {
+          "nombre": "barajado FVFV da el mismo diagnostico que en orden fijo",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "esperado": {
+              "pct": [
+                61,
+                82,
+                34
+              ],
+              "debil": "impropias",
+              "error": "la confundes con 1/x, que sí diverge"
+            },
+            "letras": [
+              "p1 -> letra B = opcion de datos 0",
+              "p2 -> letra D = opcion de datos 1",
+              "p3 -> letra A = opcion de datos 1",
+              "p4 -> letra C = opcion de datos 0"
+            ],
+            "obtenido": {
+              "barras": [
+                {
+                  "nombre": "Integración por partes",
+                  "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
+                  "debil": false
+                },
+                {
+                  "nombre": "Sustitución",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
+                  "debil": false
+                },
+                {
+                  "nombre": "Integrales impropias",
+                  "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
+                  "debil": true
+                }
+              ],
+              "titulo": "Tu punto débil: Integrales impropias",
+              "error": "Error detectado: la confundes con 1/x, que sí diverge"
+            }
+          }
+        },
+        {
+          "nombre": "barajado VFFF da el mismo diagnostico que en orden fijo",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "esperado": {
+              "pct": [
+                61,
+                34,
+                34
+              ],
+              "debil": "sustitucion",
+              "error": "no reconoces que 2x es la derivada de x²"
+            },
+            "letras": [
+              "p1 -> letra C = opcion de datos 1",
+              "p2 -> letra C = opcion de datos 0",
+              "p3 -> letra A = opcion de datos 1",
+              "p4 -> letra A = opcion de datos 1"
+            ],
+            "obtenido": {
+              "barras": [
+                {
+                  "nombre": "Integración por partes",
+                  "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
+                  "debil": false
+                },
+                {
+                  "nombre": "Sustitución",
+                  "pct": 34,
+                  "crudo": "0",
+                  "subtema": "sustitucion",
+                  "debil": true
+                },
+                {
+                  "nombre": "Integrales impropias",
+                  "pct": 34,
+                  "crudo": "0",
+                  "subtema": "impropias",
+                  "debil": false
+                }
+              ],
+              "titulo": "Tu punto débil: Sustitución",
+              "error": "Error detectado: no reconoces que 2x es la derivada de x²"
+            }
+          }
+        },
+        {
+          "nombre": "barajado VVVF da el mismo diagnostico que en orden fijo",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "esperado": {
+              "pct": [
+                61,
+                82,
+                82
+              ],
+              "debil": "partes",
+              "error": "te equivocas en el signo de la fórmula de partes"
+            },
+            "letras": [
+              "p1 -> letra C = opcion de datos 1",
+              "p2 -> letra D = opcion de datos 1",
+              "p3 -> letra B = opcion de datos 0",
+              "p4 -> letra A = opcion de datos 1"
+            ],
+            "obtenido": {
+              "barras": [
+                {
+                  "nombre": "Integración por partes",
+                  "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
+                  "debil": true
+                },
+                {
+                  "nombre": "Sustitución",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
+                  "debil": false
+                },
+                {
+                  "nombre": "Integrales impropias",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
+                  "debil": false
+                }
+              ],
+              "titulo": "Tu punto débil: Integración por partes",
+              "error": "Error detectado: te equivocas en el signo de la fórmula de partes"
+            }
+          }
+        },
+        {
+          "nombre": "barajado VVVV da el mismo diagnostico que en orden fijo",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "esperado": {
+              "pct": [
+                82,
+                82,
+                82
+              ],
+              "debil": "partes",
+              "error": "Vas bien. Refuerza este subtema antes del parcial."
+            },
+            "letras": [
+              "p1 -> letra C = opcion de datos 1",
+              "p2 -> letra D = opcion de datos 1",
+              "p3 -> letra B = opcion de datos 0",
+              "p4 -> letra C = opcion de datos 0"
+            ],
+            "obtenido": {
+              "barras": [
+                {
+                  "nombre": "Integración por partes",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "partes",
+                  "debil": true
+                },
+                {
+                  "nombre": "Sustitución",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
+                  "debil": false
+                },
+                {
+                  "nombre": "Integrales impropias",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
+                  "debil": false
+                }
+              ],
+              "titulo": "Tu punto débil: Integración por partes",
+              "error": "Vas bien. Refuerza este subtema antes del parcial."
+            }
+          }
+        },
+        {
+          "nombre": "barajado FVVV da el mismo diagnostico que en orden fijo",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "esperado": {
+              "pct": [
+                61,
+                82,
+                82
+              ],
+              "debil": "partes",
+              "error": "eliges u por orden de aparición, no por prioridad ILATE"
+            },
+            "letras": [
+              "p1 -> letra B = opcion de datos 0",
+              "p2 -> letra D = opcion de datos 1",
+              "p3 -> letra B = opcion de datos 0",
+              "p4 -> letra C = opcion de datos 0"
+            ],
+            "obtenido": {
+              "barras": [
+                {
+                  "nombre": "Integración por partes",
+                  "pct": 61,
+                  "crudo": "50",
+                  "subtema": "partes",
+                  "debil": true
+                },
+                {
+                  "nombre": "Sustitución",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "sustitucion",
+                  "debil": false
+                },
+                {
+                  "nombre": "Integrales impropias",
+                  "pct": 82,
+                  "crudo": "100",
+                  "subtema": "impropias",
+                  "debil": false
+                }
+              ],
+              "titulo": "Tu punto débil: Integración por partes",
+              "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            }
+          }
+        },
+        {
+          "nombre": "barajado · la prueba no fue vacia (alguna letra cambio de posicion)",
+          "ok": true,
+          "detalle": ""
+        }
+      ]
+    },
+    {
+      "nombre": "B1 · Buscar monitores sin examen",
+      "comprobaciones": [
+        {
+          "nombre": "abrir #buscar en frio NO redirige (entrada libre)",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "hash": "#buscar",
+            "visibles": [
+              "s-buscar"
+            ],
+            "total": 14,
+            "textoVisible": true
+          }
+        },
+        {
+          "nombre": "E1 · boton secundario hacia #buscar",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "B1 · la lista muestra los 3 monitores de ejemplo",
+          "ok": true,
+          "detalle": "visibles: 3"
+        },
+        {
+          "nombre": "B1 · #buscar-conteo refleja el numero visible",
+          "ok": true,
+          "detalle": "3 monitores"
+        },
+        {
+          "nombre": "B1 · sin filtros, #buscar-vacio esta oculto",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "B1 · existe el filtro de materia",
+          "ok": true,
+          "detalle": "#s-buscar [data-filtro=\"materia\"] (select)"
+        },
+        {
+          "nombre": "B1 · existe el filtro de subtema",
+          "ok": true,
+          "detalle": "#s-buscar [data-filtro=\"subtema\"] (select)"
+        },
+        {
+          "nombre": "B1 · existe el filtro de precio",
+          "ok": true,
+          "detalle": "#s-buscar [data-filtro=\"precio\"] (select)"
+        },
+        {
+          "nombre": "B1 · existe el filtro de nivel",
+          "ok": true,
+          "detalle": "#s-buscar [data-filtro=\"nivel\"] (select)"
+        },
+        {
+          "nombre": "B1 · el filtro de materia reduce la lista de forma coherente",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "B1 · el filtro de subtema reduce la lista de forma coherente",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "B1 · el filtro de precio reduce la lista de forma coherente",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "B1 · el filtro de nivel reduce la lista de forma coherente",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · scrollHorizontal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "scrollWidth": 390,
+            "clientWidth": 390,
+            "ok": true
+          }
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · areasTactiles",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · tipografia",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · pieProtitipo",
+          "ok": true,
+          "detalle": "html > body > p.pie-prototipo",
+          "datos": {
+            "encontrado": true,
+            "selector": "html > body > p.pie-prototipo"
+          }
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · sinComision",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · contraste",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-13-buscar-filtrado · unaSolaPantalla",
+          "ok": true,
+          "detalle": "s-buscar",
+          "datos": [
+            "s-buscar"
+          ]
+        },
+        {
+          "nombre": "B1 · una combinacion sin resultados muestra #buscar-vacio",
+          "ok": true,
+          "detalle": "con materia=Cálculo Diferencial",
+          "datos": [
+            "materia=Cálculo Diferencial"
+          ]
+        },
+        {
+          "nombre": "e-14-buscar-vacio · scrollHorizontal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "scrollWidth": 390,
+            "clientWidth": 390,
+            "ok": true
+          }
+        },
+        {
+          "nombre": "e-14-buscar-vacio · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-14-buscar-vacio · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-14-buscar-vacio · areasTactiles",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-14-buscar-vacio · tipografia",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-14-buscar-vacio · pieProtitipo",
+          "ok": true,
+          "detalle": "html > body > p.pie-prototipo",
+          "datos": {
+            "encontrado": true,
+            "selector": "html > body > p.pie-prototipo"
+          }
+        },
+        {
+          "nombre": "e-14-buscar-vacio · sinComision",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-14-buscar-vacio · contraste",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-14-buscar-vacio · unaSolaPantalla",
+          "ok": true,
+          "detalle": "s-buscar",
+          "datos": [
+            "s-buscar"
+          ]
+        },
+        {
+          "nombre": "E5 sin prueba · no promete un diagnostico que no existe",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · scrollHorizontal",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "scrollWidth": 390,
+            "clientWidth": 390,
+            "ok": true
+          }
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · desbordes",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · controlesNoRecortados",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · areasTactiles",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · tipografia",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · pieProtitipo",
+          "ok": true,
+          "detalle": "html > body > p.pie-prototipo",
+          "datos": {
+            "encontrado": true,
+            "selector": "html > body > p.pie-prototipo"
+          }
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · sinComision",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · contraste",
+          "ok": true,
+          "detalle": "",
+          "datos": []
+        },
+        {
+          "nombre": "e-15-perfil-sin-diagnostico · unaSolaPantalla",
+          "ok": true,
+          "detalle": "s-perfil",
+          "datos": [
+            "s-perfil"
+          ]
+        },
+        {
+          "nombre": "B1 · se puede agendar sin haber hecho la prueba",
+          "ok": true,
+          "detalle": ""
+        }
+      ]
+    },
+    {
+      "nombre": "R1 · Crear el perfil del monitor",
+      "comprobaciones": [
+        {
+          "nombre": "abrir #crear-perfil sin certificado redirige a #monitor",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "hash": "#monitor",
+            "visibles": [
+              "s-monitor"
+            ],
+            "total": 14,
+            "textoVisible": true
+          }
+        },
+        {
+          "nombre": "tras certificar se llega a #crear-perfil",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "rechaza nombre vacio",
+          "ok": true,
+          "detalle": "mensaje: Revisa lo que falta antes de publicar."
+        },
+        {
+          "nombre": "rechaza semestre 0",
+          "ok": true,
+          "detalle": "mensaje: Revisa lo que falta antes de publicar."
+        },
+        {
+          "nombre": "rechaza semestre 13",
+          "ok": true,
+          "detalle": "mensaje: Revisa lo que falta antes de publicar."
+        },
+        {
+          "nombre": "rechaza tarifa 5000",
+          "ok": true,
+          "detalle": "mensaje: Revisa lo que falta antes de publicar."
+        },
+        {
+          "nombre": "rechaza tarifa 500000",
+          "ok": true,
+          "detalle": "mensaje: Revisa lo que falta antes de publicar."
+        },
+        {
+          "nombre": "rechaza cero subtemas",
+          "ok": true,
+          "detalle": "mensaje: Revisa lo que falta antes de publicar."
+        },
+        {
+          "nombre": "con datos validos guarda y navega a #panel",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "el panel muestra el nombre escrito",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "el panel muestra la tarifa escrita",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "el monitor creado aparece en #buscar",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "el monitor creado aparece en #monitores",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "el reinicio borra el monitor creado de #buscar",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "el reinicio borra el monitor creado de #monitores",
+          "ok": true,
+          "detalle": ""
+        }
+      ]
+    },
+    {
       "nombre": "Robustez",
       "comprobaciones": [
         {
@@ -1860,7 +5693,7 @@
             "visibles": [
               "s-inicio"
             ],
-            "total": 12,
+            "total": 14,
             "textoVisible": true
           }
         },
@@ -1873,7 +5706,7 @@
             "visibles": [
               "s-monitor"
             ],
-            "total": 12,
+            "total": 14,
             "textoVisible": true
           }
         },
@@ -1886,7 +5719,7 @@
             "visibles": [
               "s-inicio"
             ],
-            "total": 12,
+            "total": 14,
             "textoVisible": true
           }
         },
@@ -1899,7 +5732,20 @@
             "visibles": [
               "s-inicio"
             ],
-            "total": 12,
+            "total": 14,
+            "textoVisible": true
+          }
+        },
+        {
+          "nombre": "tras reiniciar, #buscar sigue siendo entrada libre",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "hash": "#buscar",
+            "visibles": [
+              "s-buscar"
+            ],
+            "total": 14,
             "textoVisible": true
           }
         },
@@ -1912,7 +5758,7 @@
             "visibles": [
               "s-inicio"
             ],
-            "total": 12,
+            "total": 14,
             "textoVisible": true
           }
         },
@@ -1928,6 +5774,11 @@
           "datos": {
             "peticiones": []
           }
+        },
+        {
+          "nombre": "las materias inactivas salen en gris con \"pronto\"",
+          "ok": true,
+          "detalle": ""
         }
       ]
     },
@@ -1954,88 +5805,152 @@
   "capturas": [
     {
       "archivo": "estudiante/e-01-inicio.png",
+      "carpeta": "estudiante",
       "etiqueta": "E1 · Inicio"
     },
     {
       "archivo": "estudiante/e-02-pregunta-1.png",
+      "carpeta": "estudiante",
       "etiqueta": "E2 · Pregunta 1"
     },
     {
       "archivo": "estudiante/e-03-pregunta-2.png",
+      "carpeta": "estudiante",
       "etiqueta": "E2 · Pregunta 2"
     },
     {
       "archivo": "estudiante/e-04-pregunta-3.png",
+      "carpeta": "estudiante",
       "etiqueta": "E2 · Pregunta 3"
     },
     {
       "archivo": "estudiante/e-05-pregunta-4.png",
+      "carpeta": "estudiante",
       "etiqueta": "E2 · Pregunta 4"
     },
     {
       "archivo": "estudiante/e-06-diagnostico.png",
+      "carpeta": "estudiante",
       "etiqueta": "E3 · Diagnostico"
     },
     {
       "archivo": "estudiante/e-07-monitores.png",
+      "carpeta": "estudiante",
       "etiqueta": "E4 · Monitores"
     },
     {
       "archivo": "estudiante/e-08-perfil.png",
+      "carpeta": "estudiante",
       "etiqueta": "E5 · Perfil y agendar"
     },
     {
       "archivo": "estudiante/e-09-confirmacion.png",
+      "carpeta": "estudiante",
       "etiqueta": "E6 · Confirmacion"
     },
     {
       "archivo": "estudiante/e-10-confirmacion-gracias.png",
+      "carpeta": "estudiante",
       "etiqueta": "E6 · Agradecimiento"
     },
     {
       "archivo": "estudiante/e-11-profesor.png",
+      "carpeta": "estudiante",
       "etiqueta": "P1 · Profesor"
     },
     {
       "archivo": "monitor/m-01-inicio.png",
+      "carpeta": "monitor",
       "etiqueta": "M1 · Inicio monitor"
     },
     {
       "archivo": "monitor/m-02-materia.png",
+      "carpeta": "monitor",
       "etiqueta": "M2 · Materia"
     },
     {
       "archivo": "monitor/m-03-pregunta-1.png",
+      "carpeta": "monitor",
       "etiqueta": "M3 · Pregunta 1"
     },
     {
       "archivo": "monitor/m-04-pregunta-2.png",
+      "carpeta": "monitor",
       "etiqueta": "M3 · Pregunta 2"
     },
     {
       "archivo": "monitor/m-05-pregunta-3.png",
+      "carpeta": "monitor",
       "etiqueta": "M3 · Pregunta 3"
     },
     {
       "archivo": "monitor/m-06-resultado-certificado.png",
+      "carpeta": "monitor",
       "etiqueta": "M4 · Resultado certificado"
     },
     {
+      "archivo": "monitor/m-10-crear-perfil-vacio.png",
+      "carpeta": "monitor",
+      "etiqueta": "R1 · Crear perfil (vacio)"
+    },
+    {
+      "archivo": "monitor/m-11-crear-perfil-errores.png",
+      "carpeta": "monitor",
+      "etiqueta": "R1 · Crear perfil (con errores)"
+    },
+    {
+      "archivo": "monitor/m-12-crear-perfil-lleno.png",
+      "carpeta": "monitor",
+      "etiqueta": "R1 · Crear perfil (lleno)"
+    },
+    {
       "archivo": "monitor/m-07-panel.png",
+      "carpeta": "monitor",
       "etiqueta": "M5 · Panel del monitor"
     },
     {
+      "archivo": "monitor/m-13-panel-perfil-propio.png",
+      "carpeta": "monitor",
+      "etiqueta": "M5 · Panel con el perfil propio"
+    },
+    {
       "archivo": "monitor/m-08-panel-gracias.png",
+      "carpeta": "monitor",
       "etiqueta": "M5 · Agradecimiento"
     },
     {
       "archivo": "monitor/m-09-resultado-no-certificado.png",
+      "carpeta": "monitor",
       "etiqueta": "M4 · Resultado no certificado"
+    },
+    {
+      "archivo": "estudiante/e-12-buscar.png",
+      "carpeta": "estudiante",
+      "etiqueta": "B1 · Buscar monitores (sin filtros)"
+    },
+    {
+      "archivo": "estudiante/e-13-buscar-filtrado.png",
+      "carpeta": "estudiante",
+      "etiqueta": "B1 · Buscar con filtros aplicados"
+    },
+    {
+      "archivo": "estudiante/e-14-buscar-vacio.png",
+      "carpeta": "estudiante",
+      "etiqueta": "B1 · Buscar sin resultados"
+    },
+    {
+      "archivo": "estudiante/e-15-perfil-sin-diagnostico.png",
+      "carpeta": "estudiante",
+      "etiqueta": "E5 · Perfil sin diagnostico previo"
     }
   ],
+  "supuestos": [
+    "Se uso el selector alterno \"#s-crear-perfil input[type=\"checkbox\"]\" para las casillas de subtemas de #s-crear-perfil (el preferido es \"#s-crear-perfil [name=\"subtemas\"]\").",
+    "Se uso el selector alterno \"#perfil-guardar\" para el boton de guardar de #s-crear-perfil (el preferido es \"#s-crear-perfil button[type=\"submit\"]\")."
+  ],
   "resumen": {
-    "total": 199,
-    "ok": 199,
+    "total": 368,
+    "ok": 368,
     "fallas": 0
   }
 }

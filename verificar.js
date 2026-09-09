@@ -1,14 +1,18 @@
 /*
- * verificar.js — arnes de verificacion del prototipo Calibra
+ * verificar.js — arnes de verificacion del prototipo Calibra (v2)
  *
- * Recorre el prototipo con Playwright (Chromium), toma capturas de las dos
- * rutas completas y ejecuta aserciones automaticas de layout, accesibilidad,
- * logica del diagnostico y robustez.
+ * Recorre el prototipo con Playwright (Chromium), toma capturas de los flujos
+ * completos y ejecuta aserciones automaticas de layout, accesibilidad, logica
+ * del diagnostico (fijo y adaptativo), barajado, exploracion de monitores,
+ * creacion del perfil de monitor y robustez.
  *
  * Uso:
- *   verificar.cmd                 (define NODE_PATH y ejecuta este archivo)
- *   verificar.cmd --headed        (abre el navegador visible)
- *   verificar.cmd --solo=logica   (bloques: capturas, logica, monitor, robustez, fuente)
+ *   verificar.cmd                    (define NODE_PATH y ejecuta este archivo)
+ *   verificar.cmd --headed           (abre el navegador visible)
+ *   verificar.cmd --solo=oraculo     (bloques, separados por coma:
+ *                                     fuente, capturas, oraculo, monitor,
+ *                                     adaptativo, barajado, buscar, perfil,
+ *                                     robustez)
  *
  * Requisitos ya verificados del entorno:
  *   - playwright 1.61.1 instalado GLOBALMENTE, se resuelve via NODE_PATH.
@@ -16,6 +20,33 @@
  *   - no existe @playwright/test: no se usa el test runner.
  *
  * Sale con codigo 1 si algo falla, 0 si todo pasa.
+ *
+ * ---------------------------------------------------------------------------
+ * GANCHOS QUE EL ARNES NECESITA DE index.html (contrato v2)
+ * ---------------------------------------------------------------------------
+ *  1. window.MATERIAS          -> el arreglo de materias, legible y MUTABLE.
+ *                                 (alias aceptados: window.__calibraMaterias,
+ *                                  window.__calibra.MATERIAS)
+ *                                 El arnes lo lee para saber que opcion es
+ *                                 correcta y para forzar la configuracion
+ *                                 { adaptativa:false, barajarOpciones:false }
+ *                                 antes de cada recorrido.
+ *  2. window.__calibraSemilla  -> numero. El motor DEBE leerlo al arrancar
+ *                                 cada prueba/certificacion para sembrar el
+ *                                 PRNG (mulberry32). Nunca Math.random.
+ *  3. Secciones nuevas: <section id="s-buscar"> (#buscar) y
+ *                       <section id="s-crear-perfil"> (#crear-perfil).
+ *  4. Ids nuevos: #buscar-lista, #buscar-conteo, #buscar-vacio.
+ *  5. Controles de filtro en #s-buscar: cada uno con data-filtro="materia" |
+ *     "subtema" | "precio" | "nivel" (alias por id: #buscar-materia, etc.).
+ *  6. Cada tarjeta de #buscar-lista: [data-ir="perfil"] y, para poder
+ *     comprobar coherencia, data-materia / data-subtemas / data-precio /
+ *     data-nivel (si no estan, el arnes intenta leerlos del texto visible).
+ *  7. Formulario de #s-crear-perfil con campos [name="nombre"],
+ *     [name="semestre"], [name="tarifa"] y casillas [name="subtemas"], mas un
+ *     contenedor de mensaje de error (#crear-perfil-error o [role="alert"]).
+ *  8. Enlace en E1 hacia la exploracion libre: [data-ir="buscar"].
+ * ---------------------------------------------------------------------------
  */
 
 'use strict';
@@ -48,6 +79,12 @@ const TIEMPO = 8000; // timeout por defecto de las esperas
 
 const HOSTS_FUENTES = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
+// Materia sobre la que se apoya la tabla oraculo de regresion.
+const MATERIA_DEMO = 'calculo-integral';
+
+// Semillas del bloque adaptativo. Fijas para que el reporte sea comparable.
+const SEMILLAS = [1, 7, 42, 1234, 99991];
+
 // ---------------------------------------------------------------------------
 // 1. Textos oraculo (literales del brief, con tildes correctas)
 // ---------------------------------------------------------------------------
@@ -57,12 +94,16 @@ const ERR_PARTES_P4 = 'te equivocas en el signo de la fórmula de partes';
 const ERR_SUSTITUCION = 'no reconoces que 2x es la derivada de x²';
 const ERR_IMPROPIAS = 'la confundes con 1/x, que sí diverge';
 const SIN_FALLOS = 'Vas bien. Refuerza este subtema antes del parcial.';
+const PREFIJO_ERROR = 'Error detectado';
 
 const TXT_CERTIFICADO = 'Certificado en Cálculo Integral';
 const TXT_NO_CERTIFICADO = 'Todavía no. Puedes reintentar en 7 días.';
 const TXT_PIE = 'Prototipo · datos de ejemplo';
 
-// Letras del banco: correcta / incorrecta canonica por pregunta.
+// Promesa de E5 que SOLO puede aparecer si hay diagnostico hecho.
+const PROMESA_DIAGNOSTICO = 'recibirá tu diagnóstico';
+
+// Letras del banco en orden fijo: correcta / incorrecta canonica por pregunta.
 // P1 correcta B (incorrecta A), P2 correcta B (incorrecta A),
 // P3 correcta A (incorrecta B), P4 correcta A (incorrecta B).
 const LETRA_CORRECTA = ['B', 'B', 'A', 'A'];
@@ -88,9 +129,22 @@ const ORACULO = {
   VVVV: { pct: [82, 82, 82], debil: 'partes', error: SIN_FALLOS },
 };
 
+// Subconjunto para el bloque de barajado: cubre los tres subtemas debiles,
+// el caso sin fallos y los dos textos de error de "partes".
+const COMBOS_BARAJADO = ['FFFF', 'FVFV', 'VFFF', 'VVVF', 'VVVV', 'FVVV'];
+
 // Combinacion usada para las capturas del flujo del estudiante:
 // deja el punto debil en integracion por partes, que es la historia del brief.
 const COMBO_CAPTURA = 'FVVV';
+
+// Configuraciones forzadas.
+const CFG_FIJA = { adaptativa: false, barajarOpciones: false };
+const CFG_BARAJADA = { adaptativa: false, barajarOpciones: true };
+const CFG_ADAPTATIVA = { adaptativa: true, barajarOpciones: true };
+
+// Datos validos para crear el perfil del monitor.
+const PERFIL_NUEVO = { nombre: 'Mariana T.', semestre: '7', tarifa: '30000' };
+const PERFIL_TARIFA_TEXTO = '$30.000';
 
 // ---------------------------------------------------------------------------
 // 2. Acumulador de resultados
@@ -98,11 +152,13 @@ const COMBO_CAPTURA = 'FVVV';
 
 const reporte = {
   generado: new Date().toISOString(),
+  version: 'v2',
   base: null,
   bloques: [],
   consola: [],
   red: [],
   capturas: [],
+  supuestos: [],
   resumen: { total: 0, ok: 0, fallas: 0 },
 };
 
@@ -126,6 +182,10 @@ function registrar(nombre, ok, detalle, datos) {
   else reporte.resumen.fallas += 1;
   const marca = ok ? 'OK   ' : 'FALLA';
   linea('  ' + marca + ' ' + nombre + (detalle ? ' -> ' + detalle : ''));
+}
+
+function anotar(texto) {
+  if (reporte.supuestos.indexOf(texto) === -1) reporte.supuestos.push(texto);
 }
 
 function linea(txt) {
@@ -225,15 +285,27 @@ function contieneTexto(actual, esperado) {
   return a.indexOf(e) !== -1;
 }
 
-function claveSubtema(nombreVisible) {
-  const t = normalizarEspacios(nombreVisible)
+// Sin tildes y en minusculas: para comparar nombres de materia y de subtema.
+function plano(s) {
+  return normalizarEspacios(s)
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
+}
+
+function claveSubtema(nombreVisible) {
+  const t = plano(nombreVisible);
   if (t.indexOf('parte') !== -1) return 'partes';
   if (t.indexOf('sustitu') !== -1) return 'sustitucion';
   if (t.indexOf('impropia') !== -1) return 'impropias';
   return null;
+}
+
+function numeroDePesos(txt) {
+  const m = String(txt || '').match(/\$\s?([\d.,]+)/);
+  if (!m) return null;
+  const n = parseInt(m[1].replace(/[.,]/g, ''), 10);
+  return Number.isNaN(n) ? null : n;
 }
 
 // ---------------------------------------------------------------------------
@@ -343,7 +415,6 @@ function fnAuditoria(opciones) {
   }
 
   const vw = window.innerWidth;
-  const vh = window.innerHeight;
   const de = document.documentElement;
   const todos = Array.prototype.slice.call(document.body.querySelectorAll('*'));
   const visibles = todos.filter(esVisible);
@@ -372,13 +443,13 @@ function fnAuditoria(opciones) {
   });
 
   // -- areas tactiles -------------------------------------------------------
-  const SEL_TACTIL = 'button, a, input, label.opt, label.slot, [role="button"], select, textarea';
+  const SEL_TACTIL = 'button, a, input, label.opt, label.slot, label.chip, [role="button"], select, textarea';
   const areasTactiles = [];
   Array.prototype.slice.call(document.body.querySelectorAll(SEL_TACTIL)).forEach(function (el) {
     if (el.type === 'hidden') return;
     if (!esVisible(el)) return;
-    // Un input envuelto por un label.opt/.slot ya se mide en la etiqueta.
-    if (el.tagName === 'INPUT' && el.closest('label.opt, label.slot')) return;
+    // Un input envuelto por un label.opt/.slot/.chip ya se mide en la etiqueta.
+    if (el.tagName === 'INPUT' && el.closest('label.opt, label.slot, label.chip')) return;
     const r = el.getBoundingClientRect();
     if (r.width < 43.5 || r.height < 43.5) {
       areasTactiles.push({
@@ -393,7 +464,7 @@ function fnAuditoria(opciones) {
   // -- tipografia -----------------------------------------------------------
   const tipografia = [];
   visibles.forEach(function (el) {
-    const esCampo = /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(el.tagName);
+    const esCampo = /^(INPUT|TEXTAREA|SELECT|BUTTON|OPTION)$/.test(el.tagName);
     if (!esCampo && !tieneTextoDirecto(el)) return;
     const cs = getComputedStyle(el);
     const px = parseFloat(cs.fontSize);
@@ -418,14 +489,14 @@ function fnAuditoria(opciones) {
   });
 
   // -- sin comision ---------------------------------------------------------
-  const plano = textoVisible.replace(/\s+/g, ' ');
+  const llano = textoVisible.replace(/\s+/g, ' ');
   const patrones = [
     /\d+(?:[.,]\d+)?\s*%[^.]{0,60}?comisi[oó]n/i,
     /comisi[oó]n[^.]{0,60}?\d+(?:[.,]\d+)?\s*%/i,
   ];
   const comision = [];
   patrones.forEach(function (re) {
-    const m = plano.match(re);
+    const m = llano.match(re);
     if (m) comision.push(m[0]);
   });
 
@@ -468,10 +539,41 @@ function fnAuditoria(opciones) {
     .map(function (s) { return s.id; });
 
   return {
-    viewport: { ancho: vw, alto: vh },
+    viewport: { ancho: vw, alto: window.innerHeight },
     scrollHorizontal: scrollHorizontal,
     desbordes: desbordes,
     areasTactiles: areasTactiles,
+    recortados: (function () {
+      var malos = [];
+      var sel = 'button, a[href], input, select, textarea, label.opt, label.slot, [role="button"]';
+      Array.prototype.forEach.call(document.querySelectorAll('section.screen:not([hidden]) ' + sel), function (el) {
+        var r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return;
+        var p = el.parentElement;
+        while (p && p !== document.body) {
+          var cs = getComputedStyle(p);
+          // Si por el camino hay un ancestro que SI se desplaza, el control es
+          // alcanzable y no hay recorte real: se deja de subir.
+          var puedeDesplazar = (cs.overflowY === 'auto' || cs.overflowY === 'scroll') && p.scrollHeight > p.clientHeight + 1;
+          if (puedeDesplazar) break;
+          if (cs.overflowY === 'hidden') {
+            var rp = p.getBoundingClientRect();
+            var visible = Math.min(r.bottom, rp.bottom) - Math.max(r.top, rp.top);
+            if (visible < r.height - 1) {
+              malos.push({
+                sel: el.tagName.toLowerCase() + (el.id ? '#' + el.id : ''),
+                alto: Math.round(r.height),
+                visible: Math.round(Math.max(visible, 0)),
+                contenedor: p.tagName.toLowerCase() + (p.className && typeof p.className === 'string' ? '.' + String(p.className).trim().split(/\s+/)[0] : '')
+              });
+            }
+            break;
+          }
+          p = p.parentElement;
+        }
+      });
+      return malos;
+    })(),
     tipografia: tipografia,
     pie: { encontrado: pieEncontrado, selector: pieElemento },
     comision: comision,
@@ -497,6 +599,16 @@ async function auditarPantalla(page, etiqueta) {
       ? ''
       : r.desbordes.length + ' elemento(s) fuera del viewport: ' + r.desbordes.slice(0, 3).map((d) => d.selector + ' [' + d.izquierda + '..' + d.derecha + ']').join('; '),
     r.desbordes
+  );
+
+  registrar(
+    etiqueta + ' · controlesNoRecortados',
+    (r.recortados || []).length === 0,
+    (r.recortados || []).length === 0 ? '' :
+      (r.recortados || []).map(function (x) {
+        return x.sel + ' mide ' + x.alto + 'px pero solo se ven ' + x.visible + 'px dentro de ' + x.contenedor;
+      }).join(' | '),
+    r.recortados
   );
 
   registrar(
@@ -555,15 +667,40 @@ async function auditarPantalla(page, etiqueta) {
 // 6. Utilidades de navegacion sobre el prototipo
 // ---------------------------------------------------------------------------
 
+const HASH_DE_SECCION = {
+  's-inicio': '#inicio',
+  's-prueba': '#prueba',
+  's-diagnostico': '#diagnostico',
+  's-monitores': '#monitores',
+  's-perfil': '#perfil',
+  's-confirmacion': '#confirmacion',
+  's-monitor': '#monitor',
+  's-monitor-materia': '#monitor-materia',
+  's-certificacion': '#certificacion',
+  's-monitor-resultado': '#monitor-resultado',
+  's-panel': '#panel',
+  's-profesor': '#profesor',
+  's-buscar': '#buscar',
+  's-crear-perfil': '#crear-perfil',
+};
+
 async function esperarPantalla(page, id, etiqueta) {
   try {
     await page.waitForSelector('#' + id, { state: 'visible', timeout: TIEMPO });
   } catch (e) {
+    const existe = await page.locator('#' + id).count().catch(() => 0);
+    const est = await estadoPantallas(page).catch(() => ({ visibles: ['?'], hash: '?' }));
     throw new Error(
-      'No aparecio la pantalla #' + id + (etiqueta ? ' (' + etiqueta + ')' : '') +
-      '. El contrato pide <section id="' + id + '" class="screen" hidden> y que el motor la muestre quitando .hidden.'
+      'No aparecio la pantalla #' + id + (etiqueta ? ' (' + etiqueta + ')' : '') + '. ' +
+      (existe === 0
+        ? 'La seccion NO EXISTE en el documento. El contrato v2 pide <section id="' + id + '" class="screen" hidden> con hash ' + (HASH_DE_SECCION[id] || '?') + '.'
+        : 'La seccion existe pero sigue oculta. Visibles ahora: [' + est.visibles.join(', ') + '] con hash "' + est.hash + '".')
     );
   }
+}
+
+async function seccionVisible(page, id) {
+  return page.locator('#' + id).isVisible().catch(() => false);
 }
 
 async function clic(page, selector, etiqueta) {
@@ -576,10 +713,37 @@ async function clic(page, selector, etiqueta) {
   await loc.click();
 }
 
+async function primerSelector(page, lista) {
+  for (const s of lista) {
+    const n = await page.locator(s).count().catch(() => 0);
+    if (n > 0) return s;
+  }
+  return null;
+}
+
+async function exigirSelector(page, lista, queEs) {
+  const s = await primerSelector(page, lista);
+  if (!s) {
+    const est = await estadoPantallas(page).catch(() => ({ visibles: ['?'], hash: '?' }));
+    throw new Error(
+      'Falta ' + queEs + '. Busque cualquiera de estos selectores y no existe ninguno: ' +
+      lista.join('  |  ') + '. Pantalla visible: [' + est.visibles.join(', ') + '] hash "' + est.hash + '".'
+    );
+  }
+  if (s !== lista[0]) anotar('Se uso el selector alterno "' + s + '" para ' + queEs + ' (el preferido es "' + lista[0] + '").');
+  return s;
+}
+
 async function irAInicio(page, base) {
   // goto sin hash fuerza recarga completa: el estado en memoria queda limpio.
   await page.goto(base, { waitUntil: 'domcontentloaded' });
   await esperarPantalla(page, 's-inicio', 'pantalla de arranque');
+}
+
+// Navega por hash SIN recargar: conserva el estado en memoria.
+async function irPorHash(page, hash) {
+  await page.evaluate((h) => { window.location.hash = h; }, hash);
+  await page.waitForTimeout(250);
 }
 
 // Marca el elemento elegido con un atributo temporal y lo devuelve como
@@ -593,21 +757,32 @@ async function limpiarMarca(page) {
   }, MARCA).catch(() => {});
 }
 
-async function elegirMateriaActiva(page, contenedor) {
-  // La materia activa es el unico item de la lista sin .is-pronto.
+// Elige una materia concreta por id (o por nombre visible si no hay
+// data-materia). Devuelve informacion de lo que pulso.
+async function elegirMateria(page, contenedor, materia) {
   await limpiarMarca(page);
-  const info = await page.evaluate(({ cont, attr }) => {
+  const info = await page.evaluate(({ cont, id, nombre, attr }) => {
+    function llano(s) {
+      return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
     const c = document.querySelector(cont);
-    if (!c) return { error: 'no existe ' + cont };
-    let nodos = Array.prototype.slice.call(c.querySelectorAll('.materia'));
+    if (!c) return { error: 'no existe el contenedor ' + cont };
+    let nodos = Array.prototype.slice.call(c.querySelectorAll('[data-materia]'));
+    let porDato = nodos.length > 0;
+    if (!nodos.length) nodos = Array.prototype.slice.call(c.querySelectorAll('.materia'));
     if (!nodos.length) nodos = Array.prototype.slice.call(c.querySelectorAll('li'));
     if (!nodos.length) return { error: 'la lista ' + cont + ' esta vacia' };
-    let idx = nodos.findIndex((n) => !n.classList.contains('is-pronto') && !n.querySelector('.is-pronto'));
-    if (idx < 0) idx = 0;
-    nodos[idx].setAttribute(attr, '1');
-    return { idx, total: nodos.length, texto: (nodos[idx].textContent || '').trim().slice(0, 60) };
-  }, { cont: contenedor, attr: MARCA });
-  if (info.error) return info; // no es fatal: puede que la lista no sea clicable
+    let idx = -1;
+    if (porDato) idx = nodos.findIndex((n) => n.getAttribute('data-materia') === id);
+    if (idx < 0) idx = nodos.findIndex((n) => llano(n.textContent).indexOf(llano(nombre)) !== -1);
+    if (idx < 0) return { error: 'no encuentro la materia "' + nombre + '" (id ' + id + ') dentro de ' + cont };
+    const el = nodos[idx];
+    const pronto = el.classList.contains('is-pronto') || !!el.querySelector('.is-pronto');
+    el.setAttribute(attr, '1');
+    return { idx, total: nodos.length, porDato, pronto, texto: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60) };
+  }, { cont: contenedor, id: materia.id, nombre: materia.nombre, attr: MARCA });
+  if (info.error) throw new Error(info.error);
   try {
     await page.locator('[' + MARCA + '="1"]').first().click({ timeout: 2500 });
   } catch (e) {
@@ -617,29 +792,23 @@ async function elegirMateriaActiva(page, contenedor) {
   return info;
 }
 
-async function elegirOpcion(page, contenedor, letra, etiqueta) {
+async function clicOpcionPorIndice(page, contenedor, idx, etiqueta) {
   await limpiarMarca(page);
-  const info = await page.evaluate(({ cont, l, attr }) => {
+  const info = await page.evaluate(({ cont, i, attr }) => {
     const c = document.querySelector(cont);
     if (!c) return { error: 'no existe el contenedor ' + cont };
     let nodos = Array.prototype.slice.call(c.querySelectorAll('.opt'));
     if (!nodos.length) nodos = Array.prototype.slice.call(c.querySelectorAll('li'));
-    if (!nodos.length) return { error: 'no hay opciones dentro de ' + cont };
-    const idxLetra = nodos.findIndex((n) => {
-      const k = n.querySelector('.key');
-      if (!k) return false;
-      return (k.textContent || '').trim().toUpperCase().replace(/[^A-D]/g, '') === l;
-    });
-    const idx = idxLetra >= 0 ? idxLetra : 'ABCD'.indexOf(l);
-    if (idx < 0 || idx >= nodos.length) return { error: 'no encuentro la opcion ' + l + ' en ' + cont };
-    nodos[idx].setAttribute(attr, '1');
-    return { idx, total: nodos.length, porLetra: idxLetra >= 0, texto: (nodos[idx].textContent || '').trim().slice(0, 60) };
-  }, { cont: contenedor, l: letra, attr: MARCA });
+    if (!nodos.length) nodos = Array.prototype.slice.call(c.children);
+    if (i < 0 || i >= nodos.length) return { error: 'la opcion ' + i + ' no existe (hay ' + nodos.length + ')' };
+    nodos[i].setAttribute(attr, '1');
+    return { ok: true, texto: (nodos[i].textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60) };
+  }, { cont: contenedor, i: idx, attr: MARCA });
   if (info.error) throw new Error('[' + etiqueta + '] ' + info.error);
   try {
     await page.locator('[' + MARCA + '="1"]').first().click();
   } catch (e) {
-    throw new Error('[' + etiqueta + '] no pude pulsar la opcion ' + letra + ': ' + e.message);
+    throw new Error('[' + etiqueta + '] no pude pulsar la opcion ' + idx + ': ' + e.message);
   }
   await limpiarMarca(page);
   return info;
@@ -667,52 +836,264 @@ async function avanzarPregunta(page, cfg) {
   }
 }
 
-async function responderPrueba(page, patron) {
-  // patron: cadena de 4 (o 3) caracteres V/F
-  for (let i = 0; i < patron.length; i += 1) {
-    const letra = patron[i] === 'V' ? LETRA_CORRECTA[i] : LETRA_INCORRECTA[i];
-    await elegirOpcion(page, '#prueba-opciones', letra, 'E2 pregunta ' + (i + 1));
-    await avanzarPregunta(page, {
-      enunciado: '#prueba-enunciado',
-      boton: '#prueba-siguiente',
-      destino: '#s-diagnostico',
-      etiqueta: 'E2 pregunta ' + (i + 1),
-    });
+// ---------------------------------------------------------------------------
+// 7. Ganchos de datos: MATERIAS y semilla
+// ---------------------------------------------------------------------------
+
+const SEL_PRUEBA = {
+  enunciado: '#prueba-enunciado',
+  opciones: '#prueba-opciones',
+  boton: '#prueba-siguiente',
+  topic: '#prueba-topic',
+  contador: '#prueba-contador',
+  destino: '#s-diagnostico',
+  destinoId: 's-diagnostico',
+  etiqueta: 'E2',
+};
+
+const SEL_CERT = {
+  enunciado: '#cert-enunciado',
+  opciones: '#cert-opciones',
+  boton: '#cert-siguiente',
+  topic: '#cert-topic',
+  contador: '#cert-contador',
+  destino: '#s-monitor-resultado',
+  destinoId: 's-monitor-resultado',
+  etiqueta: 'M3',
+};
+
+async function leerMaterias(page) {
+  const m = await page.evaluate(() => {
+    const src = window.MATERIAS
+      || window.__calibraMaterias
+      || (window.__calibra && window.__calibra.MATERIAS);
+    if (!src) return null;
+    try { return JSON.parse(JSON.stringify(src)); } catch (e) { return null; }
+  });
+  if (!m || !Array.isArray(m) || !m.length) {
+    throw new Error(
+      'No pude leer el arreglo de materias desde la pagina. El contrato v2 exige exponerlo como ' +
+      'window.MATERIAS (o window.__calibraMaterias) para que el arnes sepa que opcion es la correcta ' +
+      'y pueda forzar { adaptativa:false, barajarOpciones:false } antes de cada recorrido.'
+    );
   }
+  return m;
 }
 
-async function responderCertificacion(page, patron) {
-  for (let i = 0; i < patron.length; i += 1) {
-    const letra = patron[i] === 'V' ? LETRA_CORRECTA[i] : LETRA_INCORRECTA[i];
-    await elegirOpcion(page, '#cert-opciones', letra, 'M3 pregunta ' + (i + 1));
-    await avanzarPregunta(page, {
-      enunciado: '#cert-enunciado',
-      boton: '#cert-siguiente',
-      destino: '#s-monitor-resultado',
-      etiqueta: 'M3 pregunta ' + (i + 1),
-    });
+function buscarMateria(materias, id) {
+  const m = materias.find((x) => x.id === id);
+  if (!m) {
+    throw new Error(
+      'No existe la materia con id "' + id + '" en MATERIAS. Ids encontrados: ' +
+      materias.map((x) => x.id).join(', ') + '. El contrato fija "' + MATERIA_DEMO + '" para Calculo Integral.'
+    );
   }
+  return m;
 }
 
-async function entrarAPrueba(page) {
-  await elegirMateriaActiva(page, '#lista-materias');
-  await clic(page, '#s-inicio [data-ir="prueba"]', 'boton Empezar la prueba (E1)');
-  await esperarPantalla(page, 's-prueba', 'E2');
+// Fuerza la configuracion de prueba/certificacion de una materia YA cargada.
+// Se llama despues del goto y antes de entrar al recorrido.
+async function forzarConfig(page, id, prueba, certificacion) {
+  const r = await page.evaluate(({ mid, p, c }) => {
+    const src = window.MATERIAS
+      || window.__calibraMaterias
+      || (window.__calibra && window.__calibra.MATERIAS);
+    if (!src) return { error: 'no existe window.MATERIAS' };
+    const m = src.find((x) => x.id === mid);
+    if (!m) return { error: 'no existe la materia ' + mid };
+    if (p) { m.prueba = Object.assign({}, m.prueba, p); }
+    if (c) { m.certificacion = Object.assign({}, m.certificacion, c); }
+    return { ok: true, prueba: m.prueba, certificacion: m.certificacion };
+  }, { mid: id, p: prueba || null, c: certificacion || null });
+  if (r.error) throw new Error('No pude forzar la configuracion de la materia: ' + r.error);
+  return r;
 }
 
-async function entrarACertificacion(page, base) {
-  await irAInicio(page, base);
-  await clic(page, '#s-inicio [data-ir="monitor"]', 'enlace Soy monitor (E1)');
-  await esperarPantalla(page, 's-monitor', 'M1');
-  await clic(page, '#s-monitor [data-ir="monitor-materia"]', 'boton de M1 hacia M2');
-  await esperarPantalla(page, 's-monitor-materia', 'M2');
-  await elegirMateriaActiva(page, '#s-monitor-materia .materias, #s-monitor-materia ul');
-  await clic(page, '#s-monitor-materia [data-ir="certificacion"]', 'boton de M2 hacia M3');
-  await esperarPantalla(page, 's-certificacion', 'M3');
+async function fijarSemilla(page, semilla) {
+  await page.evaluate((s) => { window.__calibraSemilla = s; }, semilla);
 }
+
+// Prepara la pagina desde cero con configuracion y semilla.
+async function preparar(page, base, opciones) {
+  const o = opciones || {};
+  await page.goto(base + (o.hash || ''), { waitUntil: 'domcontentloaded' });
+  if (o.semilla !== undefined) await fijarSemilla(page, o.semilla);
+  if (o.prueba || o.certificacion) await forzarConfig(page, o.materia || MATERIA_DEMO, o.prueba, o.certificacion);
+  if (!o.hash) await esperarPantalla(page, 's-inicio', 'pantalla de arranque');
+}
+
+// ---------------------------------------------------------------------------
+// 8. Lectura de la pregunta en pantalla y emparejamiento con los datos
+// ---------------------------------------------------------------------------
+
+function fnLeerPregunta(sel) {
+  const e = document.querySelector(sel.enunciado);
+  const c = document.querySelector(sel.opciones);
+  if (!e) return { error: 'falta el elemento ' + sel.enunciado };
+  if (!c) return { error: 'falta el elemento ' + sel.opciones };
+  let nodos = Array.prototype.slice.call(c.querySelectorAll('.opt'));
+  if (!nodos.length) nodos = Array.prototype.slice.call(c.querySelectorAll('li'));
+  if (!nodos.length) nodos = Array.prototype.slice.call(c.children);
+  const opciones = nodos.map(function (n, i) {
+    const k = n.querySelector('.key');
+    let t = n.textContent || '';
+    if (k && k.textContent) t = t.replace(k.textContent, '');
+    return {
+      i: i,
+      letra: k ? (k.textContent || '').trim().toUpperCase().replace(/[^A-Z]/g, '') : '',
+      texto: t.replace(/\s+/g, ' ').trim(),
+    };
+  });
+  const topic = document.querySelector(sel.topic);
+  const cont = document.querySelector(sel.contador);
+  return {
+    enunciado: (e.textContent || '').replace(/\s+/g, ' ').trim(),
+    opciones: opciones,
+    topic: topic ? (topic.textContent || '').replace(/\s+/g, ' ').trim() : null,
+    contador: cont ? (cont.textContent || '').replace(/\s+/g, ' ').trim() : null,
+  };
+}
+
+async function leerPreguntaActual(page, sel) {
+  const r = await page.evaluate(fnLeerPregunta, sel);
+  if (r.error) throw new Error('[' + sel.etiqueta + '] ' + r.error + ' (lo exige el contrato).');
+  if (!r.opciones.length) throw new Error('[' + sel.etiqueta + '] ' + sel.opciones + ' no tiene opciones dentro.');
+  return r;
+}
+
+function localizarPregunta(materia, enunciadoDom) {
+  const objetivo = normalizarMatematicas(enunciadoDom).toLowerCase();
+  const p = materia.preguntas.find((q) => {
+    const e = normalizarMatematicas(q.enunciado).toLowerCase();
+    return e === objetivo || objetivo.indexOf(e) !== -1 || e.indexOf(objetivo) !== -1;
+  });
+  if (!p) {
+    throw new Error(
+      'El enunciado en pantalla no corresponde a ninguna pregunta del banco de "' + materia.id + '": "' +
+      enunciadoDom.slice(0, 90) + '". Enunciados del banco: ' +
+      materia.preguntas.map((q) => q.id).join(', ') + '.'
+    );
+  }
+  return p;
+}
+
+// Empareja cada opcion del DOM con su opcion en los datos, por CONTENIDO.
+// Es la unica forma valida de responder cuando las opciones van barajadas.
+function emparejarOpciones(pregunta, domOpciones) {
+  return domOpciones.map((d) => {
+    const t = normalizarMatematicas(d.texto).toLowerCase();
+    let idx = pregunta.opciones.findIndex((o) => normalizarMatematicas(o.texto).toLowerCase() === t);
+    if (idx < 0) {
+      idx = pregunta.opciones.findIndex((o) => {
+        const ot = normalizarMatematicas(o.texto).toLowerCase();
+        return ot.length > 2 && (t.indexOf(ot) !== -1 || ot.indexOf(t) !== -1);
+      });
+    }
+    if (idx < 0) {
+      throw new Error(
+        'La opcion en pantalla "' + d.texto.slice(0, 60) + '" no coincide con ninguna opcion de ' +
+        pregunta.id + ' en los datos. El motor debe pintar el texto literal de la opcion.'
+      );
+    }
+    return { dom: d, idxDatos: idx, datos: pregunta.opciones[idx] };
+  });
+}
+
+/*
+ * Recorre una prueba (o certificacion) completa.
+ *   decidir({ paso, pregunta, mapa }) -> indice DOM de la opcion a pulsar.
+ * Devuelve la traza: un objeto por pregunta respondida.
+ */
+async function recorrer(page, sel, materia, decidir) {
+  const traza = [];
+  const MAX = 40;
+  for (let paso = 0; paso < MAX; paso += 1) {
+    if (await seccionVisible(page, sel.destinoId)) break;
+    const dom = await leerPreguntaActual(page, sel);
+    const pregunta = localizarPregunta(materia, dom.enunciado);
+    const mapa = emparejarOpciones(pregunta, dom.opciones);
+    const idxDom = decidir({ paso, pregunta, mapa, dom, materia });
+    if (typeof idxDom !== 'number' || idxDom < 0 || idxDom >= mapa.length) {
+      throw new Error('[' + sel.etiqueta + '] la estrategia devolvio un indice invalido: ' + idxDom);
+    }
+    const elegido = mapa[idxDom];
+    traza.push({
+      paso,
+      preguntaId: pregunta.id,
+      subtema: pregunta.subtema,
+      dificultad: pregunta.dificultad === undefined ? 2 : pregunta.dificultad,
+      contador: dom.contador,
+      topic: dom.topic,
+      letra: elegido.dom.letra,
+      idxDom,
+      idxDatos: elegido.idxDatos,
+      // firma del orden en que se pintaron las opciones (indices de datos)
+      ordenOpciones: mapa.map((m) => m.idxDatos).join(''),
+      correcta: !!elegido.datos.correcta,
+      error: elegido.datos.error || null,
+      textoElegido: elegido.datos.texto,
+    });
+    await clicOpcionPorIndice(page, sel.opciones, idxDom, sel.etiqueta + ' pregunta ' + (paso + 1));
+    await avanzarPregunta(page, {
+      enunciado: sel.enunciado,
+      boton: sel.boton,
+      destino: sel.destino,
+      etiqueta: sel.etiqueta + ' pregunta ' + (paso + 1),
+    });
+    if (await seccionVisible(page, sel.destinoId)) break;
+  }
+  if (!traza.length) throw new Error('[' + sel.etiqueta + '] no se respondio ninguna pregunta.');
+  return traza;
+}
+
+// -- estrategias de respuesta ------------------------------------------------
+
+// Responde correcto o incorrecto segun un patron V/F posicional.
+function estrategiaPatron(patron) {
+  return ({ paso, mapa }) => {
+    const quiereAcierto = patron[paso] === 'V';
+    const idx = mapa.findIndex((m) => !!m.datos.correcta === quiereAcierto);
+    if (idx < 0) throw new Error('no hay opcion ' + (quiereAcierto ? 'correcta' : 'incorrecta') + ' en el paso ' + (paso + 1));
+    return idx;
+  };
+}
+
+// Igual que la anterior pero la incorrecta es la CANONICA (la primera
+// incorrecta en el orden de los datos), que es la que fija la tabla oraculo.
+function estrategiaPatronCanonica(patron) {
+  return ({ paso, mapa }) => {
+    const quiereAcierto = patron[paso] === 'V';
+    if (quiereAcierto) {
+      const i = mapa.findIndex((m) => !!m.datos.correcta);
+      if (i < 0) throw new Error('la pregunta del paso ' + (paso + 1) + ' no tiene opcion correcta');
+      return i;
+    }
+    let mejor = -1;
+    mapa.forEach((m, i) => {
+      if (m.datos.correcta) return;
+      if (mejor < 0 || m.idxDatos < mapa[mejor].idxDatos) mejor = i;
+    });
+    if (mejor < 0) throw new Error('la pregunta del paso ' + (paso + 1) + ' no tiene opciones incorrectas');
+    return mejor;
+  };
+}
+
+// Estrategias dinamicas para el modo adaptativo (no se sabe cuantas preguntas
+// habra ni de que subtema).
+const ESTRATEGIAS = {
+  'todo-bien': ({ mapa }) => mapa.findIndex((m) => !!m.datos.correcta),
+  'todo-mal': ({ mapa }) => mapa.findIndex((m) => !m.datos.correcta),
+  alterna: ({ paso, mapa }) => mapa.findIndex((m) => !!m.datos.correcta === (paso % 2 === 0)),
+  'primera-mal': ({ paso, mapa }) => mapa.findIndex((m) => !!m.datos.correcta === (paso !== 0)),
+  'cada-tres-mal': ({ paso, mapa }) => mapa.findIndex((m) => !!m.datos.correcta === (paso % 3 !== 0)),
+};
+
+// ---------------------------------------------------------------------------
+// 9. Lectura del diagnostico
+// ---------------------------------------------------------------------------
 
 async function leerDiagnostico(page) {
-  return page.evaluate(() => {
+  const d = await page.evaluate(() => {
     const cont = document.querySelector('#diag-barras');
     if (!cont) return { fallo: 'falta el elemento #diag-barras que exige el contrato' };
     const filas = Array.prototype.slice.call(cont.querySelectorAll('li'));
@@ -722,6 +1103,8 @@ async function leerDiagnostico(page) {
       return {
         nombre: n ? n.textContent.trim() : (li.textContent || '').trim(),
         pct: p ? parseInt(String(p.textContent).replace(/[^0-9]/g, ''), 10) : null,
+        crudo: li.getAttribute('data-pct-crudo'),
+        subtema: li.getAttribute('data-subtema'),
         debil: li.classList.contains('is-weak'),
       };
     });
@@ -735,6 +1118,17 @@ async function leerDiagnostico(page) {
       faltaError: !e,
     };
   });
+  if (d.fallo) throw new Error(d.fallo);
+  return d;
+}
+
+// Clave de subtema de una barra: primero data-subtema, luego el nombre.
+function claveDeBarra(materia, barra) {
+  if (barra.subtema && materia.subtemas && materia.subtemas[barra.subtema] !== undefined) return barra.subtema;
+  const llano = plano(barra.nombre);
+  const claves = Object.keys(materia.subtemas || {});
+  const hit = claves.find((k) => plano(materia.subtemas[k]) === llano || llano.indexOf(plano(materia.subtemas[k])) !== -1);
+  return hit || claveSubtema(barra.nombre);
 }
 
 async function capturar(page, dir, nombre, etiqueta) {
@@ -742,14 +1136,67 @@ async function capturar(page, dir, nombre, etiqueta) {
   await page.screenshot({ path: destino, fullPage: false });
   reporte.capturas.push({
     archivo: path.relative(DIR_CAPTURAS, destino).split(path.sep).join('/'),
+    carpeta: path.basename(dir),
     etiqueta: etiqueta || nombre,
   });
   return destino;
 }
 
+async function estadoPantallas(page) {
+  return page.evaluate(() => {
+    const secciones = Array.prototype.slice.call(document.querySelectorAll('section.screen'));
+    const visibles = secciones.filter((s) => s.getClientRects().length > 0).map((s) => s.id);
+    return {
+      hash: window.location.hash,
+      visibles,
+      total: secciones.length,
+      textoVisible: (document.body.innerText || '').trim().length > 0,
+    };
+  });
+}
+
+function esFuente(u) {
+  return HOSTS_FUENTES.some((h) => String(u).indexOf(h) !== -1);
+}
+
 // ---------------------------------------------------------------------------
-// 7. Bloques de verificacion
+// 10. Entradas a los recorridos
 // ---------------------------------------------------------------------------
+
+async function entrarAPrueba(page, materia) {
+  await elegirMateria(page, '#lista-materias', materia);
+  await clic(page, '#s-inicio [data-ir="prueba"]', 'boton Empezar la prueba (E1)');
+  await esperarPantalla(page, 's-prueba', 'E2');
+}
+
+async function entrarACertificacion(page, base, materia, cfg) {
+  await preparar(page, base, { certificacion: cfg || CFG_FIJA });
+  await clic(page, '#s-inicio [data-ir="monitor"]', 'enlace Soy monitor (E1)');
+  await esperarPantalla(page, 's-monitor', 'M1');
+  await clic(page, '#s-monitor [data-ir="monitor-materia"]', 'boton de M1 hacia M2');
+  await esperarPantalla(page, 's-monitor-materia', 'M2');
+  await elegirMateria(page, '#s-monitor-materia .materias, #s-monitor-materia ul, #s-monitor-materia', materia);
+  await clic(page, '#s-monitor-materia [data-ir="certificacion"]', 'boton de M2 hacia M3');
+  await esperarPantalla(page, 's-certificacion', 'M3');
+}
+
+async function enviarCorreo(page, selectorForm, correo) {
+  const form = page.locator(selectorForm).first();
+  await form.waitFor({ state: 'visible', timeout: TIEMPO }).catch(() => {
+    throw new Error('No encuentro el formulario ' + selectorForm + ' (contrato: form.captura con data-rol).');
+  });
+  await form.locator('input[type="email"]').first().fill(correo);
+  await form.locator('button[type="submit"], button').first().click();
+  await form.locator('.gracias').first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+}
+
+// ---------------------------------------------------------------------------
+// 11. Bloque: codigo fuente
+// ---------------------------------------------------------------------------
+
+function tieneId(fuente, id) {
+  return fuente.indexOf('id="' + id + '"') !== -1 || fuente.indexOf("id='" + id + "'") !== -1;
+}
 
 async function bloqueFuente() {
   abrirBloque('Codigo fuente');
@@ -763,15 +1210,25 @@ async function bloqueFuente() {
     !usaLocal && !usaSesion ? '' : 'el fuente menciona ' + [usaLocal ? 'localStorage' : null, usaSesion ? 'sessionStorage' : null].filter(Boolean).join(' y ')
   );
 
-  const secciones = [
+  const secciones12 = [
     's-inicio', 's-prueba', 's-diagnostico', 's-monitores', 's-perfil', 's-confirmacion',
     's-monitor', 's-monitor-materia', 's-certificacion', 's-monitor-resultado', 's-panel', 's-profesor',
   ];
-  const faltan = secciones.filter((id) => fuente.indexOf('id="' + id + '"') === -1 && fuente.indexOf("id='" + id + "'") === -1);
+  const faltan = secciones12.filter((id) => !tieneId(fuente, id));
   registrar(
-    'contrato · las 12 secciones existen',
+    'contrato · las 12 secciones originales existen',
     faltan.length === 0,
     faltan.length === 0 ? '' : 'faltan: ' + faltan.join(', ')
+  );
+
+  const seccionesNuevas = ['s-buscar', 's-crear-perfil'];
+  const faltanNuevas = seccionesNuevas.filter((id) => !tieneId(fuente, id));
+  registrar(
+    'contrato v2 · las 2 secciones nuevas existen',
+    faltanNuevas.length === 0,
+    faltanNuevas.length === 0
+      ? ''
+      : 'faltan: ' + faltanNuevas.join(', ') + ' (s-buscar => #buscar, entrada libre; s-crear-perfil => #crear-perfil, requiere certificado)'
   );
 
   const ids = [
@@ -781,11 +1238,19 @@ async function bloqueFuente() {
     'cert-contador', 'cert-track', 'cert-track-fill', 'cert-topic', 'cert-enunciado', 'cert-opciones',
     'cert-siguiente', 'cert-resultado', 'panel-contenido', 'btn-reiniciar',
   ];
-  const faltanIds = ids.filter((id) => fuente.indexOf('id="' + id + '"') === -1 && fuente.indexOf("id='" + id + "'") === -1);
+  const faltanIds = ids.filter((id) => !tieneId(fuente, id));
   registrar(
     'contrato · ids que rellena el motor',
     faltanIds.length === 0,
     faltanIds.length === 0 ? '' : 'faltan: ' + faltanIds.join(', ')
+  );
+
+  const idsNuevos = ['buscar-lista', 'buscar-conteo', 'buscar-vacio'];
+  const faltanNuevos = idsNuevos.filter((id) => !tieneId(fuente, id));
+  registrar(
+    'contrato v2 · ids de la exploracion libre',
+    faltanNuevos.length === 0,
+    faltanNuevos.length === 0 ? '' : 'faltan: ' + faltanNuevos.join(', ')
   );
 
   const capturas = (fuente.match(/class="captura"/g) || []).length + (fuente.match(/class='captura'/g) || []).length;
@@ -794,21 +1259,76 @@ async function bloqueFuente() {
     capturas >= 3,
     'encontrados: ' + capturas + ' (esperados 3: estudiante, monitor, profesor)'
   );
+
+  // -- determinismo ---------------------------------------------------------
+  const hayMulberry = /mulberry32/i.test(fuente);
+  registrar(
+    'determinismo · implementa mulberry32',
+    hayMulberry,
+    hayMulberry ? '' : 'el contrato exige un PRNG con semilla llamado mulberry32'
+  );
+
+  const haySemilla = /__calibraSemilla/.test(fuente);
+  registrar(
+    'determinismo · expone window.__calibraSemilla',
+    haySemilla,
+    haySemilla ? '' : 'sin este gancho el arnes no puede fijar la semilla antes de cada recorrido'
+  );
+
+  // Se quitan comentarios antes de buscar: el motor menciona Math.random en
+  // comentarios que explican justamente que no lo usa, y daba falso positivo.
+  const _sinComentarios = fuente
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+  const usaMathRandom = /Math\s*\.\s*random/.test(_sinComentarios);
+  registrar(
+    'determinismo · sin Math.random',
+    !usaMathRandom,
+    usaMathRandom ? 'el barajado y los desempates deben salir del PRNG con semilla, no de Math.random' : ''
+  );
+
+  const exponeMaterias = /window\s*\.\s*(MATERIAS|__calibraMaterias)/.test(fuente)
+    || /window\.__calibra\s*=/.test(fuente);
+  registrar(
+    'contrato v2 · expone MATERIAS en window',
+    exponeMaterias,
+    exponeMaterias ? '' : 'el arnes necesita leer y mutar el arreglo de materias (window.MATERIAS)'
+  );
+
+  // -- estructura de datos v2 ----------------------------------------------
+  const campos = ['barajarOpciones', 'adaptativa', 'minimoAciertos', 'subtemas', 'dificultad'];
+  const faltanCampos = campos.filter((c) => fuente.indexOf(c) === -1);
+  registrar(
+    'contrato v2 · campos de la estructura de datos',
+    faltanCampos.length === 0,
+    faltanCampos.length === 0 ? '' : 'no aparecen en el fuente: ' + faltanCampos.join(', ')
+  );
+
+  // -- higiene: nada de innerHTML con interpolacion --------------------------
+  const innerHtmlPeligroso = (fuente.match(/innerHTML\s*(\+)?=\s*[`'"][^`'"]*\$\{/g) || []).length
+    + (fuente.match(/innerHTML\s*(\+)?=\s*[^;]*\+\s*\w+/g) || []).length;
+  registrar(
+    'seguridad · sin innerHTML con datos interpolados',
+    innerHtmlPeligroso === 0,
+    innerHtmlPeligroso === 0 ? '' : innerHtmlPeligroso + ' asignacion(es) a innerHTML con datos; el contrato pide textContent'
+  );
 }
 
-async function bloqueCapturas(page, base) {
+// ---------------------------------------------------------------------------
+// 12. Bloque: capturas y auditoria por pantalla
+// ---------------------------------------------------------------------------
+
+async function bloqueCapturas(page, base, materia) {
   abrirBloque('Capturas y auditoria por pantalla');
 
   // ---------------- Flujo del estudiante ----------------
   contexto = 'E1 inicio';
-  await irAInicio(page, base);
+  await preparar(page, base, { prueba: CFG_FIJA, certificacion: CFG_FIJA });
   await auditarPantalla(page, 'e-01-inicio');
   await capturar(page, DIR_EST, 'e-01-inicio.png', 'E1 · Inicio');
 
   contexto = 'E2 prueba';
-  await elegirMateriaActiva(page, '#lista-materias');
-  await clic(page, '#s-inicio [data-ir="prueba"]', 'boton Empezar la prueba (E1)');
-  await esperarPantalla(page, 's-prueba', 'E2');
+  await entrarAPrueba(page, materia);
 
   const desactivado = await page.locator('#prueba-siguiente').first().isDisabled().catch(() => null);
   registrar(
@@ -822,12 +1342,15 @@ async function bloqueCapturas(page, base) {
     contexto = 'E2 pregunta ' + n;
     await auditarPantalla(page, 'e-0' + (n + 1) + '-pregunta-' + n);
     await capturar(page, DIR_EST, 'e-0' + (n + 1) + '-pregunta-' + n + '.png', 'E2 · Pregunta ' + n);
-    const letra = COMBO_CAPTURA[i] === 'V' ? LETRA_CORRECTA[i] : LETRA_INCORRECTA[i];
-    await elegirOpcion(page, '#prueba-opciones', letra, 'E2 pregunta ' + n);
+    const dom = await leerPreguntaActual(page, SEL_PRUEBA);
+    const pregunta = localizarPregunta(materia, dom.enunciado);
+    const mapa = emparejarOpciones(pregunta, dom.opciones);
+    const idx = estrategiaPatronCanonica(COMBO_CAPTURA)({ paso: i, mapa });
+    await clicOpcionPorIndice(page, SEL_PRUEBA.opciones, idx, 'E2 pregunta ' + n);
     await avanzarPregunta(page, {
-      enunciado: '#prueba-enunciado',
-      boton: '#prueba-siguiente',
-      destino: '#s-diagnostico',
+      enunciado: SEL_PRUEBA.enunciado,
+      boton: SEL_PRUEBA.boton,
+      destino: SEL_PRUEBA.destino,
       etiqueta: 'E2 pregunta ' + n,
     });
   }
@@ -849,8 +1372,17 @@ async function bloqueCapturas(page, base) {
   await auditarPantalla(page, 'e-08-perfil');
   await capturar(page, DIR_EST, 'e-08-perfil.png', 'E5 · Perfil y agendar');
 
+  // Con diagnostico hecho, la tarjeta destacada SI puede prometer el brief.
+  const textoPerfilConDiag = normalizarEspacios(await page.locator('#s-perfil').first().innerText());
+  registrar(
+    'E5 · con diagnostico, promete el brief al monitor',
+    contieneTexto(textoPerfilConDiag, PROMESA_DIAGNOSTICO),
+    contieneTexto(textoPerfilConDiag, PROMESA_DIAGNOSTICO)
+      ? ''
+      : 'no aparece la promesa "' + PROMESA_DIAGNOSTICO + '" aunque el estudiante ya hizo la prueba'
+  );
+
   contexto = 'E6 confirmacion';
-  // Un horario puede ser obligatorio antes de agendar.
   const hayHorario = await page.locator('#s-perfil .slot').count().catch(() => 0);
   if (hayHorario) await page.locator('#s-perfil .slot').first().click().catch(() => {});
   await clic(page, '#s-perfil [data-ir="confirmacion"]', 'boton Agendar y pagar (E5)');
@@ -865,7 +1397,7 @@ async function bloqueCapturas(page, base) {
 
   // ---------------- Canal profesor ----------------
   contexto = 'P1 profesor';
-  await irAInicio(page, base);
+  await preparar(page, base, {});
   const hayEnlaceProfesor = await page.locator('#s-inicio [data-ir="profesor"]').count();
   if (hayEnlaceProfesor) {
     await clic(page, '#s-inicio [data-ir="profesor"]', 'enlace Soy profesor (E1)');
@@ -883,7 +1415,7 @@ async function bloqueCapturas(page, base) {
 
   // ---------------- Flujo del monitor ----------------
   contexto = 'M1 inicio monitor';
-  await irAInicio(page, base);
+  await preparar(page, base, { certificacion: CFG_FIJA });
   await clic(page, '#s-inicio [data-ir="monitor"]', 'enlace Soy monitor (E1)');
   await esperarPantalla(page, 's-monitor', 'M1');
   await auditarPantalla(page, 'm-01-inicio');
@@ -896,20 +1428,24 @@ async function bloqueCapturas(page, base) {
   await capturar(page, DIR_MON, 'm-02-materia.png', 'M2 · Materia');
 
   contexto = 'M3 certificacion';
-  await elegirMateriaActiva(page, '#s-monitor-materia .materias, #s-monitor-materia ul');
+  await elegirMateria(page, '#s-monitor-materia .materias, #s-monitor-materia ul, #s-monitor-materia', materia);
   await clic(page, '#s-monitor-materia [data-ir="certificacion"]', 'boton de M2 hacia M3');
   await esperarPantalla(page, 's-certificacion', 'M3');
 
-  for (let i = 0; i < 3; i += 1) {
+  const longitudCert = (materia.certificacion && materia.certificacion.longitud) || 3;
+  for (let i = 0; i < longitudCert; i += 1) {
     const n = i + 1;
     contexto = 'M3 pregunta ' + n;
     await auditarPantalla(page, 'm-0' + (n + 2) + '-pregunta-' + n);
     await capturar(page, DIR_MON, 'm-0' + (n + 2) + '-pregunta-' + n + '.png', 'M3 · Pregunta ' + n);
-    await elegirOpcion(page, '#cert-opciones', LETRA_CORRECTA[i], 'M3 pregunta ' + n);
+    const dom = await leerPreguntaActual(page, SEL_CERT);
+    const pregunta = localizarPregunta(materia, dom.enunciado);
+    const mapa = emparejarOpciones(pregunta, dom.opciones);
+    await clicOpcionPorIndice(page, SEL_CERT.opciones, mapa.findIndex((m) => !!m.datos.correcta), 'M3 pregunta ' + n);
     await avanzarPregunta(page, {
-      enunciado: '#cert-enunciado',
-      boton: '#cert-siguiente',
-      destino: '#s-monitor-resultado',
+      enunciado: SEL_CERT.enunciado,
+      boton: SEL_CERT.boton,
+      destino: SEL_CERT.destino,
       etiqueta: 'M3 pregunta ' + n,
     });
   }
@@ -919,11 +1455,81 @@ async function bloqueCapturas(page, base) {
   await auditarPantalla(page, 'm-06-resultado-certificado');
   await capturar(page, DIR_MON, 'm-06-resultado-certificado.png', 'M4 · Resultado certificado');
 
+  // ---------------- R1 crear perfil (capturas) ----------------
+  contexto = 'R1 crear perfil';
+  const irACrear = await primerSelector(page, [
+    '#s-monitor-resultado [data-ir="crear-perfil"]',
+    '#s-monitor-resultado [data-ir="panel"]',
+  ]);
+  if (!irACrear) {
+    registrar('R1 · botón de M4 hacia #crear-perfil', false, 'no hay [data-ir="crear-perfil"] en #s-monitor-resultado');
+  } else {
+    registrar(
+      'R1 · botón de M4 hacia #crear-perfil',
+      irACrear.indexOf('crear-perfil') !== -1,
+      irACrear.indexOf('crear-perfil') !== -1 ? '' : 'M4 salta directo a #panel; el contrato v2 pide pasar por #crear-perfil'
+    );
+    await clic(page, irACrear, 'boton de M4 hacia R1');
+    // La navegacion por hash necesita un ciclo. Sin esta espera, la comprobacion
+    // de visibilidad corre antes de que la seccion se muestre y da un falso negativo.
+    await page.waitForTimeout(350);
+  }
+
+  const llegoACrear = await seccionVisible(page, 's-crear-perfil');
+  if (!llegoACrear) {
+    registrar('R1 · el recorrido llega a #crear-perfil', false,
+      'tras pulsar el boton de M4 la pantalla #s-crear-perfil no quedo visible; las capturas de R1 se saltaron');
+  }
+  if (llegoACrear) {
+    await auditarPantalla(page, 'm-10-crear-perfil-vacio');
+    await capturar(page, DIR_MON, 'm-10-crear-perfil-vacio.png', 'R1 · Crear perfil (vacio)');
+
+    // Un envio invalido para retratar el mensaje de error.
+    try {
+      const campos = await camposCrearPerfil(page);
+      await rellenarPerfil(page, campos, { nombre: '', semestre: '0', tarifa: '5000', subtemas: 0 });
+      await page.locator(campos.enviar).first().click();
+      await page.waitForTimeout(350);
+      await auditarPantalla(page, 'm-11-crear-perfil-errores');
+      await capturar(page, DIR_MON, 'm-11-crear-perfil-errores.png', 'R1 · Crear perfil (con errores)');
+
+      await rellenarPerfil(page, campos, {
+        nombre: PERFIL_NUEVO.nombre, semestre: PERFIL_NUEVO.semestre, tarifa: PERFIL_NUEVO.tarifa, subtemas: 2,
+      });
+      await page.waitForTimeout(200);
+      await auditarPantalla(page, 'm-12-crear-perfil-lleno');
+      await capturar(page, DIR_MON, 'm-12-crear-perfil-lleno.png', 'R1 · Crear perfil (lleno)');
+
+      await page.locator(campos.enviar).first().click();
+      await esperarPantalla(page, 's-panel', 'M5 tras crear el perfil');
+    } catch (e) {
+      registrar('R1 · capturas del formulario', false, e.message);
+    }
+  }
+
   contexto = 'M5 panel';
-  await clic(page, '#s-monitor-resultado [data-ir="panel"]', 'boton de M4 hacia M5');
+  if (!(await seccionVisible(page, 's-panel'))) {
+    // Solo se pulsa un boton si esta en la pantalla visible; si no, se navega
+    // por hash. Pulsar un boton de una seccion oculta da un timeout inutil.
+    const visibles = ['#s-monitor-resultado [data-ir="panel"]', '#s-crear-perfil [data-ir="panel"]'];
+    let clicado = false;
+    for (const sel of visibles) {
+      const loc = page.locator(sel).first();
+      if (await loc.isVisible().catch(() => false)) {
+        await loc.click();
+        clicado = true;
+        break;
+      }
+    }
+    if (!clicado) {
+      await page.evaluate(() => { window.location.hash = '#panel'; });
+      await page.waitForTimeout(300);
+    }
+  }
   await esperarPantalla(page, 's-panel', 'M5');
   await auditarPantalla(page, 'm-07-panel');
   await capturar(page, DIR_MON, 'm-07-panel.png', 'M5 · Panel del monitor');
+  await capturar(page, DIR_MON, 'm-13-panel-perfil-propio.png', 'M5 · Panel con el perfil propio');
 
   contexto = 'M5 captura de correo';
   await enviarCorreo(page, '#s-panel form.captura', 'daniela.demo@uniandes.edu.co');
@@ -931,80 +1537,118 @@ async function bloqueCapturas(page, base) {
   await auditarPantalla(page, 'm-08-panel-gracias');
 
   contexto = 'M4 resultado no certificado';
-  await entrarACertificacion(page, base);
-  await responderCertificacion(page, 'FFV');
+  await entrarACertificacion(page, base, materia, CFG_FIJA);
+  await recorrer(page, SEL_CERT, materia, estrategiaPatronCanonica('FFV'));
   await esperarPantalla(page, 's-monitor-resultado', 'M4 no certificado');
   await auditarPantalla(page, 'm-09-resultado-no-certificado');
   await capturar(page, DIR_MON, 'm-09-resultado-no-certificado.png', 'M4 · Resultado no certificado');
+
+  // ---------------- B1 buscar (capturas) ----------------
+  contexto = 'B1 buscar';
+  await preparar(page, base, { hash: '#buscar' });
+  if (await seccionVisible(page, 's-buscar')) {
+    await auditarPantalla(page, 'e-12-buscar');
+    await capturar(page, DIR_EST, 'e-12-buscar.png', 'B1 · Buscar monitores (sin filtros)');
+  } else {
+    registrar('B1 · capturas de #buscar', false, 'la pantalla #s-buscar no se mostro al abrir #buscar en frio');
+  }
 }
 
-async function enviarCorreo(page, selectorForm, correo) {
-  const form = page.locator(selectorForm).first();
-  await form.waitFor({ state: 'visible', timeout: TIEMPO }).catch(() => {
-    throw new Error('No encuentro el formulario ' + selectorForm + ' (contrato: form.captura con data-rol).');
+// ---------------------------------------------------------------------------
+// 13. Bloque: regresion del oraculo (orden fijo, sin barajar)
+// ---------------------------------------------------------------------------
+
+function comprobarDiagnosticoContraOraculo(materia, d, esperado) {
+  const problemas = [];
+
+  const porClave = {};
+  d.barras.forEach((b) => {
+    const k = claveDeBarra(materia, b);
+    if (k) porClave[k] = b.pct;
   });
-  await form.locator('input[type="email"]').first().fill(correo);
-  await form.locator('button[type="submit"], button').first().click();
-  await form.locator('.gracias').first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+  const obtenido = [porClave.partes, porClave.sustitucion, porClave.impropias];
+  const faltantes = ['partes', 'sustitucion', 'impropias'].filter((k) => porClave[k] === undefined);
+  if (faltantes.length) {
+    problemas.push('no identifico las barras de: ' + faltantes.join(', ') + ' (nombres leidos: ' + d.barras.map((b) => b.nombre).join(' / ') + ')');
+  } else if (obtenido.join(',') !== esperado.pct.join(',')) {
+    problemas.push('porcentajes esperados ' + esperado.pct.join('/') + ' y obtenidos ' + obtenido.join('/') + ' (partes/sustitucion/impropias)');
+  }
+
+  if (d.faltaTitulo) {
+    problemas.push('falta #diag-debil-titulo');
+  } else {
+    const debil = claveSubtema(d.titulo);
+    if (debil !== esperado.debil) {
+      problemas.push('punto debil esperado "' + esperado.debil + '" y obtenido "' + (debil || '?') + '" en el texto: ' + d.titulo);
+    }
+  }
+
+  const marcadas = d.barras.filter((b) => b.debil).map((b) => claveDeBarra(materia, b));
+  if (marcadas.length === 1 && marcadas[0] !== esperado.debil) {
+    problemas.push('la barra con .is-weak es "' + marcadas[0] + '" y deberia ser "' + esperado.debil + '"');
+  }
+
+  if (d.faltaError) {
+    problemas.push('falta #diag-debil-error');
+  } else if (!contieneTexto(d.error, esperado.error)) {
+    problemas.push('error esperado "' + esperado.error + '" y obtenido "' + d.error + '"');
+  }
+
+  // En el caso sin fallos, el texto no lleva el prefijo "Error detectado".
+  if (esperado.error === SIN_FALLOS && !d.faltaError && contieneTexto(d.error, PREFIJO_ERROR)) {
+    problemas.push('el caso sin fallos no debe llevar el prefijo "' + PREFIJO_ERROR + ':" y el texto dice: ' + d.error);
+  }
+
+  return problemas;
 }
 
-async function bloqueLogicaEstudiante(page, base) {
-  abrirBloque('Logica del diagnostico · 16 combinaciones');
+async function bloqueOraculo(page, base, materia) {
+  abrirBloque('Regresion del oraculo · 16 combinaciones en orden fijo');
+
+  // Primero: con la bandera apagada el motor debe comportarse como la v1.
+  contexto = 'oraculo orden fijo';
+  try {
+    await preparar(page, base, { prueba: CFG_FIJA, semilla: 12345 });
+    await entrarAPrueba(page, materia);
+    const traza = await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica('VVVV'));
+    const idsEsperados = materia.preguntas.slice(0, materia.prueba.longitud || 4).map((p) => p.id);
+    const idsObtenidos = traza.map((t) => t.preguntaId);
+    const ordenOk = idsObtenidos.join(',') === idsEsperados.join(',');
+    registrar(
+      'orden fijo · preguntas en el orden del banco (' + idsEsperados.join(' ') + ')',
+      ordenOk,
+      ordenOk ? '' : 'obtenido: ' + idsObtenidos.join(' ')
+    );
+    const opcionesOk = traza.every((t) => t.ordenOpciones === t.ordenOpciones.split('').sort().join(''));
+    const letrasOk = traza.every((t) => !t.letra || /^[A-D]$/.test(t.letra));
+    registrar(
+      'orden fijo · opciones sin barajar (A,B,C,D en el orden de los datos)',
+      opcionesOk && letrasOk,
+      opcionesOk && letrasOk ? '' : 'firmas de orden: ' + traza.map((t) => t.preguntaId + ':' + t.ordenOpciones).join(' ')
+    );
+  } catch (e) {
+    registrar('orden fijo · recorrido canonico', false, e.message);
+  }
+
   const combos = Object.keys(ORACULO);
   for (const combo of combos) {
     contexto = 'combinacion ' + combo;
     const esperado = ORACULO[combo];
     try {
-      await irAInicio(page, base);
-      await entrarAPrueba(page);
-      await responderPrueba(page, combo);
+      await preparar(page, base, { prueba: CFG_FIJA, semilla: 12345 });
+      await entrarAPrueba(page, materia);
+      const traza = await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica(combo));
       await esperarPantalla(page, 's-diagnostico', 'E3 tras ' + combo);
       const d = await leerDiagnostico(page);
-      if (d.fallo) throw new Error(d.fallo);
-
-      const problemas = [];
-
-      // Porcentajes por subtema
-      const porClave = {};
-      d.barras.forEach((b) => {
-        const k = claveSubtema(b.nombre);
-        if (k) porClave[k] = b.pct;
-      });
-      const obtenido = [porClave.partes, porClave.sustitucion, porClave.impropias];
-      const faltantes = ['partes', 'sustitucion', 'impropias'].filter((k) => porClave[k] === undefined);
-      if (faltantes.length) {
-        problemas.push('no identifico las barras de: ' + faltantes.join(', ') + ' (nombres leidos: ' + d.barras.map((b) => b.nombre).join(' / ') + ')');
-      } else if (obtenido.join(',') !== esperado.pct.join(',')) {
-        problemas.push('porcentajes esperados ' + esperado.pct.join('/') + ' y obtenidos ' + obtenido.join('/') + ' (partes/sustitucion/impropias)');
+      const problemas = comprobarDiagnosticoContraOraculo(materia, d, esperado);
+      if (traza.length !== combo.length) {
+        problemas.push('se respondieron ' + traza.length + ' preguntas y el oraculo asume ' + combo.length);
       }
-
-      // Subtema debil
-      if (d.faltaTitulo) {
-        problemas.push('falta #diag-debil-titulo');
-      } else {
-        const debil = claveSubtema(d.titulo);
-        if (debil !== esperado.debil) {
-          problemas.push('punto debil esperado "' + esperado.debil + '" y obtenido "' + (debil || '?') + '" en el texto: ' + d.titulo);
-        }
-      }
-      // La barra marcada is-weak deberia coincidir con el punto debil
-      const marcadas = d.barras.filter((b) => b.debil).map((b) => claveSubtema(b.nombre));
-      if (marcadas.length === 1 && marcadas[0] !== esperado.debil) {
-        problemas.push('la barra con .is-weak es "' + marcadas[0] + '" y deberia ser "' + esperado.debil + '"');
-      }
-
-      // Texto del error
-      if (d.faltaError) {
-        problemas.push('falta #diag-debil-error');
-      } else if (!contieneTexto(d.error, esperado.error)) {
-        problemas.push('error esperado "' + esperado.error + '" y obtenido "' + d.error + '"');
-      }
-
       registrar(
         'combinacion ' + combo,
         problemas.length === 0,
         problemas.join(' | '),
-        { esperado, obtenido: { barras: d.barras, titulo: d.titulo, error: d.error } }
+        { esperado, obtenido: { barras: d.barras, titulo: d.titulo, error: d.error }, traza }
       );
     } catch (e) {
       registrar('combinacion ' + combo, false, e.message);
@@ -1012,16 +1656,22 @@ async function bloqueLogicaEstudiante(page, base) {
   }
 }
 
-async function bloqueLogicaMonitor(page, base) {
+// ---------------------------------------------------------------------------
+// 14. Bloque: certificacion (8 combinaciones, umbral 2 de 3)
+// ---------------------------------------------------------------------------
+
+async function bloqueLogicaMonitor(page, base, materia) {
   abrirBloque('Logica de certificacion · 8 combinaciones');
+  const minimo = (materia.certificacion && materia.certificacion.minimoAciertos) || 2;
+  const largo = (materia.certificacion && materia.certificacion.longitud) || 3;
   const combos = ['VVV', 'VVF', 'VFV', 'FVV', 'VFF', 'FVF', 'FFV', 'FFF'];
   for (const combo of combos) {
     contexto = 'certificacion ' + combo;
     const aciertos = combo.split('').filter((c) => c === 'V').length;
-    const certifica = aciertos >= 2;
+    const certifica = aciertos >= minimo;
     try {
-      await entrarACertificacion(page, base);
-      await responderCertificacion(page, combo);
+      await entrarACertificacion(page, base, materia, CFG_FIJA);
+      await recorrer(page, SEL_CERT, materia, estrategiaPatronCanonica(combo));
       await esperarPantalla(page, 's-monitor-resultado', 'M4 tras ' + combo);
       const texto = normalizarEspacios(await page.locator('#cert-resultado').first().textContent());
       const problemas = [];
@@ -1041,7 +1691,7 @@ async function bloqueLogicaMonitor(page, base) {
         }
       }
       registrar(
-        'certificacion ' + combo + ' (' + aciertos + '/3, ' + (certifica ? 'certifica' : 'no certifica') + ')',
+        'certificacion ' + combo + ' (' + aciertos + '/' + largo + ', ' + (certifica ? 'certifica' : 'no certifica') + ')',
         problemas.length === 0,
         problemas.join(' | '),
         { texto: texto.slice(0, 300) }
@@ -1052,7 +1702,935 @@ async function bloqueLogicaMonitor(page, base) {
   }
 }
 
-async function bloqueRobustez(page, base, red) {
+// ---------------------------------------------------------------------------
+// 15. Bloque: invariantes del modo adaptativo
+// ---------------------------------------------------------------------------
+
+function invariantesAdaptativo(materia, traza, d, etiqueta) {
+  const problemas = [];
+  const longitud = materia.prueba.longitud;
+  const totalBanco = materia.preguntas.length;
+  const claves = Object.keys(materia.subtemas);
+
+  // 1. Termina en exactamente `longitud`, o antes solo si se agoto el banco.
+  if (traza.length !== longitud) {
+    if (!(traza.length < longitud && traza.length === totalBanco)) {
+      problemas.push('respondio ' + traza.length + ' preguntas; se esperaban ' + longitud +
+        ' (o menos solo si se agotara el banco de ' + totalBanco + ')');
+    }
+  }
+
+  // 2. Sin repeticiones.
+  const vistos = {};
+  const repetidas = [];
+  traza.forEach((t) => {
+    if (vistos[t.preguntaId]) repetidas.push(t.preguntaId);
+    vistos[t.preguntaId] = true;
+  });
+  if (repetidas.length) problemas.push('preguntas repetidas en la misma sesion: ' + repetidas.join(', '));
+
+  // 3. Si longitud >= numero de subtemas, todos quedan evaluados.
+  const evaluados = {};
+  traza.forEach((t) => { evaluados[t.subtema] = true; });
+  if (longitud >= claves.length) {
+    const sinEvaluar = claves.filter((k) => !evaluados[k]);
+    if (sinEvaluar.length) {
+      problemas.push('con longitud ' + longitud + ' >= ' + claves.length + ' subtemas, quedaron sin evaluar: ' + sinEvaluar.join(', '));
+    }
+  }
+
+  // 4. El punto debil es un subtema donde fallo, salvo que no haya fallado.
+  const fallosPorSubtema = {};
+  traza.forEach((t) => { if (!t.correcta) fallosPorSubtema[t.subtema] = (fallosPorSubtema[t.subtema] || 0) + 1; });
+  const huboFallos = Object.keys(fallosPorSubtema).length > 0;
+  const debil = d.faltaTitulo ? null : claveSubtema(d.titulo);
+  if (!huboFallos) {
+    if (!contieneTexto(d.error || '', SIN_FALLOS)) {
+      problemas.push('no fallo ninguna y el texto deberia ser "' + SIN_FALLOS + '" pero dice: ' + (d.error || '(vacio)'));
+    }
+    if (contieneTexto(d.error || '', PREFIJO_ERROR)) {
+      problemas.push('sin fallos no debe aparecer el prefijo "' + PREFIJO_ERROR + '"');
+    }
+  } else if (!debil) {
+    problemas.push('no pude leer el subtema debil desde #diag-debil-titulo: "' + d.titulo + '"');
+  } else if (!fallosPorSubtema[debil]) {
+    problemas.push('el punto debil es "' + debil + '" pero el estudiante no fallo ninguna de ese subtema (fallos: ' +
+      JSON.stringify(fallosPorSubtema) + ')');
+  }
+
+  // 5. El texto de error corresponde a una opcion realmente elegida.
+  if (huboFallos && !d.faltaError && !contieneTexto(d.error || '', SIN_FALLOS)) {
+    const elegidos = traza.filter((t) => !t.correcta && t.error).map((t) => t.error);
+    const coincide = elegidos.some((e) => contieneTexto(d.error, e));
+    if (!coincide) {
+      problemas.push('el error mostrado no corresponde a ninguna opcion elegida. Mostrado: "' + d.error +
+        '". Elegidos: ' + elegidos.map((e) => '"' + e + '"').join(', '));
+    }
+    // Y ademas debe salir del subtema debil.
+    if (debil) {
+      const delDebil = traza.filter((t) => !t.correcta && t.subtema === debil && t.error).map((t) => t.error);
+      if (delDebil.length && !delDebil.some((e) => contieneTexto(d.error, e))) {
+        problemas.push('el error mostrado no pertenece al subtema debil "' + debil + '"');
+      }
+    }
+  }
+
+  // 6. Ninguna barra para un subtema no evaluado.
+  const barrasClaves = d.barras.map((b) => claveDeBarra(materia, b)).filter(Boolean);
+  const sobrantes = barrasClaves.filter((k) => !evaluados[k]);
+  if (sobrantes.length) problemas.push('hay barra para subtemas no evaluados: ' + sobrantes.join(', '));
+  const faltanBarras = Object.keys(evaluados).filter((k) => barrasClaves.indexOf(k) === -1);
+  if (faltanBarras.length) problemas.push('falta la barra de subtemas si evaluados: ' + faltanBarras.join(', '));
+
+  // 7. Los porcentajes mostrados pertenecen al mapa de presentacion.
+  const mapa = [34, 61, 82];
+  const fuera = d.barras.filter((b) => mapa.indexOf(b.pct) === -1).map((b) => b.nombre + '=' + b.pct);
+  if (fuera.length) problemas.push('porcentajes fuera del mapa 34/61/82: ' + fuera.join(', '));
+
+  return problemas.map((p) => '[' + etiqueta + '] ' + p);
+}
+
+function firmaResultado(traza, d) {
+  return JSON.stringify({
+    preguntas: traza.map((t) => t.preguntaId + ':' + t.idxDatos + ':' + t.ordenOpciones),
+    barras: d.barras.map((b) => b.nombre + '=' + b.pct + (b.debil ? '*' : '')),
+    titulo: d.titulo,
+    error: d.error,
+  });
+}
+
+async function correrAdaptativo(page, base, materia, semilla, nombreEstrategia) {
+  await preparar(page, base, { prueba: CFG_ADAPTATIVA, semilla });
+  await entrarAPrueba(page, materia);
+  const traza = await recorrer(page, SEL_PRUEBA, materia, ESTRATEGIAS[nombreEstrategia]);
+  await esperarPantalla(page, 's-diagnostico', 'E3 (semilla ' + semilla + ', ' + nombreEstrategia + ')');
+  const d = await leerDiagnostico(page);
+  return { traza, d };
+}
+
+async function bloqueAdaptativo(page, base, materia) {
+  abrirBloque('Invariantes del modo adaptativo');
+
+  const estrategias = Object.keys(ESTRATEGIAS);
+  const firmasPorEstrategia = {};
+  const ordenesPorSemilla = {};
+
+  for (const semilla of SEMILLAS) {
+    for (const est of estrategias) {
+      const etiqueta = 'semilla ' + semilla + ' · ' + est;
+      contexto = 'adaptativo ' + etiqueta;
+      try {
+        const { traza, d } = await correrAdaptativo(page, base, materia, semilla, est);
+        const problemas = invariantesAdaptativo(materia, traza, d, etiqueta);
+        registrar(
+          'adaptativo · ' + etiqueta,
+          problemas.length === 0,
+          problemas.join(' | '),
+          { traza: traza.map((t) => ({ id: t.preguntaId, sub: t.subtema, dif: t.dificultad, ok: t.correcta, orden: t.ordenOpciones })), barras: d.barras, titulo: d.titulo, error: d.error }
+        );
+        firmasPorEstrategia[est] = firmasPorEstrategia[est] || {};
+        firmasPorEstrategia[est][semilla] = firmaResultado(traza, d);
+        ordenesPorSemilla[semilla] = ordenesPorSemilla[semilla] || {};
+        traza.forEach((t) => { ordenesPorSemilla[semilla][t.preguntaId] = t.ordenOpciones; });
+      } catch (e) {
+        registrar('adaptativo · ' + etiqueta, false, e.message);
+      }
+    }
+  }
+
+  // -- determinismo: misma semilla + mismas respuestas => mismo resultado ----
+  contexto = 'adaptativo determinismo';
+  const semillaRepetida = SEMILLAS[0];
+  for (const est of ['alterna', 'primera-mal']) {
+    try {
+      const primera = firmasPorEstrategia[est] && firmasPorEstrategia[est][semillaRepetida];
+      const { traza, d } = await correrAdaptativo(page, base, materia, semillaRepetida, est);
+      const segunda = firmaResultado(traza, d);
+      const ok = !!primera && primera === segunda;
+      registrar(
+        'determinismo · semilla ' + semillaRepetida + ' + ' + est + ' repite el mismo resultado',
+        ok,
+        ok ? '' : (!primera ? 'no tengo la primera pasada para comparar' : 'la segunda pasada difiere.\n      primera: ' + primera + '\n      segunda: ' + segunda)
+      );
+    } catch (e) {
+      registrar('determinismo · semilla ' + semillaRepetida + ' + ' + est, false, e.message);
+    }
+  }
+
+  // -- el barajado de verdad baraja -----------------------------------------
+  contexto = 'adaptativo barajado entre semillas';
+  const preguntasComunes = {};
+  Object.keys(ordenesPorSemilla).forEach((s) => {
+    Object.keys(ordenesPorSemilla[s]).forEach((pid) => {
+      preguntasComunes[pid] = preguntasComunes[pid] || {};
+      preguntasComunes[pid][s] = ordenesPorSemilla[s][pid];
+    });
+  });
+  let hayDiferencia = false;
+  const detalle = [];
+  Object.keys(preguntasComunes).forEach((pid) => {
+    const valores = Object.keys(preguntasComunes[pid]).map((s) => preguntasComunes[pid][s]);
+    const distintos = valores.filter((v, i) => valores.indexOf(v) === i);
+    if (distintos.length > 1) hayDiferencia = true;
+    detalle.push(pid + ': ' + distintos.join(' / '));
+  });
+  const hayDatos = Object.keys(preguntasComunes).length > 0;
+  registrar(
+    'barajado · semillas distintas producen ordenes de opciones distintos',
+    hayDatos && hayDiferencia,
+    !hayDatos
+      ? 'ningun recorrido adaptativo llego a completarse, asi que no hay ordenes que comparar'
+      : (hayDiferencia ? '' : 'todas las semillas pintaron las opciones en el mismo orden: ' + detalle.join(' | ')),
+    preguntasComunes
+  );
+
+  // -- el orden barajado no es siempre el de los datos ----------------------
+  const algunoBarajado = Object.keys(preguntasComunes).some((pid) =>
+    Object.keys(preguntasComunes[pid]).some((s) => {
+      const v = preguntasComunes[pid][s];
+      return v !== v.split('').sort().join('');
+    })
+  );
+  registrar(
+    'barajado · al menos una pregunta salio en orden distinto al de los datos',
+    hayDatos && algunoBarajado,
+    !hayDatos
+      ? 'ningun recorrido adaptativo llego a completarse'
+      : (algunoBarajado ? '' : 'con barajarOpciones:true todas las opciones salieron en el orden original de los datos')
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 16. Bloque: barajado correcto (identificar la opcion por contenido)
+// ---------------------------------------------------------------------------
+
+async function bloqueBarajado(page, base, materia) {
+  abrirBloque('Barajado correcto · la opcion se identifica por contenido');
+
+  let huboBaraja = false;
+  for (const combo of COMBOS_BARAJADO) {
+    contexto = 'barajado ' + combo;
+    const esperado = ORACULO[combo];
+    try {
+      // Orden de preguntas fijo (adaptativa:false) pero opciones barajadas.
+      await preparar(page, base, { prueba: CFG_BARAJADA, semilla: 20260909 });
+      await entrarAPrueba(page, materia);
+      const traza = await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica(combo));
+      await esperarPantalla(page, 's-diagnostico', 'E3 tras ' + combo + ' (barajado)');
+      const d = await leerDiagnostico(page);
+      const problemas = comprobarDiagnosticoContraOraculo(materia, d, esperado);
+
+      // Se considera barajado si la letra que ocupa la opcion ya no es la
+      // canonica, o si el orden pintado no es el orden de los datos.
+      const seBarajo = traza.some((t) => {
+        if (t.letra && t.letra !== 'ABCD'[t.idxDatos]) return true;
+        return t.ordenOpciones !== t.ordenOpciones.split('').sort().join('');
+      });
+      if (seBarajo) huboBaraja = true;
+
+      registrar(
+        'barajado ' + combo + ' da el mismo diagnostico que en orden fijo',
+        problemas.length === 0,
+        problemas.join(' | '),
+        {
+          esperado,
+          letras: traza.map((t) => t.preguntaId + ' -> letra ' + (t.letra || '?') + ' = opcion de datos ' + t.idxDatos),
+          obtenido: { barras: d.barras, titulo: d.titulo, error: d.error },
+        }
+      );
+    } catch (e) {
+      registrar('barajado ' + combo, false, e.message);
+    }
+  }
+
+  registrar(
+    'barajado · la prueba no fue vacia (alguna letra cambio de posicion)',
+    huboBaraja,
+    huboBaraja ? '' : 'con barajarOpciones:true ninguna opcion cambio de letra; el barajado no se aplico y la prueba no demuestra nada'
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 17. Bloque: buscar monitores sin examen
+// ---------------------------------------------------------------------------
+
+const CLAVES_FILTRO = ['materia', 'subtema', 'precio', 'nivel'];
+
+function selectoresFiltro(clave) {
+  return [
+    '#s-buscar [data-filtro="' + clave + '"]',
+    '#buscar-' + clave,
+    '#buscar-filtro-' + clave,
+    '#s-buscar [name="' + clave + '"]',
+  ];
+}
+
+async function leerListaBuscar(page) {
+  const r = await page.evaluate(() => {
+    const cont = document.querySelector('#buscar-lista')
+      || document.querySelector('#lista-buscar')
+      || document.querySelector('#s-buscar .monitores');
+    if (!cont) return { error: 'falta #buscar-lista (el contenedor de resultados de #s-buscar)' };
+    let nodos = Array.prototype.slice.call(cont.querySelectorAll('[data-ir="perfil"]'));
+    if (!nodos.length) nodos = Array.prototype.slice.call(cont.querySelectorAll('.monitor'));
+    if (!nodos.length) nodos = Array.prototype.slice.call(cont.querySelectorAll('li'));
+    const visibles = nodos.filter((n) => n.getClientRects().length > 0);
+    const tarjetas = visibles.map((n, i) => ({
+      i,
+      texto: (n.textContent || '').replace(/\s+/g, ' ').trim(),
+      materia: n.getAttribute('data-materia'),
+      subtemas: n.getAttribute('data-subtemas'),
+      precio: n.getAttribute('data-precio'),
+      nivel: n.getAttribute('data-nivel'),
+    }));
+    const c = document.querySelector('#buscar-conteo');
+    const v = document.querySelector('#buscar-vacio');
+    return {
+      tarjetas,
+      totalNodos: nodos.length,
+      conteoTexto: c ? (c.textContent || '').replace(/\s+/g, ' ').trim() : null,
+      faltaConteo: !c,
+      vacioVisible: v ? v.getClientRects().length > 0 : null,
+      faltaVacio: !v,
+      textoLista: (cont.textContent || '').replace(/\s+/g, ' ').trim(),
+    };
+  });
+  if (r.error) throw new Error(r.error);
+  return r;
+}
+
+function conteoDeclarado(lectura) {
+  if (lectura.conteoTexto == null) return null;
+  const m = lectura.conteoTexto.match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
+async function describirFiltro(page, clave) {
+  const sel = await primerSelector(page, selectoresFiltro(clave));
+  if (!sel) return null;
+  const info = await page.evaluate((s) => {
+    const el = document.querySelector(s);
+    if (!el) return null;
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'select') {
+      return {
+        tipo: 'select',
+        opciones: Array.prototype.slice.call(el.options).map((o) => ({ valor: o.value, etiqueta: (o.textContent || '').trim() })),
+        valor: el.value,
+      };
+    }
+    if (tag === 'input' && (el.type === 'range' || el.type === 'number')) {
+      return { tipo: el.type, min: el.min, max: el.max, step: el.step, valor: el.value };
+    }
+    // grupo de chips o radios
+    const radios = Array.prototype.slice.call(el.querySelectorAll('input[type="radio"], input[type="checkbox"], button'));
+    if (radios.length) {
+      return {
+        tipo: 'grupo',
+        opciones: radios.map((r, i) => ({
+          valor: r.value || String(i),
+          etiqueta: ((r.closest('label') || r).textContent || '').replace(/\s+/g, ' ').trim(),
+        })),
+      };
+    }
+    return { tipo: tag };
+  }, sel);
+  return info ? Object.assign({ selector: sel, clave }, info) : null;
+}
+
+async function aplicarFiltro(page, filtro, opcion) {
+  const loc = page.locator(filtro.selector).first();
+  if (filtro.tipo === 'select') {
+    await loc.selectOption(opcion.valor);
+  } else if (filtro.tipo === 'range' || filtro.tipo === 'number') {
+    await page.evaluate(({ s, v }) => {
+      const el = document.querySelector(s);
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }, { s: filtro.selector, v: String(opcion.valor) });
+  } else if (filtro.tipo === 'grupo') {
+    await limpiarMarca(page);
+    await page.evaluate(({ s, v, attr }) => {
+      const cont = document.querySelector(s);
+      const nodos = Array.prototype.slice.call(cont.querySelectorAll('input[type="radio"], input[type="checkbox"], button'));
+      const el = nodos.find((n, i) => (n.value || String(i)) === String(v));
+      if (el) (el.closest('label') || el).setAttribute(attr, '1');
+    }, { s: filtro.selector, v: opcion.valor, attr: MARCA });
+    await page.locator('[' + MARCA + '="1"]').first().click().catch(() => {});
+    await limpiarMarca(page);
+  }
+  await page.waitForTimeout(200);
+}
+
+async function limpiarFiltros(page, filtros) {
+  const boton = await primerSelector(page, ['#buscar-limpiar', '#s-buscar [data-accion="limpiar"]']);
+  if (boton) {
+    await page.locator(boton).first().click().catch(() => {});
+    await page.waitForTimeout(200);
+    return;
+  }
+  for (const f of filtros) {
+    if (!f) continue;
+    if (f.tipo === 'select' && f.opciones.length) await aplicarFiltro(page, f, f.opciones[0]);
+    else if (f.tipo === 'range' || f.tipo === 'number') await aplicarFiltro(page, f, { valor: f.max || f.valor });
+    else if (f.tipo === 'grupo' && f.opciones.length) await aplicarFiltro(page, f, f.opciones[0]);
+  }
+}
+
+function coherenciaTarjeta(clave, tarjeta, opcion) {
+  // Devuelve null si no se puede evaluar, o un mensaje si es incoherente.
+  const etiqueta = normalizarEspacios(opcion.etiqueta || opcion.valor || '');
+  if (!etiqueta) return null;
+  if (clave === 'nivel') {
+    const n = etiqueta.match(/\d+/);
+    if (!n) return null;
+    const nivelTarjeta = tarjeta.nivel != null ? parseInt(tarjeta.nivel, 10)
+      : (tarjeta.texto.match(/nivel\s*(\d)/i) ? parseInt(tarjeta.texto.match(/nivel\s*(\d)/i)[1], 10) : null);
+    if (nivelTarjeta == null) return null;
+    // La etiqueta del filtro es "Nivel N o mas": la comparacion es >=.
+    if (nivelTarjeta < parseInt(n[0], 10)) return 'filtro nivel minimo ' + n[0] + ' deja pasar una tarjeta de nivel ' + nivelTarjeta;
+    return null;
+  }
+  if (clave === 'precio') {
+    const tope = parseInt(String(etiqueta).replace(/[^\d]/g, ''), 10);
+    if (!tope || tope < 1000) return null;
+    const precio = tarjeta.precio != null ? parseInt(tarjeta.precio, 10) : numeroDePesos(tarjeta.texto);
+    if (precio == null) return null;
+    if (precio > tope) return 'filtro precio hasta ' + tope + ' deja pasar una tarifa de ' + precio;
+    return null;
+  }
+  if (clave === 'materia' || clave === 'subtema') {
+    const attr = clave === 'materia' ? tarjeta.materia : tarjeta.subtemas;
+    if (attr != null) {
+      if (plano(attr).indexOf(plano(opcion.valor)) === -1 && plano(attr).indexOf(plano(etiqueta)) === -1) {
+        return 'filtro ' + clave + ' "' + etiqueta + '" deja pasar una tarjeta con data-' + clave + '="' + attr + '"';
+      }
+      return null;
+    }
+    if (plano(tarjeta.texto).indexOf(plano(etiqueta)) === -1) {
+      return 'filtro ' + clave + ' "' + etiqueta + '" deja pasar una tarjeta cuyo texto no lo menciona (y no expone data-' + clave + ')';
+    }
+    return null;
+  }
+  return null;
+}
+
+async function bloqueBuscar(page, base, materia) {
+  abrirBloque('B1 · Buscar monitores sin examen');
+
+  // 1. Entrada libre en frio.
+  contexto = 'buscar en frio';
+  try {
+    await page.goto(base + '#buscar', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(300);
+    const est = await estadoPantallas(page);
+    const ok = est.visibles.length === 1 && est.visibles[0] === 's-buscar';
+    registrar(
+      'abrir #buscar en frio NO redirige (entrada libre)',
+      ok,
+      ok ? '' : 'visibles: [' + est.visibles.join(', ') + '] hash: "' + est.hash + '"',
+      est
+    );
+  } catch (e) {
+    registrar('abrir #buscar en frio NO redirige (entrada libre)', false, e.message);
+  }
+
+  // 2. Enlace desde E1.
+  contexto = 'buscar desde E1';
+  try {
+    await preparar(page, base, {});
+    const sel = await primerSelector(page, ['#s-inicio [data-ir="buscar"]']);
+    if (!sel) {
+      registrar('E1 · boton secundario hacia #buscar', false, 'no existe [data-ir="buscar"] dentro de #s-inicio');
+    } else {
+      await clic(page, sel, 'boton secundario de E1 hacia B1');
+      await esperarPantalla(page, 's-buscar', 'B1 desde E1');
+      registrar('E1 · boton secundario hacia #buscar', true, '');
+    }
+  } catch (e) {
+    registrar('E1 · boton secundario hacia #buscar', false, e.message);
+  }
+
+  // 3. Lista completa y conteo.
+  contexto = 'buscar lista';
+  let filtros = [];
+  let totalInicial = 0;
+  let textosIniciales = [];
+  try {
+    await page.goto(base + '#buscar', { waitUntil: 'domcontentloaded' });
+    await esperarPantalla(page, 's-buscar', 'B1');
+    const l = await leerListaBuscar(page);
+    totalInicial = l.tarjetas.length;
+    textosIniciales = l.tarjetas.map((t) => t.texto);
+    registrar(
+      'B1 · la lista muestra los 3 monitores de ejemplo',
+      totalInicial >= 3,
+      totalInicial >= 3 ? 'visibles: ' + totalInicial : 'solo hay ' + totalInicial + ' tarjeta(s) visibles en #buscar-lista'
+    );
+    const c = conteoDeclarado(l);
+    registrar(
+      'B1 · #buscar-conteo refleja el numero visible',
+      !l.faltaConteo && c === totalInicial,
+      l.faltaConteo ? 'falta el elemento #buscar-conteo' : (c === totalInicial ? l.conteoTexto : '#buscar-conteo dice "' + l.conteoTexto + '" y hay ' + totalInicial + ' tarjetas')
+    );
+    registrar(
+      'B1 · sin filtros, #buscar-vacio esta oculto',
+      l.faltaVacio ? false : l.vacioVisible === false,
+      l.faltaVacio ? 'falta el elemento #buscar-vacio' : (l.vacioVisible === false ? '' : '#buscar-vacio se ve con ' + totalInicial + ' resultados')
+    );
+  } catch (e) {
+    registrar('B1 · lectura de la lista', false, e.message);
+  }
+
+  // 3.b Los cuatro controles de filtro existen (se comprueba aparte para que
+  //     un fallo de la lista no oculte cual filtro falta).
+  contexto = 'buscar filtros presentes';
+  for (const clave of CLAVES_FILTRO) {
+    try {
+      const f = await describirFiltro(page, clave);
+      if (!f) {
+        registrar(
+          'B1 · existe el filtro de ' + clave,
+          false,
+          'no encuentro ninguno de: ' + selectoresFiltro(clave).join('  |  ')
+        );
+      } else {
+        registrar('B1 · existe el filtro de ' + clave, true, f.selector + ' (' + f.tipo + ')');
+        filtros.push(f);
+      }
+    } catch (e) {
+      registrar('B1 · existe el filtro de ' + clave, false, e.message);
+    }
+  }
+
+  // 4. Cada filtro reduce de forma coherente.
+  if (filtros.length && totalInicial === 0) {
+    registrar(
+      'B1 · los filtros reducen la lista de forma coherente',
+      false,
+      'no se evaluaron: la lista sin filtros ya venia vacia, no hay nada que reducir'
+    );
+  }
+  for (const f of (totalInicial === 0 ? [] : filtros)) {
+    contexto = 'buscar filtro ' + f.clave;
+    try {
+      await page.goto(base + '#buscar', { waitUntil: 'domcontentloaded' });
+      await esperarPantalla(page, 's-buscar', 'B1 filtro ' + f.clave);
+      const problemas = [];
+      let redujoAlguna = false;
+      let opciones = [];
+      if (f.tipo === 'select' || f.tipo === 'grupo') opciones = f.opciones.slice(1, 5);
+      else if (f.tipo === 'range' || f.tipo === 'number') {
+        const min = f.min !== '' && f.min != null ? f.min : '0';
+        opciones = [{ valor: min, etiqueta: String(min) }];
+      }
+      if (!opciones.length) {
+        problemas.push('el control no ofrece ninguna opcion aparte de la de por defecto');
+      }
+      for (const op of opciones) {
+        await limpiarFiltros(page, filtros);
+        await aplicarFiltro(page, f, op);
+        const l = await leerListaBuscar(page);
+        const c = conteoDeclarado(l);
+        const etiqueta = normalizarEspacios(op.etiqueta || op.valor);
+        if (l.tarjetas.length > totalInicial) {
+          problemas.push('"' + etiqueta + '" muestra ' + l.tarjetas.length + ' tarjetas, mas que las ' + totalInicial + ' sin filtrar');
+        }
+        if (l.tarjetas.length < totalInicial) redujoAlguna = true;
+        const fuera = l.tarjetas.filter((t) => textosIniciales.indexOf(t.texto) === -1);
+        if (fuera.length) {
+          problemas.push('"' + etiqueta + '" muestra tarjetas que no estaban en la lista completa');
+        }
+        if (c !== null && c !== l.tarjetas.length) {
+          problemas.push('"' + etiqueta + '": #buscar-conteo dice ' + c + ' y hay ' + l.tarjetas.length + ' tarjetas');
+        }
+        l.tarjetas.forEach((t) => {
+          const msg = coherenciaTarjeta(f.clave, t, op);
+          if (msg) problemas.push(msg);
+        });
+        if (l.tarjetas.length === 0 && l.vacioVisible === false) {
+          problemas.push('"' + etiqueta + '" deja la lista en cero sin mostrar #buscar-vacio');
+        }
+      }
+      if (!redujoAlguna) {
+        problemas.push('ninguna opcion de este filtro cambio el numero de resultados: el filtro no filtra');
+      }
+      registrar(
+        'B1 · el filtro de ' + f.clave + ' reduce la lista de forma coherente',
+        problemas.length === 0,
+        problemas.slice(0, 4).join(' | ')
+      );
+    } catch (e) {
+      registrar('B1 · el filtro de ' + f.clave + ' reduce la lista de forma coherente', false, e.message);
+    }
+  }
+
+  // 5. Captura con filtros aplicados.
+  contexto = 'buscar captura filtrada';
+  try {
+    await page.goto(base + '#buscar', { waitUntil: 'domcontentloaded' });
+    await esperarPantalla(page, 's-buscar', 'B1 filtrado');
+    const f = filtros.find((x) => x.clave === 'subtema') || filtros[0];
+    if (f) {
+      const op = (f.opciones && f.opciones[1]) || { valor: f.min || '0', etiqueta: 'min' };
+      await aplicarFiltro(page, f, op);
+    }
+    await auditarPantalla(page, 'e-13-buscar-filtrado');
+    await capturar(page, DIR_EST, 'e-13-buscar-filtrado.png', 'B1 · Buscar con filtros aplicados');
+  } catch (e) {
+    registrar('B1 · captura con filtros', false, e.message);
+  }
+
+  // 6. Estado vacio.
+  contexto = 'buscar estado vacio';
+  try {
+    await page.goto(base + '#buscar', { waitUntil: 'domcontentloaded' });
+    await esperarPantalla(page, 's-buscar', 'B1 vacio');
+    let logrado = null;
+    const conOpciones = filtros.filter((f) => (f.opciones && f.opciones.length > 1) || f.tipo === 'range' || f.tipo === 'number');
+    // Busca una combinacion sin resultados: primero el precio mas restrictivo,
+    // luego cruzando pares de opciones.
+    const candidatos = [];
+    conOpciones.forEach((f) => {
+      if (f.tipo === 'range' || f.tipo === 'number') candidatos.push([{ f, op: { valor: f.min || '0', etiqueta: String(f.min || 0) } }]);
+      else f.opciones.slice(1).forEach((op) => candidatos.push([{ f, op }]));
+    });
+    for (let i = 0; i < conOpciones.length && candidatos.length < 60; i += 1) {
+      for (let j = i + 1; j < conOpciones.length; j += 1) {
+        const a = conOpciones[i];
+        const b = conOpciones[j];
+        const opsA = a.opciones ? a.opciones.slice(1) : [{ valor: a.min || '0', etiqueta: String(a.min || 0) }];
+        const opsB = b.opciones ? b.opciones.slice(1) : [{ valor: b.min || '0', etiqueta: String(b.min || 0) }];
+        opsA.forEach((oa) => opsB.forEach((ob) => candidatos.push([{ f: a, op: oa }, { f: b, op: ob }])));
+      }
+    }
+    // Tope duro: cada intento toca el DOM, no vale la pena barrer 200 combinaciones.
+    for (const combo of candidatos.slice(0, 40)) {
+      await limpiarFiltros(page, filtros);
+      for (const paso of combo) await aplicarFiltro(page, paso.f, paso.op);
+      const l = await leerListaBuscar(page);
+      if (l.tarjetas.length === 0) {
+        logrado = { combo: combo.map((p) => p.f.clave + '=' + normalizarEspacios(p.op.etiqueta || p.op.valor)), lectura: l };
+        break;
+      }
+    }
+    if (!logrado) {
+      registrar(
+        'B1 · una combinacion sin resultados muestra #buscar-vacio',
+        false,
+        'no encontre ninguna combinacion de filtros que deje la lista en cero; el estado vacio no es alcanzable'
+      );
+    } else {
+      const l = logrado.lectura;
+      const problemas = [];
+      if (l.faltaVacio) problemas.push('falta el elemento #buscar-vacio');
+      else if (l.vacioVisible !== true) problemas.push('#buscar-vacio no se ve con cero resultados');
+      const c = conteoDeclarado(l);
+      if (c !== null && c !== 0) problemas.push('#buscar-conteo dice "' + l.conteoTexto + '" con cero tarjetas');
+      registrar(
+        'B1 · una combinacion sin resultados muestra #buscar-vacio',
+        problemas.length === 0,
+        problemas.join(' | ') || ('con ' + logrado.combo.join(' + ')),
+        logrado.combo
+      );
+      await auditarPantalla(page, 'e-14-buscar-vacio');
+      await capturar(page, DIR_EST, 'e-14-buscar-vacio.png', 'B1 · Buscar sin resultados');
+    }
+  } catch (e) {
+    registrar('B1 · una combinacion sin resultados muestra #buscar-vacio', false, e.message);
+  }
+
+  // 7. Agendar desde #buscar sin haber hecho la prueba.
+  contexto = 'buscar agendar sin prueba';
+  try {
+    await page.goto(base + '#buscar', { waitUntil: 'domcontentloaded' });
+    await esperarPantalla(page, 's-buscar', 'B1 hacia perfil');
+    // La prueba del estado vacio dejo filtros que no devuelven a nadie.
+    // Se limpian antes de intentar entrar a un perfil desde la busqueda.
+    await page.evaluate(() => {
+      ['#filtro-materia', '#filtro-subtema', '#filtro-precio', '#filtro-nivel'].forEach((s) => {
+        const el = document.querySelector(s);
+        if (el) { el.value = ''; el.dispatchEvent(new Event('change', { bubbles: true })); }
+      });
+    });
+    await page.waitForTimeout(200);
+    await clic(page, '#buscar-lista [data-ir="perfil"], #s-buscar [data-ir="perfil"]', 'tarjeta de monitor en B1');
+    await esperarPantalla(page, 's-perfil', 'E5 desde B1');
+    const texto = normalizarEspacios(await page.locator('#s-perfil').first().innerText());
+    const prometeDiagnostico = contieneTexto(texto, PROMESA_DIAGNOSTICO);
+    registrar(
+      'E5 sin prueba · no promete un diagnostico que no existe',
+      !prometeDiagnostico,
+      prometeDiagnostico
+        ? 'la tarjeta destacada dice "' + PROMESA_DIAGNOSTICO + '" aunque el estudiante no hizo la prueba'
+        : ''
+    );
+    await auditarPantalla(page, 'e-15-perfil-sin-diagnostico');
+    await capturar(page, DIR_EST, 'e-15-perfil-sin-diagnostico.png', 'E5 · Perfil sin diagnostico previo');
+
+    const hayHorario = await page.locator('#s-perfil .slot').count().catch(() => 0);
+    if (hayHorario) await page.locator('#s-perfil .slot').first().click().catch(() => {});
+    await clic(page, '#s-perfil [data-ir="confirmacion"]', 'boton Agendar y pagar sin prueba');
+    await esperarPantalla(page, 's-confirmacion', 'E6 sin prueba');
+    registrar('B1 · se puede agendar sin haber hecho la prueba', true, '');
+  } catch (e) {
+    registrar('B1 · se puede agendar sin haber hecho la prueba', false, e.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 18. Bloque: crear el perfil del monitor
+// ---------------------------------------------------------------------------
+
+async function camposCrearPerfil(page) {
+  const nombre = await exigirSelector(page, [
+    '#s-crear-perfil [name="nombre"]', '#cp-nombre', '#crear-nombre', '#s-crear-perfil input[type="text"]',
+  ], 'el campo de nombre de #s-crear-perfil');
+  const semestre = await exigirSelector(page, [
+    '#s-crear-perfil [name="semestre"]', '#cp-semestre', '#crear-semestre',
+  ], 'el campo de semestre de #s-crear-perfil');
+  const tarifa = await exigirSelector(page, [
+    '#s-crear-perfil [name="tarifa"]', '#cp-tarifa', '#crear-tarifa',
+  ], 'el campo de tarifa de #s-crear-perfil');
+  const subtemas = await exigirSelector(page, [
+    '#s-crear-perfil [name="subtemas"]', '#s-crear-perfil [name="subtema"]', '#s-crear-perfil input[type="checkbox"]',
+  ], 'las casillas de subtemas de #s-crear-perfil');
+  const enviar = await exigirSelector(page, [
+    '#s-crear-perfil button[type="submit"]', '#perfil-guardar', '#s-crear-perfil form button', '#s-crear-perfil [data-ir="panel"]',
+  ], 'el boton de guardar de #s-crear-perfil');
+  const error = await primerSelector(page, [
+    '#crear-perfil-error', '#cp-error', '#s-crear-perfil [role="alert"]', '#s-crear-perfil .error',
+  ]);
+  return { nombre, semestre, tarifa, subtemas, enviar, error };
+}
+
+async function rellenarPerfil(page, campos, datos) {
+  await page.locator(campos.nombre).first().fill(String(datos.nombre));
+  await page.locator(campos.semestre).first().fill(String(datos.semestre));
+  await page.locator(campos.tarifa).first().fill(String(datos.tarifa));
+  const casillas = page.locator(campos.subtemas);
+  const n = await casillas.count();
+  for (let i = 0; i < n; i += 1) {
+    const c = casillas.nth(i);
+    const debe = i < datos.subtemas;
+    const esta = await c.isChecked().catch(() => false);
+    if (debe !== esta) await c.setChecked(debe).catch(() => {});
+  }
+  await page.waitForTimeout(120);
+}
+
+async function mensajeDeError(page, campos) {
+  if (campos.error) {
+    const vis = await page.locator(campos.error).first().isVisible().catch(() => false);
+    if (vis) {
+      const t = normalizarEspacios(await page.locator(campos.error).first().textContent());
+      if (t) return t;
+    }
+  }
+  // Fallback: validacion nativa del navegador.
+  const nativo = await page.evaluate((sel) => {
+    const el = document.querySelector(sel.nombre);
+    const form = el && el.closest('form');
+    if (!form) return null;
+    const invalidos = Array.prototype.slice.call(form.querySelectorAll(':invalid'));
+    if (!invalidos.length) return null;
+    return invalidos.map((i) => i.validationMessage).filter(Boolean).join(' / ') || 'campo invalido';
+  }, campos).catch(() => null);
+  return nativo;
+}
+
+async function llegarACrearPerfil(page, base, materia) {
+  await entrarACertificacion(page, base, materia, CFG_FIJA);
+  const largo = (materia.certificacion && materia.certificacion.longitud) || 3;
+  await recorrer(page, SEL_CERT, materia, estrategiaPatronCanonica('V'.repeat(largo)));
+  await esperarPantalla(page, 's-monitor-resultado', 'M4 certificado');
+  const sel = await primerSelector(page, ['#s-monitor-resultado [data-ir="crear-perfil"]']);
+  if (!sel) {
+    throw new Error('No hay [data-ir="crear-perfil"] en #s-monitor-resultado; tras certificar el contrato v2 exige pasar por R1.');
+  }
+  await clic(page, sel, 'boton de M4 hacia R1');
+  await esperarPantalla(page, 's-crear-perfil', 'R1');
+}
+
+async function bloquePerfilMonitor(page, base, materia) {
+  abrirBloque('R1 · Crear el perfil del monitor');
+
+  // 1. Guarda en frio.
+  contexto = 'crear-perfil en frio';
+  try {
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    await page.goto(base + '#crear-perfil', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(300);
+    const est = await estadoPantallas(page);
+    const ok = est.visibles.length === 1 && est.visibles[0] === 's-monitor' && (est.hash === '' || est.hash === '#monitor');
+    registrar(
+      'abrir #crear-perfil sin certificado redirige a #monitor',
+      ok,
+      ok ? '' : 'visibles: [' + est.visibles.join(', ') + '] hash: "' + est.hash + '"',
+      est
+    );
+  } catch (e) {
+    registrar('abrir #crear-perfil sin certificado redirige a #monitor', false, e.message);
+  }
+
+  // 2. Tras certificar se llega a R1.
+  contexto = 'crear-perfil tras certificar';
+  let campos = null;
+  try {
+    await llegarACrearPerfil(page, base, materia);
+    registrar('tras certificar se llega a #crear-perfil', true, '');
+    campos = await camposCrearPerfil(page);
+  } catch (e) {
+    registrar('tras certificar se llega a #crear-perfil', false, e.message);
+    return;
+  }
+
+  // 3. Rechazos del formulario.
+  const casos = [
+    { nombre: 'nombre vacio', datos: { nombre: '', semestre: '7', tarifa: '30000', subtemas: 2 } },
+    { nombre: 'semestre 0', datos: { nombre: 'Ana P.', semestre: '0', tarifa: '30000', subtemas: 2 } },
+    { nombre: 'semestre 13', datos: { nombre: 'Ana P.', semestre: '13', tarifa: '30000', subtemas: 2 } },
+    { nombre: 'tarifa 5000', datos: { nombre: 'Ana P.', semestre: '7', tarifa: '5000', subtemas: 2 } },
+    { nombre: 'tarifa 500000', datos: { nombre: 'Ana P.', semestre: '7', tarifa: '500000', subtemas: 2 } },
+    { nombre: 'cero subtemas', datos: { nombre: 'Ana P.', semestre: '7', tarifa: '30000', subtemas: 0 } },
+  ];
+
+  for (const caso of casos) {
+    contexto = 'crear-perfil rechazo ' + caso.nombre;
+    try {
+      if (!(await seccionVisible(page, 's-crear-perfil'))) await llegarACrearPerfil(page, base, materia);
+      await rellenarPerfil(page, campos, caso.datos);
+      await page.locator(campos.enviar).first().click();
+      await page.waitForTimeout(400);
+      const sigueAqui = await seccionVisible(page, 's-crear-perfil');
+      const msg = await mensajeDeError(page, campos);
+      const problemas = [];
+      if (!sigueAqui) {
+        const est = await estadoPantallas(page);
+        problemas.push('avanzo a [' + est.visibles.join(', ') + '] con datos invalidos');
+      }
+      if (!msg) problemas.push('no aparecio ningun mensaje de error visible' + (campos.error ? ' en ' + campos.error : ' (y no hay #crear-perfil-error)'));
+      registrar(
+        'rechaza ' + caso.nombre,
+        problemas.length === 0,
+        problemas.join(' | ') || ('mensaje: ' + String(msg).slice(0, 90))
+      );
+    } catch (e) {
+      registrar('rechaza ' + caso.nombre, false, e.message);
+    }
+  }
+
+  // 4. Datos validos: guarda, navega a #panel, el panel muestra nombre y tarifa.
+  contexto = 'crear-perfil valido';
+  try {
+    if (!(await seccionVisible(page, 's-crear-perfil'))) await llegarACrearPerfil(page, base, materia);
+    await rellenarPerfil(page, campos, {
+      nombre: PERFIL_NUEVO.nombre, semestre: PERFIL_NUEVO.semestre, tarifa: PERFIL_NUEVO.tarifa, subtemas: 2,
+    });
+    await page.locator(campos.enviar).first().click();
+    await esperarPantalla(page, 's-panel', 'M5 tras guardar el perfil');
+    const est = await estadoPantallas(page);
+    registrar(
+      'con datos validos guarda y navega a #panel',
+      est.hash === '#panel' || est.visibles[0] === 's-panel',
+      est.hash === '#panel' || est.visibles[0] === 's-panel' ? '' : 'hash "' + est.hash + '" visibles [' + est.visibles.join(', ') + ']'
+    );
+    const panel = normalizarEspacios(await page.locator('#s-panel').first().innerText());
+    const tieneNombre = contieneTexto(panel, PERFIL_NUEVO.nombre);
+    const tieneTarifa = contieneTexto(panel, PERFIL_TARIFA_TEXTO) || panel.indexOf('30.000') !== -1;
+    registrar(
+      'el panel muestra el nombre escrito',
+      tieneNombre,
+      tieneNombre ? '' : 'no aparece "' + PERFIL_NUEVO.nombre + '" en #s-panel'
+    );
+    registrar(
+      'el panel muestra la tarifa escrita',
+      tieneTarifa,
+      tieneTarifa ? '' : 'no aparece "' + PERFIL_TARIFA_TEXTO + '" en #s-panel'
+    );
+  } catch (e) {
+    registrar('con datos validos guarda y navega a #panel', false, e.message);
+    return;
+  }
+
+  // 5. El monitor creado aparece en #buscar y en #monitores (sin recargar).
+  contexto = 'crear-perfil aparece en buscar';
+  try {
+    await irPorHash(page, '#buscar');
+    await esperarPantalla(page, 's-buscar', 'B1 tras crear el perfil');
+    const l = await leerListaBuscar(page);
+    const esta = contieneTexto(l.textoLista, PERFIL_NUEVO.nombre);
+    registrar(
+      'el monitor creado aparece en #buscar',
+      esta,
+      esta ? '' : 'no aparece "' + PERFIL_NUEVO.nombre + '" entre las ' + l.tarjetas.length + ' tarjetas de #buscar-lista'
+    );
+  } catch (e) {
+    registrar('el monitor creado aparece en #buscar', false, e.message);
+  }
+
+  contexto = 'crear-perfil aparece en monitores';
+  try {
+    await irPorHash(page, '#inicio');
+    await esperarPantalla(page, 's-inicio', 'E1 tras crear el perfil');
+    await forzarConfig(page, MATERIA_DEMO, CFG_FIJA, null);
+    await entrarAPrueba(page, materia);
+    await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica(COMBO_CAPTURA));
+    await esperarPantalla(page, 's-diagnostico', 'E3 tras crear el perfil');
+    await clic(page, '#s-diagnostico [data-ir="monitores"]', 'boton Ver monitores');
+    await esperarPantalla(page, 's-monitores', 'E4 tras crear el perfil');
+    const texto = normalizarEspacios(await page.locator('#lista-monitores').first().innerText());
+    const esta = contieneTexto(texto, PERFIL_NUEVO.nombre);
+    registrar(
+      'el monitor creado aparece en #monitores',
+      esta,
+      esta ? '' : 'no aparece "' + PERFIL_NUEVO.nombre + '" en #lista-monitores'
+    );
+  } catch (e) {
+    registrar('el monitor creado aparece en #monitores', false, e.message);
+  }
+
+  // 6. El reinicio lo borra de las dos listas.
+  contexto = 'crear-perfil reinicio';
+  try {
+    await clic(page, '#btn-reiniciar', 'boton de reinicio global');
+    await page.waitForTimeout(300);
+    await irPorHash(page, '#buscar');
+    await esperarPantalla(page, 's-buscar', 'B1 tras reiniciar');
+    const l = await leerListaBuscar(page);
+    const sigue = contieneTexto(l.textoLista, PERFIL_NUEVO.nombre);
+    registrar(
+      'el reinicio borra el monitor creado de #buscar',
+      !sigue,
+      sigue ? 'sigue apareciendo "' + PERFIL_NUEVO.nombre + '" tras pulsar #btn-reiniciar' : ''
+    );
+
+    await irPorHash(page, '#inicio');
+    await esperarPantalla(page, 's-inicio', 'E1 tras reiniciar');
+    await forzarConfig(page, MATERIA_DEMO, CFG_FIJA, null);
+    await entrarAPrueba(page, materia);
+    await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica(COMBO_CAPTURA));
+    await esperarPantalla(page, 's-diagnostico', 'E3 tras reiniciar');
+    await clic(page, '#s-diagnostico [data-ir="monitores"]', 'boton Ver monitores');
+    await esperarPantalla(page, 's-monitores', 'E4 tras reiniciar');
+    const texto = normalizarEspacios(await page.locator('#lista-monitores').first().innerText());
+    const sigue2 = contieneTexto(texto, PERFIL_NUEVO.nombre);
+    registrar(
+      'el reinicio borra el monitor creado de #monitores',
+      !sigue2,
+      sigue2 ? 'sigue apareciendo "' + PERFIL_NUEVO.nombre + '" en #lista-monitores tras reiniciar' : ''
+    );
+  } catch (e) {
+    registrar('el reinicio borra el monitor creado', false, e.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 19. Bloque: robustez
+// ---------------------------------------------------------------------------
+
+async function bloqueRobustez(page, base, red, materia) {
   abrirBloque('Robustez');
 
   // 1. #diagnostico sin estado
@@ -1094,9 +2672,9 @@ async function bloqueRobustez(page, base, red) {
   // 3. Reinicio deja el estado limpio
   contexto = 'robustez reinicio';
   try {
-    await irAInicio(page, base);
-    await entrarAPrueba(page);
-    await responderPrueba(page, 'VVVV');
+    await preparar(page, base, { prueba: CFG_FIJA });
+    await entrarAPrueba(page, materia);
+    await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica('VVVV'));
     await esperarPantalla(page, 's-diagnostico', 'E3 antes de reiniciar');
     await clic(page, '#btn-reiniciar', 'boton de reinicio global');
     await page.waitForTimeout(300);
@@ -1109,9 +2687,7 @@ async function bloqueRobustez(page, base, red) {
       tras
     );
 
-    // Sin recargar: el diagnostico ya no deberia ser alcanzable
-    await page.evaluate(() => { window.location.hash = '#diagnostico'; });
-    await page.waitForTimeout(300);
+    await irPorHash(page, '#diagnostico');
     const est = await estadoPantallas(page);
     const limpio = est.visibles.length === 1 && est.visibles[0] === 's-inicio';
     registrar(
@@ -1120,6 +2696,16 @@ async function bloqueRobustez(page, base, red) {
       limpio ? '' : 'visibles: [' + est.visibles.join(', ') + '] hash: "' + est.hash + '" (el estado no quedo limpio)',
       est
     );
+
+    await irPorHash(page, '#buscar');
+    const estB = await estadoPantallas(page);
+    const buscarSigueLibre = estB.visibles.length === 1 && estB.visibles[0] === 's-buscar';
+    registrar(
+      'tras reiniciar, #buscar sigue siendo entrada libre',
+      buscarSigueLibre,
+      buscarSigueLibre ? '' : 'visibles: [' + estB.visibles.join(', ') + '] hash: "' + estB.hash + '"',
+      estB
+    );
   } catch (e) {
     registrar('el boton de reinicio deja el estado limpio', false, e.message);
   }
@@ -1127,13 +2713,16 @@ async function bloqueRobustez(page, base, red) {
   // 4. Boton atras a mitad de la prueba
   contexto = 'robustez boton atras';
   try {
-    await irAInicio(page, base);
-    await entrarAPrueba(page);
-    await elegirOpcion(page, '#prueba-opciones', LETRA_CORRECTA[0], 'E2 pregunta 1 (atras)');
+    await preparar(page, base, { prueba: CFG_FIJA });
+    await entrarAPrueba(page, materia);
+    const dom = await leerPreguntaActual(page, SEL_PRUEBA);
+    const pregunta = localizarPregunta(materia, dom.enunciado);
+    const mapa = emparejarOpciones(pregunta, dom.opciones);
+    await clicOpcionPorIndice(page, SEL_PRUEBA.opciones, mapa.findIndex((m) => !!m.datos.correcta), 'E2 pregunta 1 (atras)');
     await avanzarPregunta(page, {
-      enunciado: '#prueba-enunciado',
-      boton: '#prueba-siguiente',
-      destino: '#s-diagnostico',
+      enunciado: SEL_PRUEBA.enunciado,
+      boton: SEL_PRUEBA.boton,
+      destino: SEL_PRUEBA.destino,
       etiqueta: 'E2 pregunta 1 (atras)',
     });
     const erroresAntes = reporte.consola.length;
@@ -1157,9 +2746,9 @@ async function bloqueRobustez(page, base, red) {
   // 5 y 6. Formulario de correo
   contexto = 'robustez formulario';
   try {
-    await irAInicio(page, base);
-    await entrarAPrueba(page);
-    await responderPrueba(page, COMBO_CAPTURA);
+    await preparar(page, base, { prueba: CFG_FIJA });
+    await entrarAPrueba(page, materia);
+    await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica(COMBO_CAPTURA));
     await esperarPantalla(page, 's-diagnostico', 'E3 para el formulario');
     await clic(page, '#s-diagnostico [data-ir="monitores"]', 'boton Ver monitores');
     await esperarPantalla(page, 's-monitores', 'E4');
@@ -1203,44 +2792,82 @@ async function bloqueRobustez(page, base, red) {
   } catch (e) {
     registrar('formulario de captura de correo', false, e.message);
   }
-}
 
-async function estadoPantallas(page) {
-  return page.evaluate(() => {
-    const secciones = Array.prototype.slice.call(document.querySelectorAll('section.screen'));
-    const visibles = secciones.filter((s) => s.getClientRects().length > 0).map((s) => s.id);
-    return {
-      hash: window.location.hash,
-      visibles,
-      total: secciones.length,
-      textoVisible: (document.body.innerText || '').trim().length > 0,
-    };
-  });
-}
-
-function esFuente(u) {
-  return HOSTS_FUENTES.some((h) => String(u).indexOf(h) !== -1);
+  // 7. Materias inactivas: no dejan empezar la prueba
+  contexto = 'robustez materia inactiva';
+  try {
+    await preparar(page, base, {});
+    const materias = await leerMaterias(page);
+    const inactiva = materias.find((m) => m.activa === false);
+    if (!inactiva) {
+      registrar(
+        'las materias inactivas salen en gris con "pronto"',
+        true,
+        'no aplica: las ' + materias.length + ' materias de MATERIAS estan activas'
+      );
+    } else {
+      const info = await page.evaluate(({ id, nombre }) => {
+        function llano(s) {
+          return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+        const c = document.querySelector('#lista-materias');
+        if (!c) return { error: 'falta #lista-materias' };
+        let nodos = Array.prototype.slice.call(c.querySelectorAll('[data-materia]'));
+        if (!nodos.length) nodos = Array.prototype.slice.call(c.querySelectorAll('.materia, li'));
+        const el = nodos.find((n) => n.getAttribute('data-materia') === id || llano(n.textContent).indexOf(llano(nombre)) !== -1);
+        if (!el) return { error: 'la materia inactiva "' + nombre + '" no aparece en #lista-materias' };
+        return {
+          pronto: /pronto/i.test(el.textContent || ''),
+          marcada: el.classList.contains('is-pronto') || !!el.querySelector('.is-pronto') || el.getAttribute('aria-disabled') === 'true',
+        };
+      }, { id: inactiva.id, nombre: inactiva.nombre });
+      if (info.error) {
+        registrar('las materias inactivas salen en gris con "pronto"', false, info.error);
+      } else {
+        registrar(
+          'las materias inactivas salen en gris con "pronto"',
+          info.pronto && info.marcada,
+          info.pronto && info.marcada ? '' : 'la materia "' + inactiva.nombre + '" ' + (info.pronto ? 'dice pronto pero no esta marcada como no seleccionable' : 'no muestra la etiqueta "pronto"')
+        );
+      }
+    }
+  } catch (e) {
+    registrar('las materias inactivas salen en gris con "pronto"', false, e.message);
+  }
 }
 
 // ---------------------------------------------------------------------------
-// 8. Contact sheet
+// 20. Contact sheet
 // ---------------------------------------------------------------------------
 
 function escribirContactSheet() {
-  const filas = reporte.capturas
-    .map(
-      (c) =>
-        '  <figure>\n    <img src="' + c.archivo + '" alt="' + c.etiqueta.replace(/"/g, '&quot;') + '" loading="lazy">\n' +
-        '    <figcaption><b>' + c.archivo + '</b><br>' + c.etiqueta + '</figcaption>\n  </figure>'
-    )
-    .join('\n');
+  const porCarpeta = {};
+  reporte.capturas.forEach((c) => {
+    const k = c.carpeta || 'otros';
+    porCarpeta[k] = porCarpeta[k] || [];
+    porCarpeta[k].push(c);
+  });
+
+  const secciones = Object.keys(porCarpeta).sort().map((k) => {
+    const filas = porCarpeta[k]
+      .slice()
+      .sort((a, b) => a.archivo.localeCompare(b.archivo))
+      .map(
+        (c) =>
+          '  <figure>\n    <img src="' + c.archivo + '" alt="' + c.etiqueta.replace(/"/g, '&quot;') + '" loading="lazy">\n' +
+          '    <figcaption><b>' + c.archivo + '</b><br>' + c.etiqueta + '</figcaption>\n  </figure>'
+      )
+      .join('\n');
+    return '<h2>' + k + ' · ' + porCarpeta[k].length + ' capturas</h2>\n<div class="rejilla">\n' + filas + '\n</div>';
+  }).join('\n');
 
   const html =
     '<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>Calibra · hoja de contacto</title>\n<style>\n' +
+    '<title>Calibra · hoja de contacto (v2)</title>\n<style>\n' +
     'body{margin:0;padding:24px;background:#101418;color:#E8EDF3;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}\n' +
     'h1{font-size:22px;margin:0 0 4px}\n' +
+    'h2{font-size:17px;margin:28px 0 12px;color:#9AA7B6;text-transform:capitalize}\n' +
     'p.meta{margin:0 0 24px;color:#9AA7B6}\n' +
     '.rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}\n' +
     'figure{margin:0;background:#181E25;border:1px solid #2A333D;border-radius:12px;overflow:hidden}\n' +
@@ -1250,27 +2877,30 @@ function escribirContactSheet() {
     '.resumen{margin:0 0 24px;padding:12px 16px;border-radius:12px;border:1px solid #2A333D;background:#181E25}\n' +
     '.ok{color:#7EE2A8}.falla{color:#FF9A9E}\n' +
     '</style>\n</head>\n<body>\n' +
-    '<h1>Calibra · hoja de contacto</h1>\n' +
+    '<h1>Calibra · hoja de contacto (v2)</h1>\n' +
     '<p class="meta">Generada ' + new Date().toLocaleString('es-CO') + ' · viewport 390 × 844 · deviceScaleFactor 3</p>\n' +
     '<p class="resumen">Comprobaciones: ' + reporte.resumen.total +
     ' · <span class="ok">OK ' + reporte.resumen.ok + '</span>' +
     ' · <span class="falla">fallas ' + reporte.resumen.fallas + '</span>' +
     ' · detalle en <code>reporte.json</code></p>\n' +
-    '<div class="rejilla">\n' + filas + '\n</div>\n</body>\n</html>\n';
+    secciones + '\n</body>\n</html>\n';
 
   fs.writeFileSync(RUTA_SHEET, html, 'utf8');
 }
 
 // ---------------------------------------------------------------------------
-// 9. Programa principal
+// 21. Programa principal
 // ---------------------------------------------------------------------------
 
+const ALIAS_BLOQUE = { logica: 'oraculo', oraculo: 'oraculo', 'crear-perfil': 'perfil', buscar: 'buscar' };
+
 function quiere(bloque) {
-  return !SOLO || SOLO.indexOf(bloque) !== -1;
+  if (!SOLO) return true;
+  return SOLO.some((s) => s === bloque || ALIAS_BLOQUE[s] === bloque);
 }
 
 async function main() {
-  linea('Calibra · arnes de verificacion');
+  linea('Calibra · arnes de verificacion (v2)');
   linea('Proyecto: ' + RAIZ);
 
   if (!fs.existsSync(INDEX)) {
@@ -1351,36 +2981,125 @@ async function main() {
       await bloqueFuente();
     }
 
-    if (quiere('capturas')) {
-      try {
-        await bloqueCapturas(page, base);
-      } catch (e) {
-        registrar('recorrido de capturas', false, e.message);
-      }
+    // ---- Ganchos de datos: sin esto no corre ningun bloque de navegador ----
+    abrirBloque('Ganchos de datos');
+    let materias = null;
+    let materia = null;
+    try {
+      await page.goto(base, { waitUntil: 'domcontentloaded' });
+      materias = await leerMaterias(page);
+      registrar('window.MATERIAS es legible', true, materias.length + ' materia(s): ' + materias.map((m) => m.id).join(', '));
+      materia = buscarMateria(materias, MATERIA_DEMO);
+      registrar('existe la materia "' + MATERIA_DEMO + '"', true, materia.codigo + ' · ' + materia.nombre);
+
+      const problemas = [];
+      if (!materia.subtemas || !Object.keys(materia.subtemas).length) problemas.push('no tiene subtemas');
+      if (!Array.isArray(materia.preguntas) || !materia.preguntas.length) problemas.push('no tiene preguntas');
+      if (!materia.prueba || typeof materia.prueba.longitud !== 'number') problemas.push('no tiene prueba.longitud');
+      if (!materia.certificacion || typeof materia.certificacion.longitud !== 'number') problemas.push('no tiene certificacion.longitud');
+      (materia.preguntas || []).forEach((p) => {
+        if (!p.id) problemas.push('una pregunta sin id');
+        if (!materia.subtemas[p.subtema]) problemas.push(p.id + ' apunta al subtema inexistente "' + p.subtema + '"');
+        const correctas = (p.opciones || []).filter((o) => o.correcta).length;
+        if (correctas !== 1) problemas.push(p.id + ' tiene ' + correctas + ' opciones correctas (debe ser 1)');
+        (p.opciones || []).forEach((o) => {
+          if (!o.correcta && !o.error) problemas.push(p.id + ' opcion "' + String(o.texto).slice(0, 24) + '" incorrecta sin texto de error');
+          if (o.correcta && o.error) problemas.push(p.id + ' la opcion correcta no debe llevar campo error');
+        });
+      });
+      registrar(
+        'estructura de datos v2 de ' + MATERIA_DEMO,
+        problemas.length === 0,
+        problemas.slice(0, 5).join(' | ')
+      );
+
+      const cfgOk = materia.prueba.longitud === 4 && materia.certificacion.longitud === 3 && materia.certificacion.minimoAciertos === 2;
+      registrar(
+        'configuracion de ' + MATERIA_DEMO + ' (prueba 4, certificacion 3 con minimo 2)',
+        cfgOk,
+        cfgOk ? '' : 'prueba.longitud=' + materia.prueba.longitud + ' certificacion.longitud=' + materia.certificacion.longitud + ' minimoAciertos=' + materia.certificacion.minimoAciertos
+      );
+
+      const forzado = await forzarConfig(page, MATERIA_DEMO, CFG_FIJA, CFG_FIJA);
+      registrar(
+        'el arnes puede forzar { adaptativa:false, barajarOpciones:false }',
+        forzado.prueba.adaptativa === false && forzado.prueba.barajarOpciones === false,
+        JSON.stringify(forzado.prueba)
+      );
+    } catch (e) {
+      registrar('ganchos de datos', false, e.message);
     }
 
-    if (quiere('logica')) {
-      try {
-        await bloqueLogicaEstudiante(page, base);
-      } catch (e) {
-        registrar('logica del diagnostico', false, e.message);
+    if (materia) {
+      if (quiere('capturas')) {
+        try {
+          await bloqueCapturas(page, base, materia);
+        } catch (e) {
+          registrar('recorrido de capturas', false, e.message);
+        }
       }
-    }
 
-    if (quiere('monitor')) {
-      try {
-        await bloqueLogicaMonitor(page, base);
-      } catch (e) {
-        registrar('logica de certificacion', false, e.message);
+      if (quiere('oraculo')) {
+        try {
+          await bloqueOraculo(page, base, materia);
+        } catch (e) {
+          registrar('regresion del oraculo', false, e.message);
+        }
       }
-    }
 
-    if (quiere('robustez')) {
-      try {
-        await bloqueRobustez(page, base, red);
-      } catch (e) {
-        registrar('robustez', false, e.message);
+      if (quiere('monitor')) {
+        try {
+          await bloqueLogicaMonitor(page, base, materia);
+        } catch (e) {
+          registrar('logica de certificacion', false, e.message);
+        }
       }
+
+      if (quiere('adaptativo')) {
+        try {
+          await bloqueAdaptativo(page, base, materia);
+        } catch (e) {
+          registrar('invariantes del adaptativo', false, e.message);
+        }
+      }
+
+      if (quiere('barajado')) {
+        try {
+          await bloqueBarajado(page, base, materia);
+        } catch (e) {
+          registrar('barajado correcto', false, e.message);
+        }
+      }
+
+      if (quiere('buscar')) {
+        try {
+          await bloqueBuscar(page, base, materia);
+        } catch (e) {
+          registrar('buscar monitores', false, e.message);
+        }
+      }
+
+      if (quiere('perfil')) {
+        try {
+          await bloquePerfilMonitor(page, base, materia);
+        } catch (e) {
+          registrar('crear perfil del monitor', false, e.message);
+        }
+      }
+
+      if (quiere('robustez')) {
+        try {
+          await bloqueRobustez(page, base, red, materia);
+        } catch (e) {
+          registrar('robustez', false, e.message);
+        }
+      }
+    } else {
+      registrar(
+        'bloques de navegador',
+        false,
+        'no se ejecutaron: sin window.MATERIAS y sin la materia "' + MATERIA_DEMO + '" el arnes no puede responder las pruebas'
+      );
     }
 
     // Bloque global: consola y red, ya con todo el recorrido hecho
@@ -1431,6 +3150,12 @@ async function main() {
   linea('  Capturas:       ' + reporte.capturas.length + ' en ' + DIR_CAPTURAS);
   linea('  Hoja de contacto: ' + RUTA_SHEET);
   linea('  Reporte:          ' + RUTA_REPORTE);
+
+  if (reporte.supuestos.length) {
+    linea('');
+    linea('Selectores alternos usados (conviene alinearlos con el contrato):');
+    reporte.supuestos.forEach((s) => linea('  - ' + s));
+  }
 
   if (reporte.resumen.fallas > 0) {
     linea('');

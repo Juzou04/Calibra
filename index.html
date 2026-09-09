@@ -513,6 +513,513 @@ body>.btn-reiniciar{
     scroll-behavior:auto !important;
   }
 }
+
+/* ==================== v2: PANTALLAS NUEVAS Y PULIDO ==================== */
+/* =========================================================================
+   CALIBRA v2 - BLOQUE 22 EN ADELANTE
+   Este archivo se APENDA al final del <style> actual (bloques 1-21).
+   Todo lo que aqui se repite del sistema viejo se repite a proposito:
+   por orden de cascada gana lo ultimo, asi que reescribir un selector
+   identico es la forma limpia de pulir sin tocar el CSS ya verificado.
+
+   Reglas duras respetadas en todo el archivo:
+   - ningun font-size por debajo de 14px, y 16px minimo en inputs y selects
+   - sin degradados, sin sombras duras, sin colores fuera de la paleta
+   - todo lo que anima cae bajo el bloque 21 (prefers-reduced-motion) y ademas
+     se apaga aqui explicitamente
+   - nada genera scroll horizontal de pagina a 320px: lo que no cabe se
+     desplaza DENTRO de su propia caja (.filtros) o se apila (rejillas)
+   ========================================================================= */
+
+
+/* ---------- 22. Escala de espaciado y radio pequeno ----------------------
+   Mejora: hasta ahora cada bloque elegia su propio margen (6, 10, 12, 14,
+   18, 20, 22, 26, 28, 30px). Eso se ve como ruido: el ojo no encuentra un
+   pulso. Se fija una escala de cinco pasos y de aqui en adelante se usa
+   solo la escala. Los valores elegidos COINCIDEN con los que ya dominaban
+   el archivo, asi que reexpresar reglas viejas con las variables no mueve
+   el pixel: cambia la disciplina, no el resultado.
+   --r-chico sirve para lo pequeno (teclas, chips cuadrados, casillas), donde
+   14px de radio deforma la pieza y la hace parecer una pastilla a medias. */
+:root{
+  --e1:4px;    /* separacion minima: etiqueta y su dato */
+  --e2:8px;    /* dentro de un componente */
+  --e3:12px;   /* entre hermanos de una lista */
+  --e4:20px;   /* entre bloques de una pantalla */
+  --e5:28px;   /* entre secciones, o antes de un remate */
+  --r-chico:10px;
+
+  /* Sombra de tarjeta: dos capas, opacidad muy baja, tintada con el color
+     del texto (#0B1B33) en vez de negro puro. Sobre un fondo calido como
+     --bg el negro puro se lee sucio; el azul oscuro se lee como sombra de
+     verdad. El objetivo es que la tarjeta se despegue, no que se note. */
+  --sombra-carta:0 1px 1px rgba(11,27,51,.04), 0 2px 6px rgba(11,27,51,.05);
+}
+
+
+/* ---------- 23. Oculto visual, presente para lectores de pantalla -------
+   Mejora: las pantallas nuevas necesitan etiquetas que el lector de pantalla
+   si debe anunciar (el <legend> de los filtros, el titulo de una lista) pero
+   que en pantalla serian redundantes. display:none las borraria tambien del
+   arbol de accesibilidad; la tecnica de recorte a 1px las conserva.
+   Se deja sin font-size propio a proposito: hereda 16px y asi nunca aparece
+   como "texto por debajo de 14px" en la auditoria. */
+.visualmente-oculto{
+  position:absolute !important;
+  inline-size:1px;block-size:1px;
+  margin:-1px;padding:0;border:0;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+/* Si la clase cae sobre un control de formulario, ademas se le quita la
+   opacidad: un control de 1x1 visible seria un area tactil imposible.
+   El patron correcto para controles es el de .opt input / .slot input. */
+input.visualmente-oculto,select.visualmente-oculto,
+textarea.visualmente-oculto,button.visualmente-oculto{
+  opacity:0;pointer-events:none;
+}
+
+
+/* ---------- 24. Fila de filtros de B1 (#buscar) -------------------------
+   Mejora: los filtros son navegacion, no contenido; deben ocupar poco y no
+   empujar la lista fuera de la primera pantalla. Van en una sola fila que se
+   desplaza DENTRO de su caja. El overflow-x vive aqui y no en la pagina, que
+   es la unica manera de que a 320px no aparezca scroll horizontal global.
+   Los margenes negativos hacen que la fila sangre hasta el borde de la
+   pantalla: asi se ve que hay mas filtros a la derecha en vez de cortarse
+   contra el padding. */
+.filtros{
+  /* flex:0 0 auto es obligatorio: .filtros es un item de un contenedor flex en
+     columna y, con flex-shrink por defecto, el contenedor lo aplastaba a 12px
+     de alto mientras sus selects miden 45. Con overflow-y:hidden eso dejaba los
+     cuatro filtros recortados a una linea. */
+  flex:0 0 auto;
+  /* min-inline-size:0 es obligatorio: como .filtros es un item flex, su
+     min-width:auto le impide encogerse por debajo de su contenido y estira
+     la pagina entera (se medio 679px de scrollWidth contra 390 de viewport).
+     Con esto el desplazamiento ocurre DENTRO de la fila, como se queria. */
+  min-inline-size:0;
+  max-inline-size:100%;
+  display:flex;
+  align-items:flex-end;
+  gap:var(--e3);
+  margin-block-start:calc(var(--e4) - 6px);
+  /* El margen negativo mas el padding del mismo tamano dejan 20px de holgura
+     a cada lado DENTRO de la caja que recorta: sin eso, el anillo de foco de
+     3px del primer y del ultimo select quedaria cortado por el overflow.
+     Los 6px de padding vertical hacen lo propio arriba y abajo. */
+  margin-inline:calc(var(--pad-x) * -1);
+  padding-inline:var(--pad-x);
+  padding-block:6px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+/* Ningun filtro se encoge: prefiero que la fila se desplace a que los
+   selects queden estrujados y el texto de la opcion no se lea. */
+/* position:relative: las etiquetas .visualmente-oculto van en posicion
+   absoluta y, sin un envoltorio posicionado, el overflow:auto de .filtros no
+   las recorta y estiran el documento a 661px con viewport de 390. */
+.filtros>*{flex:0 0 auto;min-inline-size:0;position:relative}
+/* Cada filtro es etiqueta arriba y control debajo. Si el markup mete el
+   select suelto tambien funciona: la regla siguiente no depende del label. */
+.filtros label{
+  display:flex;
+  flex-direction:column;
+  gap:var(--e1);
+  font-size:14px;font-weight:600;color:var(--muted);
+  letter-spacing:.01em;
+}
+.filtros select,
+.filtros input[type="search"],
+.filtros input[type="text"]{
+  min-block-size:44px;                /* area tactil del contrato */
+  min-inline-size:44px;
+  max-inline-size:60vw;               /* nunca mas ancho que la ventana */
+  padding:10px 12px;
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  font-family:inherit;
+  font-size:16px;                     /* 16px o iOS hace zoom al enfocar */
+  font-weight:500;
+  line-height:1.2;
+  cursor:pointer;
+  transition:border-color 150ms ease;
+}
+/* Sin appearance:none: la flecha nativa del select es informacion util y
+   dibujarla a mano obligaria a meter una imagen de fondo, que este sistema
+   no usa en ninguna parte. */
+.filtros select:focus-visible,
+.filtros input:focus-visible{border-color:var(--primary)}
+.filtros input::placeholder{color:var(--muted)}
+
+/* Linea de conteo: es un dato de servicio ("12 monitores"), no un titulo.
+   Va discreta, en --muted y con cifras tabulares para que no baile al
+   cambiar de filtro. */
+#buscar-conteo{
+  margin-block-start:var(--e3);
+  font-size:14px;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+
+/* Estado vacio: no es un error, es una invitacion a aflojar el filtro. Por
+   eso borde punteado y color neutro, nunca --alert. */
+#buscar-vacio{
+  margin-block-start:var(--e4);
+  padding:var(--e5) var(--e4);
+  background:var(--surface);
+  border:1px dashed var(--border);
+  border-radius:var(--r);
+  text-align:center;
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.5;
+}
+#buscar-vacio strong,#buscar-vacio b{display:block;color:var(--text);font-size:17px;font-weight:700;letter-spacing:-.01em}
+#buscar-vacio p{margin-block-start:var(--e2)}
+#buscar-vacio .btn-sec,#buscar-vacio .enlace-sec{margin-block-start:var(--e4);margin-inline:auto}
+
+
+/* ---------- 25. Campos del formulario de perfil (R1) --------------------
+   Mejora: un formulario largo se lee mejor si cada campo es un bloque con el
+   mismo ritmo interno: etiqueta (que), control (donde escribo), error (que
+   pase). La rejilla de tres filas reserva SIEMPRE la ultima fila, asi el
+   layout no salta cuando aparece el mensaje de error.
+   Nota para el motor: para borrar el error, vacia el texto del .error-campo;
+   no le pongas el atributo hidden, porque perderias el hueco reservado y el
+   texto que lee aria-describedby. */
+.campo-form{
+  display:grid;
+  grid-template-rows:auto auto minmax(20px,auto);
+  align-content:start;
+  gap:var(--e2);
+  margin-block-start:var(--e4);
+}
+.campo-form>label,.campo-form .etiqueta{
+  font-size:15px;font-weight:600;color:var(--text);letter-spacing:-.01em;
+}
+.campo-form .ayuda{font-size:14px;color:var(--muted)}
+.campo-form input,
+.campo-form select,
+.campo-form textarea{
+  display:block;
+  inline-size:100%;
+  min-block-size:48px;                /* contrato: 48px minimo */
+  padding:12px 14px;
+  background:var(--bg);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  font-family:inherit;
+  font-size:16px;                     /* 16px o iOS hace zoom al enfocar */
+  line-height:1.4;
+  transition:border-color 150ms ease;
+}
+.campo-form textarea{min-block-size:96px;resize:vertical}
+.campo-form input::placeholder,.campo-form textarea::placeholder{color:var(--muted)}
+.campo-form input:focus-visible,
+.campo-form select:focus-visible,
+.campo-form textarea:focus-visible{border-color:var(--primary)}
+/* Campo en falta: el borde rojo lo marca sin necesidad de gritar en el texto */
+.campo-form.is-error input,
+.campo-form.is-error select,
+.campo-form.is-error textarea,
+.campo-form input[aria-invalid="true"],
+.campo-form select[aria-invalid="true"],
+.campo-form textarea[aria-invalid="true"]{border-color:var(--alert-text)}
+
+/* Mensaje de error por campo. --alert-text (no --alert) porque como TEXTO
+   el rojo de relleno se queda en 3,84:1 y no pasa AA. */
+.error-campo{
+  min-block-size:20px;                /* el hueco existe aunque este vacio */
+  font-size:14px;
+  line-height:1.4;
+  font-weight:500;
+  color:var(--alert-text);
+}
+
+/* Resumen de errores al enviar. Es lo primero que debe encontrar quien usa
+   lector de pantalla, asi que se pinta como tarjeta con borde de alerta,
+   pero el cuerpo del texto sigue en --text para que se lea comodo. */
+#perfil-errores{
+  margin-block-start:var(--e4);
+  padding:var(--e4);
+  background:var(--surface);
+  border:1px solid var(--alert);
+  border-radius:var(--r);
+  font-size:15px;
+  line-height:1.5;
+}
+#perfil-errores[hidden]{display:none !important}
+#perfil-errores h2,#perfil-errores h3,#perfil-errores p:first-child{
+  font-size:16px;font-weight:700;color:var(--alert-text);letter-spacing:-.01em;
+}
+#perfil-errores ul{list-style:none;margin-block-start:var(--e2)}
+#perfil-errores li{
+  position:relative;
+  padding-inline-start:18px;
+  margin-block-start:var(--e2);
+  color:var(--text);
+}
+#perfil-errores li::before{
+  content:"";
+  position:absolute;
+  inset-block-start:9px;inset-inline-start:0;
+  inline-size:8px;block-size:8px;border-radius:2px;
+  background:var(--alert);
+}
+#perfil-errores a,#perfil-errores button{
+  color:var(--alert-text);
+  font-weight:600;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+
+/* ---------- 26. Rejilla de subtemas fuertes (R1) ------------------------
+   Mejora: son casillas de verificacion, pero pintadas como los chips que el
+   estudiante ya vio en las fichas de monitor. Asi el monitor entiende que
+   esta escribiendo exactamente lo que el otro lado va a leer.
+   La casilla nativa se oculta con el mismo patron de .opt / .slot (1px y
+   opacidad 0) para que la auditoria de areas tactiles mida la etiqueta, que
+   si tiene los 44px. */
+.subtemas-check{
+  list-style:none;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:var(--e2);
+  margin-block-start:var(--e3);
+}
+.subtemas-check label,.subtemas-check .opcion{
+  display:flex;
+  align-items:center;
+  gap:var(--e2);
+  min-block-size:44px;
+  padding:8px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-chico);
+  font-size:15px;font-weight:500;color:var(--text);
+  line-height:1.3;
+  text-align:start;
+  cursor:pointer;
+  transition:border-color 150ms ease,box-shadow 150ms ease,color 150ms ease;
+}
+.subtemas-check input{position:absolute;inline-size:1px;block-size:1px;opacity:0;pointer-events:none}
+.subtemas-check label:has(input:checked),.subtemas-check .opcion:has(input:checked){
+  border-color:var(--primary);
+  box-shadow:inset 0 0 0 1px var(--primary);
+  color:var(--primary);
+  font-weight:600;
+}
+.subtemas-check label:has(input:focus-visible),
+.subtemas-check .opcion:has(input:focus-visible){outline:3px solid var(--primary);outline-offset:2px}
+
+
+/* ---------- 27. Distintivo del monitor recien creado --------------------
+   Mejora: cuando el monitor termina R1 y vuelve a la lista, tiene que
+   encontrarse a si mismo de un vistazo. Se marca con un chip en primario,
+   NUNCA en --alert: aparecer en la lista es un logro, no una advertencia.
+   El chip trae estilos completos para que funcione tambien suelto, sin la
+   clase .chip al lado. */
+.is-nuevo{
+  display:inline-flex;align-items:center;
+  min-block-size:32px;padding:5px 12px;
+  background:var(--surface);
+  border:1px solid var(--primary);border-radius:999px;
+  font-size:14px;font-weight:600;color:var(--primary);
+  white-space:nowrap;
+}
+/* Sobre la tarjeta entera el distintivo es aun mas discreto: solo el borde
+   se tine de primario. Si ademas es la recomendada, el bloque 29 le devuelve
+   el anillo interior, asi que las dos marcas conviven sin pelearse. */
+.monitor-card.is-nuevo{
+  display:flex;
+  min-block-size:0;padding:16px;
+  border-color:var(--primary);
+  border-radius:var(--r);
+  background:var(--surface);
+  font-size:16px;font-weight:400;color:var(--text);
+  white-space:normal;
+}
+.monitor-card .is-nuevo{align-self:flex-start}
+
+
+/* ---------- 28. Jerarquia: titular, dato, accion ------------------------
+   Mejora: en varias pantallas el porcentaje y el precio pesaban lo mismo que
+   la etiqueta que los nombra, y el ojo no sabia donde caer. Se sube el peso
+   del DATO y se baja el ruido de la etiqueta. Nada baja de 14px. */
+.subtitle{margin-block-start:6px;font-size:15px;color:var(--muted)}
+.bar-name{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}
+.bar-pct{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.is-weak .bar-name{color:var(--alert-text);font-weight:600}
+.is-weak .bar-pct{color:var(--alert-text);font-weight:700}
+/* El precio es la cifra que decide: que sea lo segundo que se lee, despues
+   del nombre, y que la unidad no compita con ella. */
+.price span{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}
+.monitor-card .price{font-size:20px;font-weight:700}
+/* El nombre del monitor manda dentro de su tarjeta. */
+.monitor-card .tutor-name{font-size:18px;font-weight:700;letter-spacing:-.02em}
+
+
+/* ---------- 29. Tarjetas: sombra que no se ve como sombra ---------------
+   Mejora: hasta ahora la tarjeta y el fondo se distinguian solo por 1px de
+   borde y por 2 puntos de luminosidad entre #FFFFFF y #FFFDF5. En pantalla
+   de telefono, con brillo alto, eso desaparece. Dos capas de opacidad
+   minima bastan para que la tarjeta flote un milimetro.
+   Ojo con la cascada: .monitor-card.is-recomendado y .opt:has(...) ya traen
+   box-shadow inset; como pesan mas que .monitor-card, hay que reescribir su
+   sombra COMPLETA (anillo + sombra) o se perderia una de las dos. */
+.monitor-card,.tutor,.callout{box-shadow:var(--sombra-carta)}
+.monitor-card.is-recomendado{box-shadow:inset 0 0 0 1px var(--primary),var(--sombra-carta)}
+.monitor-card.is-nuevo.is-recomendado{box-shadow:inset 0 0 0 1px var(--primary),var(--sombra-carta)}
+/* Los bloques de formulario y de brief comparten el mismo lenguaje, con la
+   sombra un punto mas contenida porque son cajas grandes. */
+.captura,.brief-sesion,#perfil-errores{box-shadow:0 1px 1px rgba(11,27,51,.03)}
+
+
+/* ---------- 30. La tarjeta del punto debil (E3) -------------------------
+   Mejora: es la frase por la que existe el producto. Se refuerza con una
+   pleca vertical en primario dentro del propio borde (no un borde mas
+   grueso, que engordaria la caja) y con el titular un punto mayor. Sin
+   fondo de color: el peso lo da la estructura, no el grito. */
+.callout{
+  margin-block-start:var(--e5);
+  padding:var(--e4);
+  padding-inline-start:calc(var(--e4) + 6px);
+  box-shadow:inset 3px 0 0 0 var(--primary),var(--sombra-carta);
+}
+.callout h2{font-size:18px;font-weight:700;line-height:1.3;letter-spacing:-.01em}
+.callout p{margin-block-start:var(--e2);font-size:15px;color:var(--muted)}
+/* El error detectado es la parte que el estudiante se lleva: en --text y con
+   medio punto mas de peso, para que no se lea como pie de foto. */
+.callout p strong,.callout strong{color:var(--text);font-weight:600}
+
+
+/* ---------- 31. Barras del diagnostico ----------------------------------
+   Mejora doble. Primero, aire: 22px entre barras las dejaba pegadas y el
+   bloque se leia como una reja; a 24px cada subtema se lee como una unidad.
+   Segundo, entrada animada: la barra crece desde cero en 150ms al pintarse.
+   Se hace con transform:scaleX y origen a la izquierda porque animar el
+   ancho recalcula layout en cada cuadro; la escala solo compone.
+   Se anima al CREARSE el elemento, que es justo cuando pintarDiagnostico()
+   reconstruye la lista, y por eso no depende de que el JS haga nada. */
+.bars{gap:24px}
+.bars .track{margin-block-start:var(--e2);block-size:12px}
+@keyframes calibra-crecer{
+  from{transform:scaleX(0)}
+  to{transform:scaleX(1)}
+}
+.bars .track>span{
+  transform-origin:left center;
+  animation:calibra-crecer 150ms ease-out both;
+}
+
+
+/* ---------- 32. Cifras que no bailan ------------------------------------
+   Mejora: con cifras proporcionales, "82 %" y "34 %" tienen anchos
+   distintos y el bloque de barras tiembla al repintarse. tabular-nums fija
+   el ancho del digito. Se aplica solo donde hay numeros de verdad, no al
+   cuerpo entero, para no engordar la prosa. */
+.count,.bar-pct,.price,.chip,.progreso,.progreso p,
+.brief-linea,.brief-linea>span,.estado-cert,.etiqueta-pronto,
+#buscar-conteo,.filtros select,.filtros input,
+.campo-form input,.tarifa,.nivel,.calificacion{
+  font-variant-numeric:tabular-nums;
+}
+
+
+/* ---------- 33. Coherencia de radios ------------------------------------
+   Mejora: 9px en la tecla de opcion y 3px en la vineta eran valores sueltos.
+   Todo lo pequeno pasa a --r-chico y lo demas sigue en --r. */
+.key{border-radius:var(--r-chico)}
+.beneficios li::before{border-radius:3px}   /* la vineta si es cuadradita a proposito */
+
+
+/* ---------- 34. Estados de interaccion ----------------------------------
+   Mejora: en tactil no hay hover, y aplicarlo igual deja el ultimo elemento
+   tocado "encendido" hasta que se toca otro. Por eso todo el hover vive bajo
+   @media (hover:hover) and (pointer:fine). El feedback tactil lo da :active,
+   que si existe en los dos mundos.
+   El :active de las piezas blancas no inventa color: pasa de --surface a
+   --bg, que ya esta en la paleta, y se lee como un hundido leve. */
+/* El boton primario solo transicionaba la opacidad; se le suma el filtro
+   para que el oscurecido entre y salga con el mismo tiempo, 150ms. */
+.btn{transition:opacity 150ms ease,filter 150ms ease}
+.btn-sec{transition:background-color 150ms ease,border-color 150ms ease,color 150ms ease}
+
+@media (hover:hover) and (pointer:fine){
+  /* En el boton primario el hover oscurece con brightness en vez de bajar la
+     opacidad: al aclarar sobre el fondo, el blanco del texto perderia
+     contraste; al oscurecer, lo gana. */
+  .btn:not(:disabled):not([aria-disabled="true"]):hover{filter:brightness(.93)}
+  .btn-sec:hover,.enlace-sec:hover,.btn-reiniciar:hover{border-color:var(--primary);color:var(--primary)}
+  .btn-sec:hover{background:var(--surface)}
+  .opt:hover,.slot:hover,.materia:not(.is-pronto):hover,
+  .monitor-card:hover,.subtemas-check label:hover{border-color:var(--primary)}
+  .materia.is-pronto:hover{border-color:var(--border);cursor:not-allowed}
+  .filtros select:hover,.filtros input:hover{border-color:var(--primary)}
+}
+/* Respuesta al toque: inmediata y clara, sin mover la caja de sitio (un
+   transform aqui desalinearia el texto en pantallas de baja densidad). */
+.btn:not(:disabled):not([aria-disabled="true"]):active{filter:brightness(.88)}
+.btn-sec:active,.btn-reiniciar:active{background:var(--bg);border-color:var(--primary);color:var(--primary)}
+.opt:active,.slot:active,.materia:not(.is-pronto):active,
+.monitor-card:active,.subtemas-check label:active{background:var(--bg);border-color:var(--primary)}
+.enlace-sec:active{opacity:.75}
+
+
+/* ---------- 35. Ritmo vertical de las pantallas nuevas ------------------
+   Mejora: B1 y R1 se construyen con la misma cadencia que las 12 pantallas
+   viejas (cabecera, cuerpo con aire de --e4, pie fijo), para que no se noten
+   añadidas despues. */
+#s-buscar .lista-monitores,#s-buscar .materias{margin-block-start:var(--e4)}
+#s-crear-perfil fieldset+fieldset{margin-block-start:var(--e5)}
+#s-crear-perfil legend:not(.visualmente-oculto),
+#s-crear-perfil .grupo-titulo{
+  font-size:15px;font-weight:600;color:var(--muted);letter-spacing:.01em;
+}
+#s-crear-perfil .campo-form:first-of-type{margin-block-start:var(--e3)}
+
+
+/* ---------- 36. Anchos pequenos (320-370px) -----------------------------
+   Mejora: a 320px la rejilla de subtemas a dos columnas dejaba nombres como
+   "Integracion por partes" partidos en cuatro lineas. Se apila. Los filtros
+   siguen desplazandose dentro de su caja, nunca empujan la pagina. */
+@media (max-width:370px){
+  .subtemas-check{grid-template-columns:1fr}
+  .filtros{gap:var(--e2)}
+  .filtros select,.filtros input[type="search"],.filtros input[type="text"]{max-inline-size:70vw}
+  .callout{padding:16px;padding-inline-start:22px}
+  #buscar-vacio{padding:var(--e4) 16px}
+}
+
+/* Pantallas bajas: el formulario de perfil y la lista filtrada son largos,
+   asi que se recorta el aire entre bloques antes que el tamano del texto. */
+@media (max-height:700px){
+  .campo-form{margin-block-start:var(--e3)}
+  .filtros{margin-block-start:var(--e3)}
+  .bars{gap:18px}
+  #buscar-vacio{padding:var(--e4)}
+}
+
+
+/* ---------- 37. Movimiento reducido -------------------------------------
+   El bloque 21 ya neutraliza duraciones globalmente; esto lo deja explicito
+   para lo nuevo, de modo que la barra aparezca ya crecida en vez de dar un
+   salto de un cuadro. */
+@media (prefers-reduced-motion:reduce){
+  .bars .track>span{animation:none;transform:none}
+  .btn:active,.btn:hover{filter:none}
+}
+
 </style>
 </head>
 <body>
@@ -527,6 +1034,8 @@ body>.btn-reiniciar{
      ========================================================== -->
 
 <!-- ===================== E1 - Inicio ===================== -->
+<!-- E1 · Inicio. Dos caminos, sin esconder el principal: la prueba sigue
+     siendo el boton primario y explorar monitores queda debajo, visible. -->
 <section id="s-inicio" class="screen" hidden aria-labelledby="t-inicio">
   <header>
     <p class="eyebrow">Calibra</p>
@@ -541,6 +1050,7 @@ body>.btn-reiniciar{
 
   <div class="footer">
     <button class="btn" type="button" data-ir="prueba">Empezar la prueba</button>
+    <button class="btn btn-sec" type="button" data-ir="buscar">Ver monitores sin hacer la prueba</button>
     <p class="note"><a class="enlace-sec" href="#monitor" data-ir="monitor">Soy monitor</a></p>
     <p class="note"><a class="enlace-sec" href="#profesor" data-ir="profesor">Soy profesor</a></p>
   </div>
@@ -798,6 +1308,182 @@ body>.btn-reiniciar{
 <!-- ====================== PIE GLOBAL — regla de honestidad del brief ======================
      "Prototipo · datos de ejemplo" va en TODAS las pantallas. Se escribe una sola vez,
      fuera de las secciones, y queda fijo abajo. No negociable. -->
+
+<!-- ====================== EXPLORAR MONITORES (B1) ====================== -->
+<!-- === NUEVA: s-buscar === -->
+<!-- B1 · Buscar monitores. Entrada libre: NO exige haber hecho la prueba.
+     El motor rellena #filtro-materia y #filtro-subtema con MATERIAS y con
+     los subtemas de la materia elegida, escribe #buscar-conteo, pinta
+     #buscar-lista y muestra #buscar-vacio cuando ningun monitor pasa. -->
+<section id="s-buscar" class="screen" hidden aria-labelledby="t-buscar">
+  <header>
+    <p class="eyebrow">Calibra</p>
+    <h1 class="title" id="t-buscar">Monitores disponibles</h1>
+    <p class="subtitle">Explora sin presentar la prueba. Filtra y escribe al que te sirva.</p>
+  </header>
+
+  <div class="body is-top">
+
+    <!-- Fila de filtros. Las etiquetas son reales; van ocultas a la vista
+         porque cada select arranca con una opcion que ya se explica sola. -->
+    <div class="filtros" role="group" aria-labelledby="t-buscar">
+
+      <p class="filtro">
+        <label class="visualmente-oculto" for="filtro-materia">Materia</label>
+        <!-- El motor agrega una <option> por cada materia activa de MATERIAS -->
+        <select id="filtro-materia" data-filtro="materia" name="materia">
+          <option value="">Todas las materias</option>
+        </select>
+      </p>
+
+      <p class="filtro">
+        <label class="visualmente-oculto" for="filtro-subtema">Subtema</label>
+        <!-- El motor agrega una <option> por subtema de la materia elegida -->
+        <select id="filtro-subtema" data-filtro="subtema" name="subtema">
+          <option value="">Todos los subtemas</option>
+        </select>
+      </p>
+
+      <p class="filtro">
+        <label class="visualmente-oculto" for="filtro-precio">Precio por hora</label>
+        <select id="filtro-precio" data-filtro="precio" name="precio">
+          <option value="" data-min="" data-max="">Cualquier precio</option>
+          <option value="0-25000" data-min="0" data-max="25000">Hasta $25.000</option>
+          <option value="25000-30000" data-min="25000" data-max="30000">$25.000 a $30.000</option>
+          <option value="30000-" data-min="30000" data-max="">M&aacute;s de $30.000</option>
+        </select>
+      </p>
+
+      <p class="filtro">
+        <label class="visualmente-oculto" for="filtro-nivel">Nivel del monitor</label>
+        <select id="filtro-nivel" data-filtro="nivel" name="nivel">
+          <option value="">Cualquier nivel</option>
+          <option value="1">Nivel 1</option>
+          <option value="2">Nivel 2</option>
+          <option value="3">Nivel 3</option>
+        </select>
+      </p>
+
+    </div>
+
+    <!-- El motor escribe aqui, por ejemplo, "3 monitores disponibles" -->
+    <p class="count" id="buscar-conteo" role="status" aria-live="polite"></p>
+
+    <!-- El motor pinta aqui <li class="monitor-card"> con data-ir="perfil",
+         igual que en E4 -->
+    <ul class="lista-monitores" id="buscar-lista" aria-labelledby="t-buscar"></ul>
+
+    <p class="subtitle" id="buscar-vacio" hidden>Ning&uacute;n monitor coincide con esos filtros. Prueba con un rango de precio m&aacute;s amplio o quita el subtema.</p>
+
+  </div>
+
+  <div class="footer">
+    <button class="btn btn-sec" type="button" data-ir="prueba">Haz la prueba y te decimos a qui&eacute;n buscar</button>
+    <p class="note">La prueba dura menos de un minuto y no tiene nota.</p>
+  </div>
+</section>
+
+<!-- ====================== CREAR PERFIL DEL MONITOR (R1) ====================== -->
+<!-- === NUEVA: s-crear-perfil === -->
+<!-- R1 · Crear perfil del monitor. Se llega despues de certificar.
+     El motor rellena #perfil-subtemas con un checkbox por subtema de la
+     materia certificada, valida al pulsar #perfil-guardar, escribe cada
+     .error-campo y el resumen en #perfil-errores, y al publicar agrega el
+     monitor a la lista que ve el estudiante. -->
+<section id="s-crear-perfil" class="screen" hidden aria-labelledby="t-crear-perfil">
+  <header>
+    <p class="eyebrow">Ya est&aacute;s certificado</p>
+    <h1 class="title" id="t-crear-perfil">Arma tu perfil</h1>
+    <p class="subtitle">Con estos datos apareces en la lista y los estudiantes te encuentran cuando busquen tu subtema.</p>
+  </header>
+
+  <div class="body is-top">
+
+    <!-- Resumen de errores. El motor lo llena y le quita el hidden. -->
+    <div class="resumen-errores" id="perfil-errores" role="alert" hidden></div>
+
+    <div class="campos">
+
+      <div class="campo">
+        <label for="perfil-nombre">Tu nombre</label>
+        <input id="perfil-nombre" name="nombre" type="text"
+               autocomplete="name" autocapitalize="words" spellcheck="false"
+               aria-describedby="error-perfil-nombre"
+               placeholder="Daniela R.">
+        <p class="error-campo" id="error-perfil-nombre" hidden></p>
+      </div>
+
+      <div class="campo">
+        <label for="perfil-carrera">Tu carrera</label>
+        <input id="perfil-carrera" name="carrera" type="text"
+               autocomplete="off" autocapitalize="words"
+               aria-describedby="error-perfil-carrera"
+               placeholder="Ingenier&iacute;a Industrial">
+        <p class="error-campo" id="error-perfil-carrera" hidden></p>
+      </div>
+
+      <div class="campo">
+        <label for="perfil-semestre">Semestre que cursas</label>
+        <input id="perfil-semestre" name="semestre" type="number"
+               min="1" max="12" step="1" inputmode="numeric"
+               aria-describedby="error-perfil-semestre"
+               placeholder="7">
+        <p class="error-campo" id="error-perfil-semestre" hidden></p>
+      </div>
+
+      <div class="campo">
+        <p class="etiqueta-grupo" id="lbl-perfil-subtemas">Subtemas que puedes explicar</p>
+        <!-- Va VACIO a proposito: el motor mete aqui un
+             <label class="opcion-check"><input type="checkbox" ...> ...</label>
+             por cada subtema de la materia en la que se certifico.
+             El nombre accesible viene de aria-labelledby, no de un <legend>,
+             para que el motor pueda vaciar el fieldset sin perderlo. -->
+        <fieldset class="grupo-check" id="perfil-subtemas"
+                  aria-labelledby="lbl-perfil-subtemas"
+                  aria-describedby="error-perfil-subtemas"></fieldset>
+        <p class="error-campo" id="error-perfil-subtemas" hidden></p>
+      </div>
+
+      <div class="campo">
+        <label for="perfil-tarifa">Tu tarifa por hora, en pesos</label>
+        <!-- El simbolo va FUERA del input: dentro obliga a limpiar el valor
+             antes de leerlo y estorba al teclado numerico del celular. -->
+        <div class="campo-moneda">
+          <span class="prefijo-moneda" aria-hidden="true">$</span>
+          <input id="perfil-tarifa" name="tarifa" type="number"
+                 min="0" step="1000" inputmode="numeric"
+                 aria-describedby="error-perfil-tarifa"
+                 placeholder="25000">
+          <span class="sufijo-moneda" aria-hidden="true">/ hora</span>
+        </div>
+        <p class="error-campo" id="error-perfil-tarifa" hidden></p>
+      </div>
+
+      <div class="campo">
+        <label for="perfil-horario-1">Horario disponible (opcional)</label>
+        <input id="perfil-horario-1" name="horario1" type="text"
+               aria-describedby="error-perfil-horario-1"
+               placeholder="Hoy 7:00 p. m.">
+        <p class="error-campo" id="error-perfil-horario-1" hidden></p>
+      </div>
+
+      <div class="campo">
+        <label for="perfil-horario-2">Otro horario (opcional)</label>
+        <input id="perfil-horario-2" name="horario2" type="text"
+               aria-describedby="error-perfil-horario-2"
+               placeholder="Ma&ntilde;ana 4:00 p. m.">
+        <p class="error-campo" id="error-perfil-horario-2" hidden></p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn" type="button" id="perfil-guardar">Publicar mi perfil</button>
+    <p class="note">Puedes cambiar la tarifa y los horarios cuando quieras.</p>
+  </div>
+</section>
+
 <p class="pie-prototipo">Prototipo &middot; datos de ejemplo</p>
 <button type="button" class="btn-reiniciar" id="btn-reiniciar">Empezar de nuevo</button>
 
@@ -829,140 +1515,360 @@ body>.btn-reiniciar{
 const FORM_ENDPOINT = ""; // pegar aquí la URL de Formspree o Google Forms
 
 
-/* ---------- 2. Materias del selector (pantallas E1 y M2) ---------- */
+/* ---------- 2. Semilla del azar ---------- */
 
 /*
-  Cada materia es un objeto:
-    id     -> identificador interno, sin espacios ni tildes. No se ve.
-    nombre -> lo que lee el estudiante en pantalla.
-    activa -> true  = se puede elegir y lleva a la prueba.
-              false = se pinta en gris con la etiqueta "pronto".
+  El prototipo NUNCA usa azar de verdad. Cuando baraja las opciones de una
+  pregunta usa un generador con semilla: con la misma semilla, el mismo
+  barajado, siempre. Asi la demo se puede repetir tal cual delante de otra
+  persona y las pruebas automaticas dan siempre el mismo resultado.
 
-  Si activas mas de una materia el prototipo seguira usando el mismo
-  banco de preguntas de abajo, porque en este MVP hay un solo banco.
+  Cambia este numero solo si quieres OTRO barajado fijo.
+*/
+const SEMILLA = 20260909;
+
+
+/* ---------- 3. Materias ---------- */
+
+/*
+  Esta es la lista maestra del prototipo. Cada materia se lleva su propio
+  banco de preguntas, sus propios subtemas y su propia configuracion, asi
+  que agregar una materia nueva es copiar un bloque y rellenarlo.
+
+  Campos de cada materia:
+
+    id        -> nombre interno, en minusculas, sin tildes y con guiones.
+                 No se ve en pantalla. Sirve para enlazar monitores y
+                 filtros con la materia. Si lo cambias, cambialo tambien en
+                 los monitores de la seccion 4.
+    codigo    -> el codigo real de Uniandes (MATE-1214, IIND-2106...).
+                 Dejalo en '' si todavia no lo confirmaste: no se rompe nada.
+    nombre    -> lo que lee el estudiante.
+    activa    -> true  = se puede elegir y lleva a la prueba.
+                 false = se pinta en gris con la etiqueta "pronto".
+                 Pon en true una materia solo cuando tenga preguntas.
+    contexto  -> el "cuando" del diagnostico. Forma el subtitulo junto al
+                 nombre: "Cálculo Integral · antes del parcial 2".
+                 Cambialo si la prueba apunta a otro momento del semestre.
+    libro     -> referencia de donde salen las preguntas. Es informativo.
+    subtemas  -> a la izquierda la clave interna (la que usan las preguntas),
+                 a la derecha el nombre visible en las barras del diagnostico.
+                 EL ORDEN IMPORTA: es el orden de las barras, el orden en que
+                 la prueba adaptativa cubre los temas, y quien gana los
+                 empates (gana el primero de la lista).
+    preguntas -> el banco. Ver mas abajo.
+    prueba    -> como se comporta la prueba del ESTUDIANTE en esta materia.
+    certificacion -> como se comporta la prueba del MONITOR en esta materia.
+
+  Campos de cada pregunta:
+
+    id         -> identificador unico dentro de la materia ('p1', 'p2'...).
+    subtema    -> una de las claves de subtemas. Define en que barra suma.
+    dificultad -> 1 facil, 2 media, 3 dificil. Si no la pones, vale 2.
+                  La prueba adaptativa la usa para subir o bajar el nivel.
+    enunciado  -> lo que se lee en grande.
+    opciones   -> cuatro tarjetas.
+        letra    -> la letra del cuadrito (A, B, C, D). Si barajarOpciones
+                    esta en true, la letra que se VE se recalcula por
+                    posicion; esta letra solo sirve de identificador interno.
+        texto    -> la respuesta que ve el estudiante.
+        correcta -> true en UNA sola opcion por pregunta. Las demas en false.
+        error    -> SOLO en las incorrectas. Es el error conceptual que
+                    delata esa opcion, y es el texto que el diagnostico
+                    muestra como "Error detectado". Escribelo pensando en
+                    que el estudiante lo lea tal cual, en minuscula y sin
+                    punto final.
+
+  Campos de prueba y certificacion:
+
+    longitud        -> cuantas preguntas se muestran. Si el banco tiene
+                       menos, la prueba termina antes y el diagnostico usa
+                       lo respondido.
+    adaptativa      -> false = las preguntas salen en el orden del banco.
+                       true  = primero una pregunta de cada subtema y luego
+                       se profundiza en el subtema donde peor va el
+                       estudiante, subiendo o bajando la dificultad.
+    barajarOpciones -> false = las opciones salen en el orden escrito.
+                       true  = se barajan con la semilla de la seccion 2.
+                       Ojo: con true, la opcion correcta deja de estar
+                       siempre en la misma letra. Es mas honesto para una
+                       demo con publico, pero cambia las letras respecto a
+                       lo escrito arriba.
+    minimoAciertos  -> (solo en certificacion) cuantas debe acertar el
+                       monitor para quedar certificado.
+
+  El prototipo nunca le dice al estudiante si acerto o fallo. Las respuestas
+  solo sirven para armar el diagnostico.
 */
 const MATERIAS = [
-  { id: 'calculo-integral',    nombre: 'Cálculo Integral',           activa: true  },
-  { id: 'calculo-diferencial', nombre: 'Cálculo Diferencial',        activa: false },
-  { id: 'calculo-vectorial',   nombre: 'Cálculo Vectorial',          activa: false },
-  { id: 'algebra-lineal',      nombre: 'Álgebra Lineal',             activa: false },
-  { id: 'fisica-1',            nombre: 'Física I',                   activa: false },
-  { id: 'probabilidad',        nombre: 'Probabilidad y Estadística', activa: false },
+
+  /* ----- Cálculo Integral: la unica materia con banco completo ----- */
+  {
+    id: 'calculo-integral',
+    codigo: 'MATE-1214',
+    nombre: 'Cálculo Integral',
+    activa: true,
+    contexto: 'antes del parcial 2',
+    libro: 'Stewart, Cálculo de una variable, 6.ª ed.',
+    subtemas: {
+      partes: 'Integración por partes',
+      sustitucion: 'Sustitución',
+      impropias: 'Integrales impropias',
+    },
+    preguntas: [
+      {
+        id: 'p1',
+        subtema: 'partes',
+        dificultad: 2,
+        enunciado: 'En ∫ x·ln(x) dx, ¿qué eliges como u?',
+        opciones: [
+          { letra: 'A', texto: 'x',         correcta: false, error: 'eliges u por orden de aparición, no por prioridad ILATE' },
+          { letra: 'B', texto: 'ln(x)',     correcta: true },
+          { letra: 'C', texto: 'dx',        correcta: false, error: 'confundes u con dv' },
+          { letra: 'D', texto: 'x · ln(x)', correcta: false, error: 'no separas el producto en u y dv' },
+        ],
+      },
+      {
+        id: 'p2',
+        subtema: 'sustitucion',
+        dificultad: 2,
+        enunciado: 'En ∫ 2x·cos(x²) dx, ¿qué método aplicas?',
+        opciones: [
+          { letra: 'A', texto: 'Integración por partes',    correcta: false, error: 'no reconoces que 2x es la derivada de x²' },
+          { letra: 'B', texto: 'Sustitución con u = x²',    correcta: true },
+          { letra: 'C', texto: 'Fracciones parciales',      correcta: false, error: 'aplicas un método que no corresponde a esta forma' },
+          { letra: 'D', texto: 'Integral directa de tabla', correcta: false, error: 'ignoras la regla de la cadena' },
+        ],
+      },
+      {
+        id: 'p3',
+        subtema: 'impropias',
+        dificultad: 3,
+        enunciado: '∫ desde 1 hasta ∞ de (1/x²) dx:',
+        opciones: [
+          { letra: 'A', texto: 'Converge a 1',           correcta: true },
+          { letra: 'B', texto: 'Diverge',                correcta: false, error: 'la confundes con 1/x, que sí diverge' },
+          { letra: 'C', texto: 'Converge a 0',           correcta: false, error: 'evalúas mal el límite superior' },
+          { letra: 'D', texto: 'No se puede determinar', correcta: false, error: 'no reconoces una impropia convergente' },
+        ],
+      },
+      {
+        id: 'p4',
+        subtema: 'partes',
+        dificultad: 2,
+        enunciado: 'En ∫ x·eˣ dx, con u = x y dv = eˣ dx, el resultado es:',
+        opciones: [
+          { letra: 'A', texto: 'x·eˣ − eˣ + C', correcta: true },
+          { letra: 'B', texto: 'x·eˣ + eˣ + C', correcta: false, error: 'te equivocas en el signo de la fórmula de partes' },
+          { letra: 'C', texto: 'eˣ + C',        correcta: false, error: 'omites el término u·v' },
+          { letra: 'D', texto: 'x²·eˣ/2 + C',   correcta: false, error: 'integras como si fuera un producto de potencias' },
+        ],
+      },
+    ],
+    /*
+      adaptativa esta en true: con este banco el recorrido sale p1, p2, p3, p4
+      (una por subtema y la cuarta profundiza en integración por partes, que
+      es el unico subtema con pregunta de sobra).
+      barajarOpciones esta en true: las opciones salen en orden distinto en
+      cada intento, sembrado por window.__calibraSemilla. El arnes lo pone en
+      false por su cuenta cuando corre la tabla oraculo de 16 casos, asi que
+      la regresion sigue siendo exacta.
+      Ponlo en true cuando quieras que las opciones cambien de sitio.
+    */
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
+  /* ----- Cálculo Diferencial: todavia sin material ----- */
+  {
+    id: 'calculo-diferencial',
+    codigo: '',                 // pendiente de confirmar el codigo real
+    nombre: 'Cálculo Diferencial',
+    activa: false,
+    contexto: 'antes del parcial 2',
+    libro: '',
+    // Todavia no hay material para esta materia: ni subtemas ni preguntas.
+    // Escribe primero los subtemas, luego las preguntas, y al final pon
+    // activa en true.
+    subtemas: {},
+    preguntas: [],
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
+  /* ----- Cálculo Vectorial ----- */
+  {
+    id: 'calculo-vectorial',
+    codigo: 'MATE-1207',
+    nombre: 'Cálculo Vectorial',
+    activa: false,
+    contexto: 'antes del parcial 2',
+    libro: '',
+    subtemas: {
+      parciales: 'Derivadas parciales y gradiente',
+      multiples: 'Integrales dobles y triples',
+      linea: 'Integrales de línea',
+      teoremas: 'Green, Stokes y Gauss',
+    },
+    preguntas: [],              // pendiente: escribir el banco
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
+  /* ----- Álgebra Lineal ----- */
+  {
+    id: 'algebra-lineal',
+    codigo: 'MATE-1105',
+    nombre: 'Álgebra Lineal',
+    activa: false,
+    contexto: 'antes del parcial 2',
+    libro: '',
+    subtemas: {
+      vectores: 'Vectores, rectas y planos',
+      sistemas: 'Sistemas lineales y Gauss-Jordan',
+      determinantes: 'Determinantes e inversas',
+      espacios: 'Espacios vectoriales e independencia lineal',
+    },
+    preguntas: [],              // pendiente: escribir el banco
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
+  /* ----- Física I ----- */
+  {
+    id: 'fisica-1',
+    codigo: '',                 // pendiente de confirmar el codigo real
+    nombre: 'Física I',
+    activa: false,
+    contexto: 'antes del parcial 2',
+    libro: '',
+    subtemas: {
+      cinematica: 'Cinemática',
+      newton: 'Leyes de Newton',
+      energia: 'Trabajo y energía',
+      rotacional: 'Dinámica rotacional',
+    },
+    preguntas: [],              // pendiente: escribir el banco
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
+  /* ----- Probabilidad y Estadística ----- */
+  {
+    id: 'probabilidad-estadistica',
+    codigo: 'IIND-2106',
+    nombre: 'Probabilidad y Estadística',
+    activa: false,
+    contexto: 'antes del parcial 2',
+    libro: '',
+    subtemas: {
+      conteo: 'Técnicas de conteo',
+      condicional: 'Probabilidad condicional y Bayes',
+      discretas: 'Variables aleatorias discretas',
+      continuas: 'Variables aleatorias continuas',
+    },
+    preguntas: [],              // pendiente: escribir el banco
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
 ];
 
 
-/* ---------- 3. El curso que se esta calibrando ---------- */
+/* ---------- 4. Monitores de ejemplo (pantallas E4, B1 y E5) ---------- */
 
 /*
-  nombre   -> aparece en la barra superior de la prueba y en el diagnostico.
-  contexto -> el "cuando" del diagnostico. Cambialo si la prueba apunta a
-              otro momento del semestre (por ejemplo 'antes del final').
-  Juntos forman el subtitulo: "Cálculo Integral · antes del parcial 2".
+  Son datos de ejemplo: no hay monitores reales todavia.
+    inicial       -> la letra del circulo.
+    nombre        -> nombre visible.
+    programa      -> carrera y semestre, en una linea.
+    materia       -> el id de una materia de la seccion 3. Sirve para que el
+                     buscador filtre por materia.
+    subtemas      -> claves de subtema de esa materia en las que es fuerte.
+                     Tambien las usa el filtro del buscador.
+    nivel         -> numero que se pinta como chip "Nivel N".
+    calificacion  -> texto, con coma decimal como se escribe en Colombia.
+                     Dejalo en '' si el monitor todavia no tiene resenas.
+    resenas       -> cuantas resenas respaldan esa calificacion.
+    precio        -> numero entero en pesos, sin puntos ni signo.
+                     El formato ($28.000 / hora) lo pone el motor.
+    horarios      -> textos de disponibilidad. Si lo dejas vacio se usan los
+                     horarios generales de la seccion 5.
+    encaje        -> la linea de por que le sirve a este estudiante.
+    mismoProfesor -> true agrega el chip "Cursó con tu mismo profesor".
+    recomendado   -> true marca la tarjeta como recomendada. Ponlo en una
+                     sola de la lista; conviene que sea la primera.
 */
-const CURSO = {
-  nombre: 'Cálculo Integral',
-  contexto: 'antes del parcial 2',
-};
-
-
-/* ---------- 4. Subtemas evaluados ---------- */
-
-/*
-  A la izquierda la clave interna (la que usan las preguntas de abajo),
-  a la derecha el nombre visible en las barras del diagnostico.
-  Si agregas un subtema nuevo, agrega tambien preguntas que lo usen:
-  un subtema sin preguntas no aparece en el diagnostico.
-*/
-const SUBTEMAS = {
-  partes: 'Integración por partes',
-  sustitucion: 'Sustitución',
-  impropias: 'Integrales impropias',
-};
-
-
-/* ---------- 5. Banco de preguntas ---------- */
-
-/*
-  Cada pregunta:
-    id        -> identificador unico ('p1', 'p2', ...). Lo usan las listas
-                 CALIBRACION y CERTIFICACION de mas abajo.
-    subtema   -> una de las claves de SUBTEMAS. Define en que barra suma.
-    enunciado -> lo que se lee en grande.
-    opciones  -> cuatro tarjetas, en el orden en que se muestran.
-
-  Cada opcion:
-    letra    -> la letra del cuadrito (A, B, C, D).
-    texto    -> la respuesta que ve el estudiante.
-    correcta -> true en UNA sola opcion por pregunta. Las demas van en false.
-    error    -> SOLO en las incorrectas. Es el error conceptual que delata
-                esa opcion. Este texto es el que el diagnostico muestra
-                como "Error detectado", asi que escribelo pensando en que
-                el estudiante lo lea tal cual, en minuscula y sin punto final.
-
-  Ojo: el prototipo nunca le dice al estudiante si acerto o fallo. Las
-  respuestas solo sirven para armar el diagnostico.
-*/
-const PREGUNTAS = [
+const MONITORES = [
   {
-    id: 'p1',
-    subtema: 'partes',
-    enunciado: 'En ∫ x·ln(x) dx, ¿qué eliges como u?',
-    opciones: [
-      { letra: 'A', texto: 'x',        correcta: false, error: 'eliges u por orden de aparición, no por prioridad ILATE' },
-      { letra: 'B', texto: 'ln(x)',    correcta: true },
-      { letra: 'C', texto: 'dx',       correcta: false, error: 'confundes u con dv' },
-      { letra: 'D', texto: 'x · ln(x)', correcta: false, error: 'no separas el producto en u y dv' },
-    ],
+    inicial: 'D',
+    nombre: 'Daniela R.',
+    programa: 'Ingeniería Industrial · 7º semestre',
+    materia: 'calculo-integral',
+    subtemas: ['partes'],
+    nivel: 3,
+    calificacion: '4,8',
+    resenas: 37,
+    precio: 28000,
+    horarios: [],
+    encaje: 'Especializada en integración por partes',
+    mismoProfesor: true,
+    recomendado: true,
   },
   {
-    id: 'p2',
-    subtema: 'sustitucion',
-    enunciado: 'En ∫ 2x·cos(x²) dx, ¿qué método aplicas?',
-    opciones: [
-      { letra: 'A', texto: 'Integración por partes',    correcta: false, error: 'no reconoces que 2x es la derivada de x²' },
-      { letra: 'B', texto: 'Sustitución con u = x²',    correcta: true },
-      { letra: 'C', texto: 'Fracciones parciales',      correcta: false, error: 'aplicas un método que no corresponde a esta forma' },
-      { letra: 'D', texto: 'Integral directa de tabla', correcta: false, error: 'ignoras la regla de la cadena' },
-    ],
+    inicial: 'S',
+    nombre: 'Santiago M.',
+    programa: 'Matemáticas · 6º semestre',
+    materia: 'calculo-integral',
+    subtemas: ['sustitucion', 'impropias'],
+    nivel: 2,
+    calificacion: '4,6',
+    resenas: 19,
+    precio: 24000,
+    horarios: [],
+    encaje: 'Fuerte en sustitución e impropias',
+    mismoProfesor: false,
+    recomendado: false,
   },
   {
-    id: 'p3',
-    subtema: 'impropias',
-    enunciado: '∫ desde 1 hasta ∞ de (1/x²) dx:',
-    opciones: [
-      { letra: 'A', texto: 'Converge a 1',           correcta: true },
-      { letra: 'B', texto: 'Diverge',                correcta: false, error: 'la confundes con 1/x, que sí diverge' },
-      { letra: 'C', texto: 'Converge a 0',           correcta: false, error: 'evalúas mal el límite superior' },
-      { letra: 'D', texto: 'No se puede determinar', correcta: false, error: 'no reconoces una impropia convergente' },
-    ],
-  },
-  {
-    id: 'p4',
-    subtema: 'partes',
-    enunciado: 'En ∫ x·eˣ dx, con u = x y dv = eˣ dx, el resultado es:',
-    opciones: [
-      { letra: 'A', texto: 'x·eˣ − eˣ + C',  correcta: true },
-      { letra: 'B', texto: 'x·eˣ + eˣ + C',  correcta: false, error: 'te equivocas en el signo de la fórmula de partes' },
-      { letra: 'C', texto: 'eˣ + C',         correcta: false, error: 'omites el término u·v' },
-      { letra: 'D', texto: 'x²·eˣ/2 + C',    correcta: false, error: 'integras como si fuera un producto de potencias' },
-    ],
+    inicial: 'V',
+    nombre: 'Valeria C.',
+    programa: 'Ingeniería Civil · 8º semestre',
+    materia: 'calculo-integral',
+    subtemas: ['partes', 'sustitucion', 'impropias'],
+    nivel: 3,
+    calificacion: '4,9',
+    resenas: 52,
+    precio: 30000,
+    horarios: [],
+    encaje: 'La mejor calificada del semestre',
+    mismoProfesor: false,
+    recomendado: false,
   },
 ];
 
 
-/* ---------- 6. Que preguntas usa cada prueba ---------- */
+/* ---------- 5. Horarios que se ofrecen al agendar (pantalla E5) ---------- */
 
 /*
-  CALIBRACION  -> las que responde el estudiante (pantalla E2).
-  CERTIFICACION-> las que responde el monitor candidato (pantalla M3).
-                  minimoAciertos es cuantas debe acertar para certificarse.
-
-  Se listan por id, en el orden en que se muestran. Puedes repetir una
-  pregunta en ambas listas, como pasa ahora con p1, p2 y p3.
-  Si cambias la cantidad, el contador ("Pregunta N de 4") se ajusta solo.
+  Textos tal como los lee el estudiante. Agrega o quita lineas si quieres
+  mas opciones. Si un monitor trae sus propios horarios, mandan los suyos.
 */
-const CALIBRACION = { preguntas: ['p1', 'p2', 'p3', 'p4'] };
-const CERTIFICACION = { preguntas: ['p1', 'p2', 'p3'], minimoAciertos: 2 };
+const HORARIOS = [
+  'Hoy 7:00 p. m.',
+  'Mañana 4:00 p. m.',
+];
+
+
+/* ---------- 6. Filtros del buscador (pantalla B1) ---------- */
+
+/*
+  Las opciones que ofrecen los desplegables de "Buscar monitores".
+  PRECIOS_FILTRO va en pesos: cada numero se muestra como "Hasta $X".
+  NIVELES_FILTRO son los niveles minimos: cada numero se muestra como
+  "Nivel N o más".
+*/
+const PRECIOS_FILTRO = [20000, 25000, 30000, 40000];
+const NIVELES_FILTRO = [1, 2, 3];
 
 
 /* ---------- 7. Reglas del diagnostico ---------- */
@@ -978,17 +1884,13 @@ const CERTIFICACION = { preguntas: ['p1', 'p2', 'p3'], minimoAciertos: 2 };
      50 crudo  ->  61 mostrado
     100 crudo  ->  82 mostrado
 
-  Si un porcentaje crudo no esta en la tabla (porque agregaste mas
-  preguntas por subtema), el motor lo muestra tal cual.
+  Si la prueba adaptativa produce un porcentaje que no esta en la tabla
+  (por ejemplo 33 con tres preguntas de un mismo subtema), el motor lo
+  acerca al valor mas parecido de la tabla y deja el numero real en el
+  atributo data-pct-crudo por si alguien quiere revisarlo.
   Cambia los numeros de la derecha si quieres barras mas o menos duras.
 */
 const MAPA_PORCENTAJE = { 0: 34, 50: 61, 100: 82 };
-
-/*
-  Si dos subtemas empatan en el porcentaje mas bajo, este es el que gana
-  y se muestra como punto debil. Tiene que ser una clave de SUBTEMAS.
-*/
-const SUBTEMA_DESEMPATE = 'partes';
 
 /*
   Que se muestra en "Error detectado" cuando el estudiante no fallo
@@ -997,76 +1899,7 @@ const SUBTEMA_DESEMPATE = 'partes';
 const TEXTO_SIN_FALLOS = 'Vas bien. Refuerza este subtema antes del parcial.';
 
 
-/* ---------- 8. Monitores de ejemplo (pantallas E4 y E5) ---------- */
-
-/*
-  Son datos de ejemplo: no hay monitores reales todavia.
-    inicial       -> la letra del circulo.
-    nombre        -> nombre visible.
-    programa      -> carrera y semestre, en una linea.
-    nivel         -> numero que se pinta como chip "Nivel N".
-    calificacion  -> texto, con coma decimal como se escribe en Colombia.
-    resenas       -> cuantas resenas respaldan esa calificacion.
-    precio        -> numero entero en pesos, sin puntos ni signo.
-                     El formato ($28.000 / hora) lo pone el motor.
-    encaje        -> la linea de por que le sirve a este estudiante.
-    mismoProfesor -> true agrega el chip "Cursó con tu mismo profesor".
-    recomendado   -> true marca la tarjeta como recomendada. Ponlo en una
-                     sola de la lista; conviene que sea la primera.
-*/
-const MONITORES = [
-  {
-    inicial: 'D',
-    nombre: 'Daniela R.',
-    programa: 'Ingeniería Industrial · 7º semestre',
-    nivel: 3,
-    calificacion: '4,8',
-    resenas: 37,
-    precio: 28000,
-    encaje: 'Especializada en integración por partes',
-    mismoProfesor: true,
-    recomendado: true,
-  },
-  {
-    inicial: 'S',
-    nombre: 'Santiago M.',
-    programa: 'Matemáticas · 6º semestre',
-    nivel: 2,
-    calificacion: '4,6',
-    resenas: 19,
-    precio: 24000,
-    encaje: 'Fuerte en sustitución e impropias',
-    mismoProfesor: false,
-    recomendado: false,
-  },
-  {
-    inicial: 'V',
-    nombre: 'Valeria C.',
-    programa: 'Ingeniería Civil · 8º semestre',
-    nivel: 3,
-    calificacion: '4,9',
-    resenas: 52,
-    precio: 30000,
-    encaje: 'La mejor calificada del semestre',
-    mismoProfesor: false,
-    recomendado: false,
-  },
-];
-
-
-/* ---------- 9. Horarios que se ofrecen al agendar (pantalla E5) ---------- */
-
-/*
-  Textos tal como los lee el estudiante. Agrega o quita lineas si quieres
-  mas opciones; el primero queda seleccionado por defecto.
-*/
-const HORARIOS = [
-  'Hoy 7:00 p. m.',
-  'Mañana 4:00 p. m.',
-];
-
-
-/* ---------- 10. El monitor recien certificado (pantallas M4 y M5) ---------- */
+/* ---------- 8. El monitor recien certificado (pantallas M4 y M5) ---------- */
 
 /*
   Perfil que se le genera al monitor apenas pasa la certificacion.
@@ -1075,6 +1908,17 @@ const HORARIOS = [
     monitorias -> cuantas lleva hechas. Arranca en 0.
 */
 const PERFIL_MONITOR_NUEVO = { nivel: 1, tarifa: 25000, monitorias: 0 };
+
+/*
+  Limites del formulario de "Crear mi perfil". Si el monitor escribe algo
+  fuera de estos rangos, el prototipo le muestra el error bajo el campo.
+*/
+const LIMITES_PERFIL = {
+  semestreMin: 1,
+  semestreMax: 12,
+  tarifaMin: 10000,
+  tarifaMax: 200000,
+};
 
 /*
   La barra de progreso del panel: "8 de 15 monitorías para Nivel 2",
@@ -1102,7 +1946,7 @@ const SESION_EJEMPLO = {
 };
 
 
-/* ---------- 11. Textos de pantalla ---------- */
+/* ---------- 9. Textos de pantalla ---------- */
 
 /*
   Todas las frases que el motor escribe en pantalla. Cambia el texto de la
@@ -1125,6 +1969,7 @@ const TEXTOS = {
   e1Boton: 'Empezar la prueba',
   e1EnlaceMonitor: 'Soy monitor',
   e1EnlaceProfesor: 'Soy profesor',
+  e1EnlaceBuscar: 'Solo quiero ver monitores',
 
   /* E2 · Prueba */
   e2Contador: 'Pregunta {n} de {total}',
@@ -1143,10 +1988,13 @@ const TEXTOS = {
   e4Recomendado: 'Monitor recomendado',
   e4ChipMismoProfesor: 'Cursó con tu mismo profesor',
   e4ChipNivel: 'Nivel {nivel}',
+  e4ChipNuevo: 'Monitor nuevo',
   e4PrecioHora: '{precio} / hora',
 
   /* E5 · Perfil y agendar */
   e5Callout: '{nombre} recibirá tu diagnóstico antes de la sesión: qué explicarte, en qué orden y con qué ejercicio arrancar.',
+  e5SinDiagnostico: 'Todavía no tienes diagnóstico. Haz la prueba y {nombre} sabrá qué explicarte antes de sentarse contigo.',
+  e5SinDiagnosticoBoton: 'Hacer la prueba',
   e5Horarios: 'Elige un horario',
   e5Boton: 'Agendar y pagar',
 
@@ -1158,6 +2006,27 @@ const TEXTOS = {
   e6ResumenPrecio: '{precio} / hora',
   e6CapturaTitulo: 'Calibra todavía no está abierta. Déjanos tu correo y eres de los primeros.',
   e6CapturaBoton: 'Avísenme',
+
+  /* B1 · Buscar monitores */
+  b1TodasMaterias: 'Todas las materias',
+  b1TodosSubtemas: 'Todos los subtemas',
+  b1CualquierPrecio: 'Cualquier precio',
+  b1HastaPrecio: 'Hasta {precio}',
+  b1CualquierNivel: 'Cualquier nivel',
+  b1NivelMinimo: 'Nivel {nivel} o más',
+  b1Conteo: '{n} monitores',
+  b1ConteoUno: '1 monitor',
+  b1Vacio: 'Ningún monitor cumple esos filtros. Prueba con menos condiciones.',
+
+  /* R1 · Crear perfil del monitor */
+  r1Guardar: 'Publicar mi perfil',
+  r1Subtemas: '¿En qué subtemas eres fuerte?',
+  r1ErrorNombre: 'Escribe tu nombre.',
+  r1ErrorSemestre: 'El semestre va de {min} a {max}.',
+  r1ErrorTarifa: 'La tarifa va de {min} a {max} por hora.',
+  r1ErrorSubtemas: 'Elige al menos un subtema.',
+  r1Resumen: 'Revisa lo que falta antes de publicar.',
+  r1Encaje: 'Fuerte en {subtemas}',
 
   /* Formularios de correo (los tres) */
   correoEtiqueta: 'Tu correo',
@@ -1185,12 +2054,14 @@ const TEXTOS = {
   m4PerfilNivel: 'Nivel {nivel}',
   m4PerfilTarifa: 'Tarifa sugerida {tarifa} / hora',
   m4PerfilMonitorias: '0 monitorías',
+  m4BotonCrearPerfil: 'Crear mi perfil de monitor',
   m4Boton: 'Ver mi panel',
   m4Fallido: 'Todavía no. Puedes reintentar en 7 días.',
   m4CapturaTitulo: '¿Quieres ser de los primeros monitores? Déjanos tu correo.',
   m4CapturaBoton: 'Avísenme',
 
   /* M5 · Panel del monitor */
+  m5TuPerfil: 'Tu perfil',
   m5ProximaSesion: 'Próxima sesión',
   m5Cuando: '{cuando} con {estudiante}',
   m5BriefSubtema: 'Subtema · {subtema}',
@@ -1210,10 +2081,11 @@ const TEXTOS = {
 /* ================== FIN CONTENIDO EDITABLE ================== */
 
 /* ===========================================================================
-   CALIBRA · MOTOR
+   CALIBRA · MOTOR v2
    Va dentro del mismo <script>, justo despues del bloque de contenido.
    Lee las constantes del contenido, no las redefine.
-   El estado vive solo en memoria. Sin almacenamiento del navegador, sin dependencias.
+   El estado vive solo en memoria. Sin almacenamiento del navegador, sin
+   dependencias, sin Math.random.
    =========================================================================== */
 
 /* ---------------------------------------------------------------------------
@@ -1233,22 +2105,20 @@ function leerContenido(fn, porDefecto) {
 }
 
 var CONTENIDO = {
-  materias:   leerContenido(function () { return MATERIAS; }, []),
-  curso:      leerContenido(function () { return CURSO; }, { nombre: 'Cálculo Integral', contexto: 'antes del parcial 2' }),
-  subtemas:   leerContenido(function () { return SUBTEMAS; }, {}),
-  preguntas:  leerContenido(function () { return PREGUNTAS; }, []),
-  calibracion: leerContenido(function () { return CALIBRACION; }, null),
-  certificacion: leerContenido(function () { return CERTIFICACION; }, null),
-  mapaPct:    leerContenido(function () { return MAPA_PORCENTAJE; }, { 0: 34, 50: 61, 100: 82 }),
-  desempate:  leerContenido(function () { return SUBTEMA_DESEMPATE; }, 'partes'),
-  sinFallos:  leerContenido(function () { return TEXTO_SIN_FALLOS; }, 'Vas bien. Refuerza este subtema antes del parcial.'),
-  monitores:  leerContenido(function () { return MONITORES; }, []),
-  horarios:   leerContenido(function () { return HORARIOS; }, []),
+  materias:    leerContenido(function () { return MATERIAS; }, []),
+  monitores:   leerContenido(function () { return MONITORES; }, []),
+  horarios:    leerContenido(function () { return HORARIOS; }, []),
+  precios:     leerContenido(function () { return PRECIOS_FILTRO; }, [20000, 25000, 30000, 40000]),
+  niveles:     leerContenido(function () { return NIVELES_FILTRO; }, [1, 2, 3]),
+  mapaPct:     leerContenido(function () { return MAPA_PORCENTAJE; }, { 0: 34, 50: 61, 100: 82 }),
+  sinFallos:   leerContenido(function () { return TEXTO_SIN_FALLOS; }, 'Vas bien. Refuerza este subtema antes del parcial.'),
   perfilNuevo: leerContenido(function () { return PERFIL_MONITOR_NUEVO; }, {}),
-  progreso:   leerContenido(function () { return PROGRESO_NIVEL; }, {}),
-  sesion:     leerContenido(function () { return SESION_EJEMPLO; }, {}),
-  textos:     leerContenido(function () { return TEXTOS; }, {}),
-  endpoint:   leerContenido(function () { return FORM_ENDPOINT; }, '')
+  limites:     leerContenido(function () { return LIMITES_PERFIL; }, { semestreMin: 1, semestreMax: 12, tarifaMin: 10000, tarifaMax: 200000 }),
+  progreso:    leerContenido(function () { return PROGRESO_NIVEL; }, {}),
+  sesion:      leerContenido(function () { return SESION_EJEMPLO; }, {}),
+  textos:      leerContenido(function () { return TEXTOS; }, {}),
+  semilla:     leerContenido(function () { return SEMILLA; }, 20260909),
+  endpoint:    leerContenido(function () { return FORM_ENDPOINT; }, '')
 };
 
 /* Devuelve el primer valor definido entre varias claves posibles del objeto. */
@@ -1261,46 +2131,179 @@ function campoDe(objeto, claves, porDefecto) {
   return porDefecto;
 }
 
-/* Busca una pregunta del banco por su id. */
-function preguntaPorId(id) {
-  var lista = CONTENIDO.preguntas;
+/* Texto de pantalla con valor por defecto y huecos {clave}. */
+function txt(clave, porDefecto, datos) {
+  var base = campoDe(CONTENIDO.textos, [clave], porDefecto);
+  var salida = String(base === undefined || base === null ? '' : base);
+  if (datos) {
+    Object.keys(datos).forEach(function (k) {
+      salida = salida.split('{' + k + '}').join(String(datos[k]));
+    });
+  }
+  return salida;
+}
+
+/* ---------------------------------------------------------------------------
+   1. Azar con semilla (mulberry32)
+   No hay Math.random en ninguna parte: todo desempate y todo barajado sale
+   de aqui. Con la misma semilla, el mismo resultado, siempre.
+   --------------------------------------------------------------------------- */
+
+function mulberry32(semilla) {
+  var a = semilla >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    var t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* La semilla se puede fijar desde fuera (window.__calibraSemilla). */
+function semillaActual() {
+  var s = Number(window.__calibraSemilla);
+  if (!isFinite(s)) s = Number(CONTENIDO.semilla);
+  if (!isFinite(s)) s = 20260909;
+  return s >>> 0;
+}
+
+var _flujoAzar = mulberry32(semillaActual());
+
+/* Reinicia la corriente de azar. Se llama al empezar cada recorrido. */
+function reiniciarAleatorio() {
+  _flujoAzar = mulberry32(semillaActual());
+}
+
+/* Numero entre 0 y 1, determinista. Sustituye a Math.random en todo el motor. */
+function aleatorio() {
+  return _flujoAzar();
+}
+
+/*
+  Baraja una copia de la lista. Usa una corriente PROPIA derivada de la
+  semilla y del salto que se le pase, para que barajar la pregunta n° 3
+  devuelva siempre lo mismo aunque la pantalla se repinte diez veces.
+*/
+function barajarCon(lista, salto) {
+  var rnd = mulberry32((semillaActual() + (Number(salto) || 0) * 7919 + 101) >>> 0);
+  var a = lista.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(rnd() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+if (typeof window.__calibraSemilla !== 'number') {
+  window.__calibraSemilla = Number(CONTENIDO.semilla) || 20260909;
+}
+
+/* ---------------------------------------------------------------------------
+   2. Materias: acceso y normalizacion
+   --------------------------------------------------------------------------- */
+
+var LETRAS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+var MATERIA_VACIA = {
+  id: '', codigo: '', nombre: '', activa: false, contexto: '', libro: '',
+  subtemas: {}, preguntas: [],
+  prueba: { longitud: 4, adaptativa: false, barajarOpciones: false },
+  certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false }
+};
+
+function listaMaterias() {
+  return Array.isArray(CONTENIDO.materias) ? CONTENIDO.materias : [];
+}
+
+function materiaPorId(id) {
+  var lista = listaMaterias();
   for (var i = 0; i < lista.length; i++) {
     if (lista[i] && lista[i].id === id) return lista[i];
   }
   return null;
 }
 
-/* Normaliza una configuracion de prueba a un arreglo de preguntas completas.
-   Acepta: arreglo de ids, arreglo de preguntas, u objeto con .preguntas/.ids. */
-function preguntasDe(config, porDefecto) {
-  var bruto = null;
-  if (Array.isArray(config)) bruto = config;
-  else if (config && typeof config === 'object') bruto = config.preguntas || config.ids || config.orden || null;
-  if (!bruto) bruto = porDefecto;
-  var salida = [];
-  for (var i = 0; i < bruto.length; i++) {
-    var item = bruto[i];
-    var p = typeof item === 'string' ? preguntaPorId(item) : item;
-    if (p) salida.push(p);
+function primeraMateriaActiva() {
+  var lista = listaMaterias();
+  for (var i = 0; i < lista.length; i++) {
+    if (lista[i] && lista[i].activa) return lista[i];
   }
-  return salida;
+  return lista[0] || null;
 }
 
-/* Las 4 primeras preguntas calibran al estudiante; las 3 primeras certifican. */
-function preguntasEstudiante() {
-  return preguntasDe(CONTENIDO.calibracion, CONTENIDO.preguntas.slice(0, 4));
+/* La materia con la que trabaja todo el motor. */
+function materiaActual() {
+  return materiaPorId(estado.materia) || primeraMateriaActiva() || MATERIA_VACIA;
 }
-function preguntasMonitor() {
-  return preguntasDe(CONTENIDO.certificacion, CONTENIDO.preguntas.slice(0, 3));
+
+/* Claves de subtema en el orden escrito por el usuario. Manda ese orden. */
+function subtemasDe(materia) {
+  var m = materia || materiaActual();
+  var claves = Object.keys(m.subtemas || {});
+  // Si alguna pregunta usa un subtema no declarado, va al final y no se pierde.
+  (m.preguntas || []).forEach(function (p) {
+    if (p && p.subtema && claves.indexOf(p.subtema) === -1) claves.push(p.subtema);
+  });
+  return claves;
 }
-function minimoAciertos() {
-  var n = Number(campoDe(CONTENIDO.certificacion, ['minimoAciertos', 'minimo'], 2));
+
+/* Nombre visible de un subtema de la materia dada. */
+function nombreSubtema(clave, materia) {
+  var m = materia || materiaActual();
+  return (m.subtemas && m.subtemas[clave]) || clave;
+}
+
+function bancoDe(materia) {
+  var m = materia || materiaActual();
+  return Array.isArray(m.preguntas) ? m.preguntas : [];
+}
+
+function dificultadDe(pregunta) {
+  var d = Number(pregunta && pregunta.dificultad);
+  if (!isFinite(d)) return 2;
+  if (d < 1) return 1;
+  if (d > 3) return 3;
+  return Math.round(d);
+}
+
+function configPrueba(materia) {
+  var m = materia || materiaActual();
+  return m.prueba || MATERIA_VACIA.prueba;
+}
+
+function configCertificacion(materia) {
+  var m = materia || materiaActual();
+  return m.certificacion || MATERIA_VACIA.certificacion;
+}
+
+/* Cuantas preguntas se van a mostrar de verdad (el banco puede quedarse corto). */
+function longitudEfectiva(materia, config) {
+  var banco = bancoDe(materia);
+  var n = Number(config && config.longitud);
+  if (!isFinite(n) || n <= 0) n = banco.length;
+  return Math.max(0, Math.min(Math.round(n), banco.length));
+}
+
+function minimoAciertos(materia) {
+  var n = Number(campoDe(configCertificacion(materia), ['minimoAciertos', 'minimo'], 2));
   return isNaN(n) ? 2 : n;
 }
 
+/* Busca una pregunta del banco de una materia por su id. */
+function preguntaPorId(id, materia) {
+  var banco = bancoDe(materia);
+  for (var i = 0; i < banco.length; i++) {
+    if (banco[i] && banco[i].id === id) return banco[i];
+  }
+  return null;
+}
+
 /* Horarios: acepta textos sueltos o objetos {id, texto}. */
-function horariosNormalizados() {
-  var lista = Array.isArray(CONTENIDO.horarios) ? CONTENIDO.horarios : [];
+function horariosNormalizados(monitor) {
+  var lista = monitor && Array.isArray(monitor.horarios) && monitor.horarios.length
+    ? monitor.horarios
+    : (Array.isArray(CONTENIDO.horarios) ? CONTENIDO.horarios : []);
   return lista.map(function (h, i) {
     if (typeof h === 'string') return { id: 'h' + i, texto: h };
     return { id: campoDe(h, ['id'], 'h' + i), texto: campoDe(h, ['texto', 'etiqueta', 'nombre', 'label'], '') };
@@ -1308,21 +2311,38 @@ function horariosNormalizados() {
 }
 
 /* ---------------------------------------------------------------------------
-   1. Estado (vive solo en memoria; el boton de reinicio lo limpia)
+   3. Estado (vive solo en memoria; el boton de reinicio lo limpia)
    --------------------------------------------------------------------------- */
 
 const estado = {
-  respuestasEstudiante: {},
+  materia: (primeraMateriaActiva() || MATERIA_VACIA).id,
+
+  /* Prueba del estudiante */
+  itemsEstudiante: [],        // recorrido ya construido: [{pregunta, opciones}]
+  respuestasEstudiante: {},   // { p1: 'B' } con la letra ORIGINAL de la opcion
+  indicePregunta: 0,
+  pruebaTerminada: false,
+
+  /* Prueba del monitor */
+  itemsMonitor: [],
   respuestasMonitor: {},
+  indiceCertificacion: 0,
+  certTerminada: false,
+  certificado: null,
+
+  /* Agenda */
   monitorElegido: null,
   horarioElegido: null,
-  indicePregunta: 0,
-  indiceCertificacion: 0,
-  certificado: null
+
+  /* Buscador */
+  filtros: { materia: null, subtema: null, precioMax: null, nivelMin: null },
+
+  /* Perfil creado por el monitor */
+  monitorNuevo: null
 };
 
 /* ---------------------------------------------------------------------------
-   2. Utilidades de DOM y formato
+   4. Utilidades de DOM y formato
    --------------------------------------------------------------------------- */
 
 function $(sel) { return document.querySelector(sel); }
@@ -1367,72 +2387,175 @@ function nombrePila(nombre) {
   return String(nombre || '').replace(/\s+\S\.?\s*$/, '').trim() || String(nombre || '');
 }
 
-/* Nombre visible de un subtema. */
-function nombreSubtema(clave) {
-  return CONTENIDO.subtemas[clave] || clave;
+/* Primera letra del nombre, en mayuscula. La usa el avatar. */
+function inicialDe(nombre) {
+  var limpio = String(nombre || '').trim();
+  return limpio ? limpio.charAt(0).toLocaleUpperCase('es-CO') : '?';
 }
 
 /* ---------------------------------------------------------------------------
-   3. Diagnostico (determinista, reglas de la seccion 8 del brief)
+   5. Recorrido de la prueba: adaptativo y barajado
    --------------------------------------------------------------------------- */
 
-/*
-  respuestas: { p1:'A', p2:'B', ... } con la LETRA elegida.
-  Devuelve { barras:[{subtema,nombre,pct}], debil:{subtema,nombre,pct}, error }
-*/
-function calcularDiagnostico(respuestas) {
-  var preguntas = preguntasEstudiante();
-  var orden = [];          // claves de subtema en orden de aparicion
-  var conteo = {};         // { clave: {aciertos, total} }
-
-  // 1. Aciertos por subtema
-  for (var i = 0; i < preguntas.length; i++) {
-    var p = preguntas[i];
-    var clave = p.subtema;
-    if (!conteo[clave]) { conteo[clave] = { aciertos: 0, total: 0 }; orden.push(clave); }
-    conteo[clave].total++;
-    if (esCorrecta(p, respuestas[p.id])) conteo[clave].aciertos++;
-  }
-
-  // 2. Porcentaje crudo -> porcentaje de presentacion
-  var barras = [];
-  for (var j = 0; j < orden.length; j++) {
-    var c = orden[j];
-    var crudo = Math.round((conteo[c].aciertos / conteo[c].total) * 100);
-    var pct = CONTENIDO.mapaPct[crudo];
-    if (pct === undefined) {
-      // No inventamos un numero: se avisa y se deja el crudo.
-      console.error('[Calibra] porcentaje crudo sin equivalente en MAPA_PORCENTAJE: ' + crudo + ' (subtema "' + c + '")');
-      pct = crudo;
-    }
-    barras.push({ subtema: c, nombre: nombreSubtema(c), pct: pct });
-  }
-
-  // 3. Punto debil: el pct mostrado mas bajo; en empate gana SUBTEMA_DESEMPATE
-  var debil = null;
-  if (barras.length) {
-    var minimo = barras[0].pct;
-    for (var k = 1; k < barras.length; k++) if (barras[k].pct < minimo) minimo = barras[k].pct;
-    var empatados = barras.filter(function (b) { return b.pct === minimo; });
-    debil = empatados.filter(function (b) { return b.subtema === CONTENIDO.desempate; })[0] || empatados[0];
-  }
-
-  // 4. Error: texto de la PRIMERA opcion incorrecta elegida en ese subtema,
-  //    recorriendo las preguntas en orden.
-  var error = CONTENIDO.sinFallos;
-  if (debil) {
-    for (var m = 0; m < preguntas.length; m++) {
-      var pr = preguntas[m];
-      if (pr.subtema !== debil.subtema) continue;
-      var elegida = opcionPorLetra(pr, respuestas[pr.id]);
-      if (elegida && !elegida.correcta) { error = elegida.error; break; }
-    }
-  }
-
-  return { barras: barras, debil: debil, error: error };
+/* Un item es lo que se PINTA: la pregunta y sus opciones ya ordenadas. */
+function construirItem(pregunta, config, indice) {
+  var originales = (pregunta.opciones || []).slice();
+  var mostradas = (config && config.barajarOpciones) ? barajarCon(originales, indice) : originales;
+  return {
+    pregunta: pregunta,
+    opciones: mostradas.map(function (op, i) {
+      // La LETRA que se ve se recalcula por posicion. La identidad de la
+      // opcion viaja aparte, en .original, para que el diagnostico no se
+      // confunda cuando las opciones estan barajadas.
+      return { letra: LETRAS[i] || String(i + 1), original: op };
+    })
+  };
 }
 
-/* Busca la opcion elegida por su letra. */
+function idsUsados(items) {
+  return (items || []).map(function (it) { return it.pregunta.id; });
+}
+
+/* ¿Cuantas preguntas de este subtema quedan sin usar? */
+function disponiblesDe(materia, clave, yaUsadas) {
+  return bancoDe(materia).filter(function (p) {
+    return p && p.subtema === clave && yaUsadas.indexOf(p.id) === -1;
+  });
+}
+
+/* De un grupo de candidatas, la de dificultad mas cercana al objetivo.
+   Empate: gana la que viene antes en el banco. */
+function masCercanaA(candidatas, objetivo, materia) {
+  var banco = bancoDe(materia);
+  var mejor = null;
+  var mejorClave = null;
+  candidatas.forEach(function (p) {
+    var d = Math.abs(dificultadDe(p) - objetivo);
+    var idx = banco.indexOf(p);
+    var clave = [d, dificultadDe(p), idx];
+    if (!mejor || clave[0] < mejorClave[0] ||
+        (clave[0] === mejorClave[0] && clave[2] < mejorClave[2])) {
+      mejor = p; mejorClave = clave;
+    }
+  });
+  return mejor;
+}
+
+/* Desempeño de un subtema con lo respondido hasta ahora: 0 a 1, o null. */
+function desempenoSubtema(materia, clave, respuestas, yaUsadas) {
+  var banco = bancoDe(materia);
+  var aciertos = 0, total = 0;
+  yaUsadas.forEach(function (id) {
+    var p = preguntaPorId(id, materia);
+    if (!p || p.subtema !== clave) return;
+    if (respuestas[id] === undefined) return;
+    total++;
+    if (esCorrecta(p, respuestas[id])) aciertos++;
+  });
+  if (!total) return null;
+  return aciertos / total;
+}
+
+/* La ULTIMA pregunta respondida de un subtema, en orden de recorrido. */
+function ultimaDeSubtema(materia, clave, respuestas, yaUsadas) {
+  for (var i = yaUsadas.length - 1; i >= 0; i--) {
+    var p = preguntaPorId(yaUsadas[i], materia);
+    if (p && p.subtema === clave && respuestas[p.id] !== undefined) return p;
+  }
+  return null;
+}
+
+/*
+  Elige la SIGUIENTE pregunta. Es incremental porque el adaptativo depende
+  de lo que el estudiante acaba de contestar.
+
+  Fase 1, cobertura: una pregunta por subtema, en el orden de subtemas,
+  empezando por dificultad 2.
+  Fase 2, profundizacion: el subtema con peor desempeño (empate lo gana el
+  primero del orden de subtemas), subiendo la dificultad si acerto la
+  anterior de ese subtema y bajandola si fallo. Si ese subtema se agota,
+  pasa al siguiente peor. Si se agota el banco entero, devuelve null y la
+  prueba termina antes.
+
+  Nunca repite una pregunta dentro de la misma sesion.
+*/
+function siguientePregunta(materia, config, respuestasHastaAhora, yaUsadas) {
+  var usadas = yaUsadas || [];
+  var respuestas = respuestasHastaAhora || {};
+  var claves = subtemasDe(materia);
+
+  if (!config || !config.adaptativa) {
+    // Modo fijo: el orden del banco, tal cual esta escrito.
+    var banco = bancoDe(materia);
+    for (var i = 0; i < banco.length; i++) {
+      if (usadas.indexOf(banco[i].id) === -1) return banco[i];
+    }
+    return null;
+  }
+
+  // Fase 1: cobertura.
+  for (var c = 0; c < claves.length; c++) {
+    var clave = claves[c];
+    var yaTocado = usadas.some(function (id) {
+      var p = preguntaPorId(id, materia);
+      return !!(p && p.subtema === clave);
+    });
+    if (yaTocado) continue;
+    var libres = disponiblesDe(materia, clave, usadas);
+    if (!libres.length) continue;
+    return masCercanaA(libres, 2, materia);
+  }
+
+  // Fase 2: profundizacion en el subtema con peor desempeño.
+  var orden = claves.map(function (k, i) {
+    var d = desempenoSubtema(materia, k, respuestas, usadas);
+    return { clave: k, pct: d === null ? 0 : d, pos: i };
+  }).sort(function (a, b) {
+    if (a.pct !== b.pct) return a.pct - b.pct;
+    return a.pos - b.pos;
+  });
+
+  for (var j = 0; j < orden.length; j++) {
+    var k2 = orden[j].clave;
+    var libres2 = disponiblesDe(materia, k2, usadas);
+    if (!libres2.length) continue;
+    var objetivo = 2;
+    var ultima = ultimaDeSubtema(materia, k2, respuestas, usadas);
+    if (ultima) {
+      objetivo = dificultadDe(ultima) + (esCorrecta(ultima, respuestas[ultima.id]) ? 1 : -1);
+      if (objetivo < 1) objetivo = 1;
+      if (objetivo > 3) objetivo = 3;
+    }
+    return masCercanaA(libres2, objetivo, materia);
+  }
+
+  return null; // banco agotado
+}
+
+/*
+  Lista ordenada de preguntas para una materia y una configuracion.
+  Con adaptativa:false son las primeras `longitud` del banco, en orden.
+  Con adaptativa:true depende de las respuestas: pasale las que tengas
+  (o nada, y te devuelve el recorrido que saldria contestando en blanco).
+*/
+function construirRecorrido(materia, config, respuestas) {
+  var salida = [];
+  var usadas = [];
+  var total = longitudEfectiva(materia, config);
+  for (var i = 0; i < total; i++) {
+    var p = siguientePregunta(materia, config, respuestas || {}, usadas);
+    if (!p) break;
+    salida.push(p);
+    usadas.push(p.id);
+  }
+  return salida;
+}
+
+/* ---------------------------------------------------------------------------
+   6. Diagnostico (determinista, reglas del brief y del contrato v2)
+   --------------------------------------------------------------------------- */
+
+/* Busca la opcion elegida por su letra ORIGINAL. */
 function opcionPorLetra(pregunta, letra) {
   if (!pregunta || !letra) return null;
   var ops = pregunta.opciones || [];
@@ -1446,11 +2569,109 @@ function esCorrecta(pregunta, letra) {
   return !!(op && op.correcta);
 }
 
+/* Porcentaje crudo -> porcentaje de presentacion, con el mapa del contenido. */
+function porcentajeMostrado(crudo) {
+  var mapa = CONTENIDO.mapaPct || {};
+  if (mapa[crudo] !== undefined) return mapa[crudo];
+  // No esta en la tabla: nos acercamos al escalon mas parecido.
+  var claves = Object.keys(mapa).map(Number).filter(function (n) { return isFinite(n); });
+  if (!claves.length) return crudo;
+  var mejor = claves[0];
+  for (var i = 1; i < claves.length; i++) {
+    if (Math.abs(claves[i] - crudo) < Math.abs(mejor - crudo)) mejor = claves[i];
+  }
+  return mapa[mejor];
+}
+
+/* Las preguntas del estudiante en el orden en que se le presentaron. */
+function ordenRespondido(materia, respuestas) {
+  var lista = [];
+  if (estado.itemsEstudiante.length) {
+    estado.itemsEstudiante.forEach(function (it) { lista.push(it.pregunta); });
+  }
+  if (!lista.length) lista = bancoDe(materia).slice();
+  // Cualquier respuesta suelta que no este en el recorrido tambien cuenta.
+  Object.keys(respuestas || {}).forEach(function (id) {
+    var existe = lista.some(function (p) { return p.id === id; });
+    if (!existe) {
+      var p = preguntaPorId(id, materia);
+      if (p) lista.push(p);
+    }
+  });
+  return lista.filter(function (p) { return respuestas && respuestas[p.id] !== undefined; });
+}
+
+/*
+  respuestas: { p1:'A', p2:'B', ... } con la LETRA ORIGINAL elegida.
+  opciones (opcional): { materia, orden }
+  Devuelve { barras:[{subtema,nombre,pct,crudo,aciertos,total}], debil, error }
+*/
+function calcularDiagnostico(respuestas, opciones) {
+  var opts = opciones || {};
+  var materia = opts.materia || materiaActual();
+  var orden = opts.orden || ordenRespondido(materia, respuestas);
+
+  // 1. Aciertos por subtema, solo sobre lo RESPONDIDO.
+  var conteo = {};
+  orden.forEach(function (p) {
+    var clave = p.subtema;
+    if (!conteo[clave]) conteo[clave] = { aciertos: 0, total: 0 };
+    conteo[clave].total++;
+    if (esCorrecta(p, respuestas[p.id])) conteo[clave].aciertos++;
+  });
+
+  // 2. Barras, en el orden de subtemas de la materia. Los subtemas que la
+  //    prueba no alcanzo a evaluar NO se pintan.
+  var barras = [];
+  subtemasDe(materia).forEach(function (clave) {
+    var c = conteo[clave];
+    if (!c || !c.total) return;
+    var crudo = Math.round((c.aciertos / c.total) * 100);
+    barras.push({
+      subtema: clave,
+      nombre: nombreSubtema(clave, materia),
+      pct: porcentajeMostrado(crudo),
+      crudo: crudo,
+      aciertos: c.aciertos,
+      total: c.total
+    });
+  });
+
+  // 3. Punto debil: el pct mostrado mas bajo. En empate gana el primero del
+  //    orden de subtemas, que es el orden en que ya vienen las barras.
+  var debil = null;
+  if (barras.length) {
+    debil = barras[0];
+    for (var k = 1; k < barras.length; k++) {
+      if (barras[k].pct < debil.pct) debil = barras[k];
+    }
+  }
+
+  // 4. Error: texto de la PRIMERA opcion incorrecta elegida en ese subtema,
+  //    recorriendo las preguntas en el orden en que se respondieron.
+  var error = CONTENIDO.sinFallos;
+  if (debil) {
+    for (var m = 0; m < orden.length; m++) {
+      var pr = orden[m];
+      if (pr.subtema !== debil.subtema) continue;
+      var elegida = opcionPorLetra(pr, respuestas[pr.id]);
+      if (elegida && !elegida.correcta) { error = elegida.error; break; }
+    }
+  }
+
+  return { barras: barras, debil: debil, error: error, materia: materia };
+}
+
 /* Expuesta para que las pruebas la puedan llamar desde fuera. */
 window.calcularDiagnostico = calcularDiagnostico;
 
+/* ¿Ya hay diagnostico que mostrar? */
+function hayDiagnostico() {
+  return estado.pruebaTerminada === true && Object.keys(estado.respuestasEstudiante).length > 0;
+}
+
 /* ---------------------------------------------------------------------------
-   4. Navegacion
+   7. Navegacion
    --------------------------------------------------------------------------- */
 
 /* hash -> id de la <section> */
@@ -1459,12 +2680,14 @@ var SECCIONES = {
   'prueba': 's-prueba',
   'diagnostico': 's-diagnostico',
   'monitores': 's-monitores',
+  'buscar': 's-buscar',
   'perfil': 's-perfil',
   'confirmacion': 's-confirmacion',
   'monitor': 's-monitor',
   'monitor-materia': 's-monitor-materia',
   'certificacion': 's-certificacion',
   'monitor-resultado': 's-monitor-resultado',
+  'crear-perfil': 's-crear-perfil',
   'panel': 's-panel',
   'profesor': 's-profesor'
 };
@@ -1476,14 +2699,26 @@ var PINTORES = {
   'prueba': pintarPrueba,
   'diagnostico': pintarDiagnostico,
   'monitores': pintarMonitores,
+  'buscar': pintarBuscar,
   'perfil': pintarPerfil,
   'confirmacion': pintarConfirmacion,
   'certificacion': pintarCertificacion,
   'monitor-resultado': pintarResultadoCert,
+  'crear-perfil': pintarCrearPerfil,
   'panel': pintarPanel
 };
 
 var primeraPintada = true;
+
+/*
+  Si una pantalla nueva todavia no existe en el HTML, se retira del mapa:
+  asi el hash cae en #inicio en vez de dejar la pagina en blanco.
+*/
+function depurarSecciones() {
+  Object.keys(SECCIONES).forEach(function (hash) {
+    if (!document.getElementById(SECCIONES[hash])) delete SECCIONES[hash];
+  });
+}
 
 /* '#perfil' | 'perfil' | '' -> 'perfil' (o 'inicio' si no se reconoce) */
 function normalizarHash(valor) {
@@ -1498,24 +2733,29 @@ function respuestasContadas(objeto) {
 
 /*
   Guarda de acceso. Devuelve el hash al que realmente se puede entrar.
-  - diagnostico / monitores / perfil / confirmacion: exigen las 4 respuestas
-    del estudiante; perfil y confirmacion ademas un monitor elegido.
-  - monitor-resultado / panel: exigen las 3 respuestas del monitor.
+  - diagnostico / monitores: exigen la prueba terminada, porque su
+    encabezado promete un subtema concreto.
+  - perfil: solo exige un monitor elegido. Se puede llegar desde #buscar
+    sin haber hecho la prueba.
+  - confirmacion: monitor y horario.
+  - buscar: entrada libre, es la puerta para quien no quiere examinarse.
+  - monitor-resultado / panel: exigen la certificacion terminada.
+  - crear-perfil: solo con la certificacion aprobada.
 */
 function hashPermitido(hash) {
-  var totalEstudiante = preguntasEstudiante().length;
-  var totalMonitor = preguntasMonitor().length;
-  var flujoEstudiante = ['diagnostico', 'monitores', 'perfil', 'confirmacion'];
-  var flujoMonitor = ['monitor-resultado', 'panel'];
-
-  if (flujoEstudiante.indexOf(hash) !== -1) {
-    if (respuestasContadas(estado.respuestasEstudiante) < totalEstudiante) return 'inicio';
-    if ((hash === 'perfil' || hash === 'confirmacion') && !estado.monitorElegido) return 'inicio';
-    if (hash === 'confirmacion' && !estado.horarioElegido) return 'inicio';
+  if (hash === 'diagnostico' || hash === 'monitores') {
+    if (!hayDiagnostico()) return 'inicio';
   }
-  if (flujoMonitor.indexOf(hash) !== -1) {
-    if (respuestasContadas(estado.respuestasMonitor) < totalMonitor) return 'monitor';
-    if (hash === 'panel' && estado.certificado !== true) return 'monitor';
+  if (hash === 'perfil') {
+    if (!estado.monitorElegido) return 'inicio';
+  }
+  if (hash === 'confirmacion') {
+    if (!estado.monitorElegido) return 'inicio';
+    if (!estado.horarioElegido) return 'inicio';
+  }
+  if (hash === 'monitor-resultado' || hash === 'panel' || hash === 'crear-perfil') {
+    if (!estado.certTerminada) return 'monitor';
+    if (hash !== 'monitor-resultado' && estado.certificado !== true) return 'monitor';
   }
   return hash;
 }
@@ -1573,17 +2813,39 @@ function enfocarPantalla(hash) {
 }
 
 /* ---------------------------------------------------------------------------
-   5. Reinicio
+   8. Reinicio
    --------------------------------------------------------------------------- */
 
 function reiniciar() {
+  estado.materia = (primeraMateriaActiva() || MATERIA_VACIA).id;
+
+  estado.itemsEstudiante = [];
   estado.respuestasEstudiante = {};
+  estado.indicePregunta = 0;
+  estado.pruebaTerminada = false;
+
+  estado.itemsMonitor = [];
   estado.respuestasMonitor = {};
+  estado.indiceCertificacion = 0;
+  estado.certTerminada = false;
+  estado.certificado = null;
+
   estado.monitorElegido = null;
   estado.horarioElegido = null;
-  estado.indicePregunta = 0;
-  estado.indiceCertificacion = 0;
-  estado.certificado = null;
+  estado.filtros = { materia: null, subtema: null, precioMax: null, nivelMin: null };
+
+  // El perfil que se creo durante la demo desaparece de la lista publica.
+  estado.monitorNuevo = null;
+  if (Array.isArray(CONTENIDO.monitores)) {
+    for (var n = CONTENIDO.monitores.length - 1; n >= 0; n--) {
+      if (CONTENIDO.monitores[n] && CONTENIDO.monitores[n].recienCreado) {
+        CONTENIDO.monitores.splice(n, 1);
+      }
+    }
+  }
+
+  reiniciarAleatorio();
+  limpiarFormularioPerfil();
 
   // Los formularios de captura vuelven a estar disponibles.
   var capturas = document.querySelectorAll('.captura');
@@ -1612,15 +2874,18 @@ function reiniciar() {
 }
 
 /* ---------------------------------------------------------------------------
-   6. Componente de prueba (estudiante y monitor comparten codigo)
+   9. Componente de prueba (estudiante y monitor comparten codigo)
    --------------------------------------------------------------------------- */
 
-/* Configuracion de cada una de las dos pruebas. */
 function configEstudiante() {
+  var materia = materiaActual();
   return {
     prefijo: 'prueba',
-    preguntas: preguntasEstudiante(),
+    materia: materia,
+    config: configPrueba(materia),
+    items: function () { return estado.itemsEstudiante; },
     respuestas: estado.respuestasEstudiante,
+    total: function () { return longitudEfectiva(materia, configPrueba(materia)); },
     indice: function () { return estado.indicePregunta; },
     fijarIndice: function (n) { estado.indicePregunta = n; },
     ids: {
@@ -1632,15 +2897,22 @@ function configEstudiante() {
       opciones: '#prueba-opciones',
       siguiente: '#prueba-siguiente'
     },
-    alTerminar: function () { ir('diagnostico'); }
+    alTerminar: function () {
+      estado.pruebaTerminada = true;
+      ir('diagnostico');
+    }
   };
 }
 
 function configMonitor() {
+  var materia = materiaActual();
   return {
     prefijo: 'cert',
-    preguntas: preguntasMonitor(),
+    materia: materia,
+    config: configCertificacion(materia),
+    items: function () { return estado.itemsMonitor; },
     respuestas: estado.respuestasMonitor,
+    total: function () { return longitudEfectiva(materia, configCertificacion(materia)); },
     indice: function () { return estado.indiceCertificacion; },
     fijarIndice: function (n) { estado.indiceCertificacion = n; },
     ids: {
@@ -1653,26 +2925,48 @@ function configMonitor() {
       siguiente: '#cert-siguiente'
     },
     alTerminar: function () {
-      estado.certificado = aciertosMonitor() >= minimoAciertos();
+      estado.certTerminada = true;
+      estado.certificado = aciertosMonitor() >= minimoAciertos(materia);
       ir('monitor-resultado');
     }
   };
 }
 
+/*
+  Devuelve el item de la posicion i, construyendolo si hace falta.
+  Aqui es donde el adaptativo pide la siguiente pregunta, ya con las
+  respuestas dadas hasta ese momento.
+*/
+function itemEnIndice(cfg, i) {
+  var items = cfg.items();
+  if (!items.length) reiniciarAleatorio();
+  while (items.length <= i) {
+    var p = siguientePregunta(cfg.materia, cfg.config, cfg.respuestas, idsUsados(items));
+    if (!p) break;
+    items.push(construirItem(p, cfg.config, items.length));
+  }
+  return items[i] || null;
+}
+
 /* Pinta la pregunta actual de la prueba que se le pase. */
 function pintarPruebaGenerica(cfg) {
-  var preguntas = cfg.preguntas;
-  if (!preguntas.length) return;
+  var total = cfg.total();
+  if (!total) return;
 
-  // Si se vuelve atras despues de terminar, nos quedamos en la ultima.
-  var i = Math.min(Math.max(cfg.indice(), 0), preguntas.length - 1);
+  var i = Math.min(Math.max(cfg.indice(), 0), total - 1);
+  var item = itemEnIndice(cfg, i);
+  // Si el banco se agoto antes, nos quedamos en el ultimo item construido.
+  while (!item && i > 0) { i--; item = cfg.items()[i]; }
+  if (!item) return;
   cfg.fijarIndice(i);
-  var pregunta = preguntas[i];
+
+  var pregunta = item.pregunta;
+  var visibles = Math.min(total, Math.max(cfg.items().length, i + 1));
 
   var contador = $(cfg.ids.contador);
-  if (contador) contador.textContent = 'Pregunta ' + (i + 1) + ' de ' + preguntas.length;
+  if (contador) contador.textContent = 'Pregunta ' + (i + 1) + ' de ' + total;
 
-  var pct = Math.round(((i + 1) / preguntas.length) * 100);
+  var pct = Math.round(((i + 1) / total) * 100);
   var track = $(cfg.ids.track);
   if (track) {
     track.setAttribute('role', 'progressbar');
@@ -1684,7 +2978,7 @@ function pintarPruebaGenerica(cfg) {
   anchoBarra($(cfg.ids.fill), pct);
 
   var topic = $(cfg.ids.topic);
-  if (topic) topic.textContent = nombreSubtema(pregunta.subtema);
+  if (topic) topic.textContent = nombreSubtema(pregunta.subtema, cfg.materia);
 
   var enunciado = $(cfg.ids.enunciado);
   if (enunciado) enunciado.textContent = pregunta.enunciado;
@@ -1694,25 +2988,28 @@ function pintarPruebaGenerica(cfg) {
   var yaElegida = cfg.respuestas[pregunta.id] || null;
   if (lista) {
     vaciar(lista);
+    lista.setAttribute('data-pregunta', pregunta.id);
     var grupo = cfg.prefijo + '-' + pregunta.id;
-    (pregunta.opciones || []).forEach(function (op) {
+    item.opciones.forEach(function (vista) {
+      var op = vista.original;
       var li = document.createElement('li');
       var label = crear('label', 'opt');
 
       var radio = document.createElement('input');
       radio.type = 'radio';
       radio.name = grupo;
+      // El valor es la letra ORIGINAL: la identidad de la opcion, no su sitio.
       radio.value = op.letra;
       if (yaElegida === op.letra) radio.checked = true;
 
-      var key = crear('span', 'key', op.letra);
+      var key = crear('span', 'key', vista.letra);
       key.setAttribute('aria-hidden', 'true');
 
-      var txt = crear('span', 'txt', op.texto);
+      var texto = crear('span', 'txt', op.texto);
 
       label.appendChild(radio);
       label.appendChild(key);
-      label.appendChild(txt);
+      label.appendChild(texto);
       li.appendChild(label);
       lista.appendChild(li);
     });
@@ -1721,6 +3018,8 @@ function pintarPruebaGenerica(cfg) {
   // El boton arranca deshabilitado; se habilita al elegir.
   var siguiente = $(cfg.ids.siguiente);
   if (siguiente) siguiente.disabled = !yaElegida;
+
+  return visibles;
 }
 
 function pintarPrueba() { pintarPruebaGenerica(configEstudiante()); }
@@ -1732,10 +3031,10 @@ function avanzarPrueba(cfg) {
   var siguiente = $(cfg.ids.siguiente);
   if (siguiente && siguiente.disabled) return;
 
-  var preguntas = cfg.preguntas;
   var i = cfg.indice();
-  var pregunta = preguntas[i];
-  if (!pregunta) return;
+  var item = cfg.items()[i];
+  if (!item) return;
+  var pregunta = item.pregunta;
 
   var lista = $(cfg.ids.opciones);
   var marcada = lista ? lista.querySelector('input[type="radio"]:checked') : null;
@@ -1744,30 +3043,83 @@ function avanzarPrueba(cfg) {
   cfg.respuestas[pregunta.id] = marcada.value;
   if (siguiente) siguiente.disabled = true;   // evita el segundo clic inmediato
 
-  if (i + 1 >= preguntas.length) {
-    cfg.fijarIndice(preguntas.length - 1);
+  var total = cfg.total();
+  if (i + 1 >= total) {
     cfg.alTerminar();
-  } else {
-    cfg.fijarIndice(i + 1);
-    pintarPruebaGenerica(cfg);
+    return;
   }
+
+  // El adaptativo elige la siguiente AHORA, ya con esta respuesta contada.
+  var proximo = itemEnIndice(cfg, i + 1);
+  if (!proximo) {
+    // Se agoto el banco antes de tiempo: se cierra con lo respondido.
+    cfg.alTerminar();
+    return;
+  }
+  cfg.fijarIndice(i + 1);
+  pintarPruebaGenerica(cfg);
 }
 
 /* Aciertos del monitor en la prueba de certificacion. */
 function aciertosMonitor() {
-  var preguntas = preguntasMonitor();
   var n = 0;
-  for (var i = 0; i < preguntas.length; i++) {
-    if (esCorrecta(preguntas[i], estado.respuestasMonitor[preguntas[i].id])) n++;
-  }
+  estado.itemsMonitor.forEach(function (it) {
+    if (esCorrecta(it.pregunta, estado.respuestasMonitor[it.pregunta.id])) n++;
+  });
   return n;
 }
 
+/*
+  Puerta para el arnes de pruebas: responder por IDENTIDAD de la opcion,
+  no por su posicion ni por la letra que se ve.
+    idPregunta  -> 'p1'
+    textoOpcion -> el texto exacto de la opcion, o su letra original.
+    avanzar     -> true para que ademas pase a la siguiente pregunta.
+  Devuelve true si pudo registrar la respuesta.
+*/
+function responderPorIdentidad(idPregunta, textoOpcion, avanzar) {
+  var candidatas = [configEstudiante(), configMonitor()];
+  for (var c = 0; c < candidatas.length; c++) {
+    var cfg = candidatas[c];
+    var item = null;
+    var items = cfg.items();
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].pregunta.id === idPregunta) { item = items[i]; break; }
+    }
+    if (!item) continue;
+
+    var elegida = null;
+    for (var j = 0; j < item.opciones.length; j++) {
+      var op = item.opciones[j].original;
+      if (op.texto === textoOpcion || op.letra === textoOpcion) { elegida = op; break; }
+    }
+    if (!elegida) return false;
+
+    cfg.respuestas[idPregunta] = elegida.letra;
+
+    // Si esa pregunta esta en pantalla, la marcamos tambien en el DOM.
+    var lista = $(cfg.ids.opciones);
+    if (lista && lista.getAttribute('data-pregunta') === idPregunta) {
+      var radios = lista.querySelectorAll('input[type="radio"]');
+      for (var r = 0; r < radios.length; r++) {
+        radios[r].checked = radios[r].value === elegida.letra;
+      }
+      var boton = $(cfg.ids.siguiente);
+      if (boton) boton.disabled = false;
+      if (avanzar) avanzarPrueba(cfg);
+    }
+    return true;
+  }
+  return false;
+}
+
+window.__calibraResponder = responderPorIdentidad;
+
 /* ---------------------------------------------------------------------------
-   7. Renderizadores
+   10. Renderizadores
    --------------------------------------------------------------------------- */
 
-/* E1 y M2: la lista de materias. Solo Calculo Integral es seleccionable. */
+/* E1 y M2: la lista de materias. Solo las activas son seleccionables. */
 function pintarMaterias() {
   pintarListaMaterias('#lista-materias');
   pintarListaMaterias('#lista-materias-monitor');
@@ -1778,7 +3130,7 @@ function pintarListaMaterias(selector) {
   if (!contenedor) return;
   vaciar(contenedor);
 
-  CONTENIDO.materias.forEach(function (materia) {
+  listaMaterias().forEach(function (materia) {
     var li = document.createElement('li');
     var boton = document.createElement('button');
     boton.type = 'button';
@@ -1788,14 +3140,18 @@ function pintarListaMaterias(selector) {
     if (materia.activa) {
       // La materia se SELECCIONA. Iniciar la prueba es cosa del boton principal
       // de la pantalla ("Empezar la prueba" / "Continuar"), como manda el brief.
-      boton.classList.add('is-activa');
-      boton.setAttribute('aria-pressed', 'true');
+      var seleccionada = materia.id === materiaActual().id;
+      if (seleccionada) boton.classList.add('is-activa');
+      boton.setAttribute('aria-pressed', seleccionada ? 'true' : 'false');
+      boton.addEventListener('click', function () {
+        elegirMateria(materia.id);
+      });
     } else {
       // Ni enfocable ni accionable, y anunciada como deshabilitada.
       boton.disabled = true;
       boton.setAttribute('aria-disabled', 'true');
       boton.setAttribute('tabindex', '-1');
-      boton.appendChild(crear('span', 'chip', 'pronto'));
+      boton.appendChild(crear('span', 'chip etiqueta-pronto', txt('e1EtiquetaPronto', 'pronto')));
     }
 
     li.appendChild(boton);
@@ -1803,9 +3159,29 @@ function pintarListaMaterias(selector) {
   });
 }
 
+/* Cambiar de materia tira lo respondido: el diagnostico seria de otra cosa. */
+function elegirMateria(id) {
+  if (estado.materia === id) { pintarMaterias(); return; }
+  estado.materia = id;
+  estado.itemsEstudiante = [];
+  estado.respuestasEstudiante = {};
+  estado.indicePregunta = 0;
+  estado.pruebaTerminada = false;
+  estado.itemsMonitor = [];
+  estado.respuestasMonitor = {};
+  estado.indiceCertificacion = 0;
+  estado.certTerminada = false;
+  estado.certificado = null;
+  estado.monitorElegido = null;
+  estado.horarioElegido = null;
+  reiniciarAleatorio();
+  pintarMaterias();
+}
+
 /* E3: barras por subtema y tarjeta del punto debil. */
 function pintarDiagnostico() {
-  var diag = calcularDiagnostico(estado.respuestasEstudiante);
+  var materia = materiaActual();
+  var diag = calcularDiagnostico(estado.respuestasEstudiante, { materia: materia });
 
   var barras = $('#diag-barras');
   if (barras) {
@@ -1814,6 +3190,9 @@ function pintarDiagnostico() {
       var esDebil = diag.debil && b.subtema === diag.debil.subtema;
       var li = document.createElement('li');
       if (esDebil) li.className = 'is-weak';
+      // El porcentaje real queda aqui por si alguien quiere depurar el mapa.
+      li.setAttribute('data-subtema', b.subtema);
+      li.setAttribute('data-pct-crudo', String(b.crudo));
 
       var head = crear('div', 'bar-head');
       head.appendChild(crear('span', 'bar-name', b.nombre));
@@ -1848,70 +3227,98 @@ function pintarDiagnostico() {
   }
 }
 
-/* E4: las tres tarjetas de monitor. La recomendada va primera y marcada. */
+/* Monitores de una materia (los que no declaran materia valen para todas). */
+function monitoresDe(idMateria) {
+  var lista = Array.isArray(CONTENIDO.monitores) ? CONTENIDO.monitores : [];
+  if (!idMateria) return lista.slice();
+  return lista.filter(function (m) { return !m.materia || m.materia === idMateria; });
+}
+
+/* E4: las tarjetas de monitor del subtema debil. La recomendada va primera. */
 function pintarMonitores() {
   var contenedor = $('#lista-monitores');
   if (!contenedor) return;
   vaciar(contenedor);
 
-  var ordenados = CONTENIDO.monitores.slice().sort(function (a, b) {
+  var ordenados = monitoresDe(materiaActual().id).sort(function (a, b) {
     return (b.recomendado ? 1 : 0) - (a.recomendado ? 1 : 0);
   });
 
   ordenados.forEach(function (m) {
-    var li = document.createElement('li');
-    var card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'monitor-card' + (m.recomendado ? ' is-recomendado' : '');
-    card.setAttribute('aria-label', 'Ver el perfil de ' + m.nombre + ' y agendar');
-    // Marcador declarativo del contrato: la navegacion la hace el manejador
-    // delegado de [data-ir]. El listener de abajo solo fija el estado, y corre
-    // antes porque burbujea desde la tarjeta hasta document.
-    card.setAttribute('data-ir', 'perfil');
-
-    if (m.recomendado) card.appendChild(crear('span', 'eyebrow', 'Monitor recomendado'));
-
-    var id = crear('div', 'tutor-id');
-    var avatar = crear('div', 'avatar', m.inicial);
-    avatar.setAttribute('aria-hidden', 'true');
-    var datos = document.createElement('div');
-    datos.appendChild(crear('span', 'tutor-name', m.nombre));
-    datos.appendChild(crear('span', 'tutor-program', m.programa));
-    id.appendChild(avatar);
-    id.appendChild(datos);
-    card.appendChild(id);
-
-    card.appendChild(chipsDe(m));
-    card.appendChild(crear('p', 'specialty', m.encaje));
-    card.appendChild(precioElemento(m.precio));
-
-    card.addEventListener('click', function () {
-      estado.monitorElegido = m;
-      estado.horarioElegido = null;
-    });
-
-    li.appendChild(card);
-    contenedor.appendChild(li);
+    contenedor.appendChild(tarjetaMonitor(m));
   });
+}
+
+/* Una tarjeta de monitor, reutilizada por E4 y por el buscador B1. */
+function tarjetaMonitor(m) {
+  var li = document.createElement('li');
+  var card = document.createElement('button');
+  card.type = 'button';
+  card.className = 'monitor-card' + (m.recomendado ? ' is-recomendado' : '');
+  card.setAttribute('aria-label', 'Ver el perfil de ' + m.nombre + ' y agendar');
+  // Marcador declarativo del contrato: la navegacion la hace el manejador
+  // delegado de [data-ir]. El listener de abajo solo fija el estado, y corre
+  // antes porque burbujea desde la tarjeta hasta document.
+  card.setAttribute('data-ir', 'perfil');
+  // Datos de la tarjeta expuestos como atributos: los usa el arnes para
+  // comprobar que los filtros filtran de verdad, sin depender del texto.
+  if (m.materia) card.setAttribute('data-materia', m.materia);
+  if (m.subtemas && m.subtemas.length) {
+    card.setAttribute('data-subtema', m.subtemas.join(' '));
+    card.setAttribute('data-subtemas', m.subtemas.join(' '));
+  }
+  if (m.nivel != null) card.setAttribute('data-nivel', String(m.nivel));
+  if (m.precio != null) card.setAttribute('data-precio', String(m.precio));
+
+  if (m.recomendado) card.appendChild(crear('span', 'eyebrow', txt('e4Recomendado', 'Monitor recomendado')));
+  else if (m.recienCreado) card.appendChild(crear('span', 'eyebrow', txt('m5TuPerfil', 'Tu perfil')));
+
+  var id = crear('div', 'tutor-id');
+  var avatar = crear('div', 'avatar', m.inicial || inicialDe(m.nombre));
+  avatar.setAttribute('aria-hidden', 'true');
+  var datos = document.createElement('div');
+  datos.appendChild(crear('span', 'tutor-name', m.nombre));
+  datos.appendChild(crear('span', 'tutor-program', m.programa));
+  id.appendChild(avatar);
+  id.appendChild(datos);
+  card.appendChild(id);
+
+  card.appendChild(chipsDe(m));
+  card.appendChild(crear('p', 'specialty', m.encaje));
+  card.appendChild(precioElemento(m.precio));
+
+  card.addEventListener('click', function () {
+    estado.monitorElegido = m;
+    estado.horarioElegido = null;
+  });
+
+  li.appendChild(card);
+  return li;
 }
 
 /* Chips de nivel, calificacion y (si aplica) mismo profesor. */
 function chipsDe(m) {
   var chips = crear('ul', 'chips');
+
   var nivel = document.createElement('li');
   nivel.className = 'chip';
-  nivel.textContent = 'Nivel ' + m.nivel;
+  nivel.textContent = txt('e4ChipNivel', 'Nivel {nivel}', { nivel: m.nivel });
   chips.appendChild(nivel);
 
   var calif = document.createElement('li');
   calif.className = 'chip';
-  calif.textContent = m.calificacion + ' ★ (' + m.resenas + ')';
+  if (m.calificacion) {
+    calif.textContent = m.calificacion + ' ★ (' + (m.resenas || 0) + ')';
+  } else {
+    // Honestidad: un monitor recien creado no tiene calificacion que enseñar.
+    calif.textContent = txt('e4ChipNuevo', 'Monitor nuevo');
+  }
   chips.appendChild(calif);
 
   if (m.mismoProfesor) {
     var prof = document.createElement('li');
     prof.className = 'chip';
-    prof.textContent = 'Cursó con tu mismo profesor';
+    prof.textContent = txt('e4ChipMismoProfesor', 'Cursó con tu mismo profesor');
     chips.appendChild(prof);
   }
   return chips;
@@ -1924,19 +3331,183 @@ function precioElemento(valor) {
   return p;
 }
 
-/* E5: perfil del monitor elegido, horarios y boton de agendar. */
+/* ---------------------------------------------------------------------------
+   11. B1 · Buscar monitores sin hacer la prueba
+   --------------------------------------------------------------------------- */
+
+/* Rellena un <select> una sola vez, respetando lo que ya tuviera. */
+function llenarSelect(select, opciones, textoVacio) {
+  if (!select || select.tagName !== 'SELECT') return;
+  if (select.getAttribute('data-lleno') === '1') return;
+  vaciar(select);
+  var vacio = document.createElement('option');
+  vacio.value = '';
+  vacio.textContent = textoVacio;
+  select.appendChild(vacio);
+  opciones.forEach(function (o) {
+    var op = document.createElement('option');
+    op.value = String(o.valor);
+    op.textContent = o.texto;
+    select.appendChild(op);
+  });
+  select.setAttribute('data-lleno', '1');
+}
+
+/* El de subtemas se rehace cada vez que cambia la materia del filtro. */
+function llenarSelectSubtemas() {
+  var select = $('#filtro-subtema');
+  if (!select || select.tagName !== 'SELECT') return;
+  var materia = materiaPorId(estado.filtros.materia);
+  var previo = estado.filtros.subtema;
+  vaciar(select);
+
+  var vacio = document.createElement('option');
+  vacio.value = '';
+  vacio.textContent = txt('b1TodosSubtemas', 'Todos los subtemas');
+  select.appendChild(vacio);
+
+  if (!materia) {
+    // Sin materia elegida el filtro sigue sirviendo: ofrece los subtemas de
+    // todas las materias activas, para poder buscar "quien sabe de X" sin
+    // tener que acotar la materia primero.
+    var vistos = {};
+    CONTENIDO.materias.filter(function (m) { return m.activa; }).forEach(function (m) {
+      subtemasDe(m).forEach(function (clave) {
+        if (vistos[clave]) return;
+        vistos[clave] = true;
+        var op = document.createElement("option");
+        op.value = clave;
+        op.textContent = nombreSubtema(clave, m);
+        select.appendChild(op);
+      });
+    });
+    select.disabled = false;
+    if (previo && vistos[previo]) select.value = previo;
+    else estado.filtros.subtema = null;
+    return;
+  }
+  select.disabled = false;
+  subtemasDe(materia).forEach(function (clave) {
+    var op = document.createElement('option');
+    op.value = clave;
+    op.textContent = nombreSubtema(clave, materia);
+    select.appendChild(op);
+  });
+  if (previo && subtemasDe(materia).indexOf(previo) !== -1) select.value = previo;
+  else estado.filtros.subtema = null;
+}
+
+/* Prepara los controles del buscador. Se llama una vez al arrancar. */
+function prepararFiltros() {
+  llenarSelect($('#filtro-materia'),
+    listaMaterias().map(function (m) { return { valor: m.id, texto: m.nombre }; }),
+    txt('b1TodasMaterias', 'Todas las materias'));
+
+  llenarSelect($('#filtro-precio'),
+    (CONTENIDO.precios || []).map(function (p) {
+      return { valor: p, texto: txt('b1HastaPrecio', 'Hasta {precio}', { precio: formatoPesos(p) }) };
+    }),
+    txt('b1CualquierPrecio', 'Cualquier precio'));
+
+  llenarSelect($('#filtro-nivel'),
+    (CONTENIDO.niveles || []).map(function (n) {
+      return { valor: n, texto: txt('b1NivelMinimo', 'Nivel {nivel} o más', { nivel: n }) };
+    }),
+    txt('b1CualquierNivel', 'Cualquier nivel'));
+
+  llenarSelectSubtemas();
+}
+
+/* Lee el valor de un control de filtro, sea <select> o <input>. */
+function valorFiltro(selector) {
+  var el = $(selector);
+  if (!el) return '';
+  return String(el.value === undefined || el.value === null ? '' : el.value).trim();
+}
+
+function numeroONulo(valor) {
+  if (valor === '') return null;
+  var n = Number(valor);
+  return isFinite(n) ? n : null;
+}
+
+/* Vuelca los controles al estado.filtros. */
+function leerFiltros() {
+  var materiaPrevia = estado.filtros.materia;
+  estado.filtros.materia = valorFiltro('#filtro-materia') || null;
+  if (estado.filtros.materia !== materiaPrevia) llenarSelectSubtemas();
+  estado.filtros.subtema = valorFiltro('#filtro-subtema') || null;
+  estado.filtros.precioMax = numeroONulo(valorFiltro('#filtro-precio'));
+  estado.filtros.nivelMin = numeroONulo(valorFiltro('#filtro-nivel'));
+}
+
+function pasaFiltros(m) {
+  var f = estado.filtros;
+  if (f.materia && m.materia && m.materia !== f.materia) return false;
+  if (f.subtema) {
+    var suyos = Array.isArray(m.subtemas) ? m.subtemas : [];
+    if (suyos.indexOf(f.subtema) === -1) return false;
+  }
+  if (f.precioMax !== null && Number(m.precio) > f.precioMax) return false;
+  if (f.nivelMin !== null && Number(m.nivel) < f.nivelMin) return false;
+  return true;
+}
+
+/* B1: lista completa de monitores con los filtros aplicados. */
+function pintarBuscar() {
+  var lista = $('#buscar-lista');
+  leerFiltros();
+
+  var encontrados = (Array.isArray(CONTENIDO.monitores) ? CONTENIDO.monitores : [])
+    .filter(pasaFiltros)
+    .sort(function (a, b) { return (b.recomendado ? 1 : 0) - (a.recomendado ? 1 : 0); });
+
+  if (lista) {
+    vaciar(lista);
+    encontrados.forEach(function (m) { lista.appendChild(tarjetaMonitor(m)); });
+  }
+
+  var conteo = $('#buscar-conteo');
+  if (conteo) {
+    conteo.textContent = encontrados.length === 1
+      ? txt('b1ConteoUno', '1 monitor')
+      : txt('b1Conteo', '{n} monitores', { n: encontrados.length });
+  }
+
+  var vacio = $('#buscar-vacio');
+  if (vacio) {
+    vacio.hidden = encontrados.length > 0;
+    if (!vacio.textContent.trim()) {
+      vacio.textContent = txt('b1Vacio', 'Ningún monitor cumple esos filtros. Prueba con menos condiciones.');
+    }
+  }
+}
+
+function engancharBuscar() {
+  ['#filtro-materia', '#filtro-subtema', '#filtro-precio', '#filtro-nivel'].forEach(function (sel) {
+    var el = $(sel);
+    if (!el) return;
+    el.addEventListener('change', pintarBuscar);
+    el.addEventListener('input', pintarBuscar);
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   12. E5 · Perfil y agendar
+   --------------------------------------------------------------------------- */
+
 function pintarPerfil() {
   var cont = $('#perfil-contenido');
   var m = estado.monitorElegido;
   if (!cont || !m) return;
   vaciar(cont);
 
-  if (m.recomendado) cont.appendChild(crear('p', 'eyebrow', 'Monitor recomendado'));
+  if (m.recomendado) cont.appendChild(crear('p', 'eyebrow', txt('e4Recomendado', 'Monitor recomendado')));
 
   // Tarjeta de identidad
   var tutor = crear('article', 'tutor');
   var id = crear('div', 'tutor-id');
-  var avatar = crear('div', 'avatar', m.inicial);
+  var avatar = crear('div', 'avatar', m.inicial || inicialDe(m.nombre));
   avatar.setAttribute('aria-hidden', 'true');
   var datos = document.createElement('div');
   var h1 = crear('h1', 'tutor-name', m.nombre);
@@ -1950,13 +3521,29 @@ function pintarPerfil() {
   tutor.appendChild(crear('p', 'specialty', m.encaje));
   cont.appendChild(tutor);
 
-  // Tarjeta destacada, texto literal del brief
-  var callout = crear('p', 'callout');
-  callout.appendChild(document.createTextNode(
-    nombrePila(m.nombre) + ' recibirá tu diagnóstico antes de la sesión: '));
-  callout.appendChild(crear('strong', null,
-    'qué explicarte, en qué orden y con qué ejercicio arrancar.'));
-  cont.appendChild(callout);
+  if (hayDiagnostico()) {
+    // Tarjeta destacada, texto literal del brief
+    var callout = crear('p', 'callout');
+    callout.appendChild(document.createTextNode(
+      nombrePila(m.nombre) + ' recibirá tu diagnóstico antes de la sesión: '));
+    callout.appendChild(crear('strong', null,
+      'qué explicarte, en qué orden y con qué ejercicio arrancar.'));
+    cont.appendChild(callout);
+  } else {
+    // Sin prueba hecha no hay diagnostico que prometer. Se dice y se invita.
+    var invita = crear('div', 'callout');
+    invita.appendChild(crear('p', null,
+      txt('e5SinDiagnostico',
+        'Todavía no tienes diagnóstico. Haz la prueba y {nombre} sabrá qué explicarte antes de sentarse contigo.',
+        { nombre: nombrePila(m.nombre) })));
+    var botonPrueba = document.createElement('button');
+    botonPrueba.type = 'button';
+    botonPrueba.className = 'btn-sec';
+    botonPrueba.setAttribute('data-ir', 'prueba');
+    botonPrueba.textContent = txt('e5SinDiagnosticoBoton', 'Hacer la prueba');
+    invita.appendChild(botonPrueba);
+    cont.appendChild(invita);
+  }
 
   cont.appendChild(precioElemento(m.precio));
 
@@ -1964,17 +3551,16 @@ function pintarPerfil() {
   var agendar = document.createElement('button');
   agendar.type = 'button';
   agendar.className = 'btn';
-  agendar.textContent = 'Agendar y pagar';
+  agendar.textContent = txt('e5Boton', 'Agendar y pagar');
   agendar.disabled = !estado.horarioElegido;
   // Marcador declarativo del contrato. El manejador delegado de [data-ir] ignora
   // los botones deshabilitados, asi que no hace falta comprobar el horario aqui.
   agendar.setAttribute('data-ir', 'confirmacion');
 
   // Horarios como radios
-  var horarios = horariosNormalizados();
+  var horarios = horariosNormalizados(m);
   var fs = crear('fieldset', 'slots');
-  var legend = crear('legend', 'slots-legend', 'Elige un horario');
-  fs.appendChild(legend);
+  fs.appendChild(crear('legend', 'slots-legend', txt('e5Horarios', 'Elige un horario')));
   var grid = crear('ul', 'slot-grid');
   horarios.forEach(function (h) {
     var li = document.createElement('li');
@@ -2022,25 +3608,29 @@ function lineaResumen(etiqueta, valor) {
   return p;
 }
 
-/* M4: resultado de la certificacion. */
+/* ---------------------------------------------------------------------------
+   13. M4 · Resultado de la certificacion
+   --------------------------------------------------------------------------- */
+
 function pintarResultadoCert() {
   var cont = $('#cert-resultado');
   if (!cont) return;
   vaciar(cont);
 
+  var materia = materiaActual();
   var aciertos = aciertosMonitor();
-  estado.certificado = aciertos >= minimoAciertos();
+  estado.certificado = aciertos >= minimoAciertos(materia);
 
   if (!estado.certificado) {
     var no = crear('div', 'estado-cert');
-    no.appendChild(crear('h1', 'title', 'Todavía no. Puedes reintentar en 7 días.'));
+    no.appendChild(crear('h1', 'title', txt('m4Fallido', 'Todavía no. Puedes reintentar en 7 días.')));
     cont.appendChild(no);
     return;   // aqui termina el flujo: sin boton al panel
   }
 
   var ok = crear('div', 'estado-cert');
   ok.appendChild(crear('h1', 'title',
-    'Certificado en ' + campoDe(CONTENIDO.curso, ['nombre'], 'Cálculo Integral')));
+    'Certificado en ' + campoDe(materia, ['nombre'], 'Cálculo Integral')));
   cont.appendChild(ok);
 
   // Perfil generado
@@ -2059,28 +3649,276 @@ function pintarResultadoCert() {
     'Tarifa sugerida ' + precioTexto(tarifa) + '/hora'));
   cont.appendChild(perfil);
 
-  // Paso al panel
+  // Paso siguiente: crear el perfil que veran los estudiantes.
   var pie = crear('div', 'footer');
+  if (SECCIONES['crear-perfil']) {
+    var crearBtn = document.createElement('button');
+    crearBtn.type = 'button';
+    crearBtn.className = 'btn';
+    crearBtn.setAttribute('data-ir', 'crear-perfil');
+    crearBtn.textContent = txt('m4BotonCrearPerfil', 'Crear mi perfil de monitor');
+    pie.appendChild(crearBtn);
+  }
   var boton = document.createElement('button');
   boton.type = 'button';
-  boton.className = 'btn';
+  boton.className = SECCIONES['crear-perfil'] ? 'btn btn-sec' : 'btn';
   boton.setAttribute('data-ir', 'panel');
-  boton.textContent = campoDe(CONTENIDO.textos, ['ctaPanel'], 'Ver mi panel');
+  boton.textContent = campoDe(CONTENIDO.textos, ['m4Boton', 'ctaPanel'], 'Ver mi panel');
   pie.appendChild(boton);
   cont.appendChild(pie);
 }
 
-/* M5: proxima sesion con el brief, y progreso de nivel. */
+/* ---------------------------------------------------------------------------
+   14. R1 · Crear el perfil del monitor
+   --------------------------------------------------------------------------- */
+
+/* Mensaje de error accesible bajo un campo. */
+function errorDeCampo(input, mensaje) {
+  if (!input) return;
+  var id = (input.id || 'campo') + '-error';
+  var aviso = document.getElementById(id);
+  if (!aviso) {
+    aviso = crear('p', 'note aviso-campo');
+    aviso.id = id;
+    aviso.setAttribute('role', 'alert');
+    var ancla = input.closest ? (input.closest('.campo') || input) : input;
+    if (ancla.parentNode) ancla.parentNode.insertBefore(aviso, ancla.nextSibling);
+  }
+  aviso.textContent = mensaje;
+  aviso.hidden = false;
+  input.setAttribute('aria-invalid', 'true');
+  input.setAttribute('aria-describedby', aviso.id);
+}
+
+function limpiarErrorDeCampo(input) {
+  if (!input) return;
+  var aviso = document.getElementById((input.id || 'campo') + '-error');
+  if (aviso && aviso.parentNode) aviso.parentNode.removeChild(aviso);
+  input.removeAttribute('aria-invalid');
+  input.removeAttribute('aria-describedby');
+}
+
+var IDS_PERFIL = ['#perfil-nombre', '#perfil-carrera', '#perfil-semestre',
+                  '#perfil-subtemas', '#perfil-tarifa', '#perfil-horario-1', '#perfil-horario-2'];
+
+function limpiarFormularioPerfil() {
+  IDS_PERFIL.forEach(function (sel) { limpiarErrorDeCampo($(sel)); });
+  var resumen = $('#perfil-errores');
+  if (resumen) { vaciar(resumen); resumen.hidden = true; }
+}
+
+/* Pone los subtemas de la materia en #perfil-subtemas, sea select o caja. */
+function pintarSubtemasPerfil() {
+  var cont = $('#perfil-subtemas');
+  if (!cont) return;
+  var materia = materiaActual();
+  var claves = subtemasDe(materia);
+
+  if (cont.tagName === 'SELECT') {
+    vaciar(cont);
+    cont.multiple = true;
+    claves.forEach(function (clave) {
+      var op = document.createElement('option');
+      op.value = clave;
+      op.textContent = nombreSubtema(clave, materia);
+      cont.appendChild(op);
+    });
+    return;
+  }
+
+  // No es un select: pintamos casillas dentro del contenedor.
+  vaciar(cont);
+  var lista = crear('ul', 'chips');
+  claves.forEach(function (clave) {
+    var li = document.createElement('li');
+    var label = crear('label', 'chip');
+    var caja = document.createElement('input');
+    caja.type = 'checkbox';
+    caja.value = clave;
+    caja.name = 'perfil-subtema';
+    label.appendChild(caja);
+    label.appendChild(document.createTextNode(' ' + nombreSubtema(clave, materia)));
+    li.appendChild(label);
+    lista.appendChild(li);
+  });
+  cont.appendChild(lista);
+}
+
+function subtemasElegidos() {
+  var cont = $('#perfil-subtemas');
+  if (!cont) return [];
+  if (cont.tagName === 'SELECT') {
+    return Array.prototype.slice.call(cont.options)
+      .filter(function (o) { return o.selected && o.value; })
+      .map(function (o) { return o.value; });
+  }
+  return Array.prototype.slice.call(cont.querySelectorAll('input[type="checkbox"]'))
+    .filter(function (c) { return c.checked; })
+    .map(function (c) { return c.value; });
+}
+
+function pintarCrearPerfil() {
+  limpiarFormularioPerfil();
+  pintarSubtemasPerfil();
+
+  // La tarifa sugerida entra ya escrita, para que solo haya que ajustarla.
+  var tarifa = $('#perfil-tarifa');
+  if (tarifa && !tarifa.value) {
+    tarifa.value = String(campoDe(CONTENIDO.perfilNuevo, ['tarifa', 'tarifaSugerida'], 25000));
+  }
+  var horario1 = $('#perfil-horario-1');
+  var horarios = horariosNormalizados(null);
+  if (horario1 && !horario1.value && horarios[0]) horario1.value = horarios[0].texto;
+  var horario2 = $('#perfil-horario-2');
+  if (horario2 && !horario2.value && horarios[1]) horario2.value = horarios[1].texto;
+}
+
+/*
+  Lee el formulario, valida y, si todo esta bien, publica el perfil.
+  Devuelve el monitor creado, o null si hubo errores.
+*/
+function recogerPerfilMonitor() {
+  limpiarFormularioPerfil();
+
+  var materia = materiaActual();
+  var lim = CONTENIDO.limites || {};
+  var elNombre = $('#perfil-nombre');
+  var elCarrera = $('#perfil-carrera');
+  var elSemestre = $('#perfil-semestre');
+  var elTarifa = $('#perfil-tarifa');
+
+  var nombre = elNombre ? String(elNombre.value || '').trim() : '';
+  var carrera = elCarrera ? String(elCarrera.value || '').trim() : '';
+  var semestre = elSemestre ? Number(String(elSemestre.value || '').trim()) : NaN;
+  var tarifa = elTarifa ? Number(String(elTarifa.value || '').replace(/[^\d]/g, '')) : NaN;
+  var fuertes = subtemasElegidos();
+
+  var problemas = [];
+
+  if (!nombre) {
+    var msgN = txt('r1ErrorNombre', 'Escribe tu nombre.');
+    errorDeCampo(elNombre, msgN); problemas.push(msgN);
+  }
+  var sMin = Number(campoDe(lim, ['semestreMin'], 1));
+  var sMax = Number(campoDe(lim, ['semestreMax'], 12));
+  if (!isFinite(semestre) || semestre < sMin || semestre > sMax) {
+    var msgS = txt('r1ErrorSemestre', 'El semestre va de {min} a {max}.', { min: sMin, max: sMax });
+    errorDeCampo(elSemestre, msgS); problemas.push(msgS);
+  }
+  var tMin = Number(campoDe(lim, ['tarifaMin'], 10000));
+  var tMax = Number(campoDe(lim, ['tarifaMax'], 200000));
+  if (!isFinite(tarifa) || tarifa < tMin || tarifa > tMax) {
+    var msgT = txt('r1ErrorTarifa', 'La tarifa va de {min} a {max} por hora.',
+      { min: formatoPesos(tMin), max: formatoPesos(tMax) });
+    errorDeCampo(elTarifa, msgT); problemas.push(msgT);
+  }
+  if (!fuertes.length) {
+    var msgF = txt('r1ErrorSubtemas', 'Elige al menos un subtema.');
+    errorDeCampo($('#perfil-subtemas'), msgF); problemas.push(msgF);
+  }
+
+  var resumen = $('#perfil-errores');
+  if (problemas.length) {
+    if (resumen) {
+      vaciar(resumen);
+      resumen.hidden = false;
+      resumen.setAttribute('role', 'alert');
+      resumen.appendChild(crear('p', 'note', txt('r1Resumen', 'Revisa lo que falta antes de publicar.')));
+    }
+    var primero = document.querySelector('#s-crear-perfil [aria-invalid="true"]');
+    if (primero && primero.focus) { try { primero.focus(); } catch (e) {} }
+    return null;
+  }
+  if (resumen) { vaciar(resumen); resumen.hidden = true; }
+
+  var horarios = [];
+  [$('#perfil-horario-1'), $('#perfil-horario-2')].forEach(function (el) {
+    var v = el ? String(el.value || '').trim() : '';
+    if (v) horarios.push(v);
+  });
+
+  var nombresFuertes = fuertes.map(function (c) { return nombreSubtema(c, materia); });
+
+  var monitor = {
+    inicial: inicialDe(nombre),
+    nombre: nombre,
+    programa: carrera ? (carrera + ' · ' + semestre + 'º semestre') : (semestre + 'º semestre'),
+    materia: materia.id,
+    subtemas: fuertes,
+    nivel: Number(campoDe(CONTENIDO.perfilNuevo, ['nivel'], 1)),
+    calificacion: '',        // todavia no tiene resenas: no inventamos ninguna
+    resenas: 0,
+    precio: tarifa,
+    horarios: horarios,
+    encaje: txt('r1Encaje', 'Fuerte en {subtemas}', { subtemas: nombresFuertes.join(', ') }),
+    mismoProfesor: false,
+    recomendado: false,
+    recienCreado: true
+  };
+
+  estado.monitorNuevo = monitor;
+  if (Array.isArray(CONTENIDO.monitores)) CONTENIDO.monitores.push(monitor);
+
+  ir('panel');
+  return monitor;
+}
+
+function engancharCrearPerfil() {
+  var guardar = $('#perfil-guardar');
+  if (guardar) {
+    guardar.addEventListener('click', function (e) {
+      e.preventDefault();
+      recogerPerfilMonitor();
+    });
+  }
+  // Si el formulario esta dentro de un <form>, el submit hace lo mismo.
+  var form = document.querySelector('#s-crear-perfil form');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      recogerPerfilMonitor();
+    });
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   15. M5 · Panel del monitor
+   --------------------------------------------------------------------------- */
+
 function pintarPanel() {
   var cont = $('#panel-contenido');
   if (!cont) return;
   vaciar(cont);
 
+  var materia = materiaActual();
+  var nuevo = estado.monitorNuevo;
+
+  // Bloque 0: el perfil real, si el monitor ya lo creo.
+  if (nuevo) {
+    var bloque0 = document.createElement('section');
+    bloque0.appendChild(crear('h2', 'eyebrow', txt('m5TuPerfil', 'Tu perfil')));
+    var tarjeta = crear('article', 'tutor');
+    var id = crear('div', 'tutor-id');
+    var avatar = crear('div', 'avatar', nuevo.inicial);
+    avatar.setAttribute('aria-hidden', 'true');
+    var datos = document.createElement('div');
+    datos.appendChild(crear('span', 'tutor-name', nuevo.nombre));
+    datos.appendChild(crear('span', 'tutor-program', nuevo.programa));
+    id.appendChild(avatar);
+    id.appendChild(datos);
+    tarjeta.appendChild(id);
+    tarjeta.appendChild(chipsDe(nuevo));
+    tarjeta.appendChild(crear('p', 'specialty', nuevo.encaje));
+    tarjeta.appendChild(precioElemento(nuevo.precio));
+    bloque0.appendChild(tarjeta);
+    cont.appendChild(bloque0);
+  }
+
   var s = CONTENIDO.sesion;
 
   // Bloque 1: proxima sesion
   var bloque1 = document.createElement('section');
-  bloque1.appendChild(crear('h2', 'eyebrow', 'Próxima sesión'));
+  bloque1.appendChild(crear('h2', 'eyebrow', txt('m5ProximaSesion', 'Próxima sesión')));
   // El brief (seccion 7) pide "Manana 4:00 p. m. con Juan D.": van los dos campos.
   var cuando = campoDe(s, ['cuando', 'titulo', 'encabezado'], 'Mañana 4:00 p. m.');
   var quien = campoDe(s, ['estudiante', 'alumno'], '');
@@ -2089,7 +3927,7 @@ function pintarPanel() {
 
   var brief = crear('div', 'brief-sesion');
   brief.appendChild(lineaBrief('Subtema',
-    campoDe(s, ['subtema'], 'Integración por partes')));
+    campoDe(s, ['subtema'], nombreSubtema(subtemasDe(materia)[0], materia))));
   brief.appendChild(lineaBrief('Error detectado',
     campoDe(s, ['error'], 'elige u por orden alfabético, no por prioridad ILATE')));
   brief.appendChild(lineaBrief('Plan de 60 min',
@@ -2097,15 +3935,18 @@ function pintarPanel() {
   bloque1.appendChild(brief);
   cont.appendChild(bloque1);
 
-  // Bloque 2: progreso
-  var hechas = Number(campoDe(CONTENIDO.progreso, ['hechas', 'actual', 'completadas'], 8));
+  // Bloque 2: progreso. Con perfil recien creado el contador arranca en 0.
+  var hechas = nuevo
+    ? Number(campoDe(CONTENIDO.perfilNuevo, ['monitorias'], 0))
+    : Number(campoDe(CONTENIDO.progreso, ['hechas', 'actual', 'completadas'], 8));
   var meta = Number(campoDe(CONTENIDO.progreso, ['meta', 'total', 'objetivo'], 15));
-  var nivelSig = campoDe(CONTENIDO.progreso, ['nivelSiguiente', 'nivel', 'siguiente'], 2);
+  var nivelSig = campoDe(CONTENIDO.progreso, ['siguienteNivel', 'nivelSiguiente', 'nivel', 'siguiente'], 2);
   var tarifaSig = campoDe(CONTENIDO.progreso, ['tarifaSiguiente', 'tarifa', 'precio'], 35000);
+  if (!isFinite(hechas)) hechas = 0;
   var pct = meta ? Math.round((hechas / meta) * 100) : 0;
 
   var bloque2 = document.createElement('section');
-  bloque2.appendChild(crear('h2', 'eyebrow', 'Tu progreso'));
+  bloque2.appendChild(crear('h2', 'eyebrow', txt('m5ProgresoTitulo', 'Tu progreso')));
 
   var progreso = crear('div', 'progreso');
   var head = crear('div', 'bar-head');
@@ -2141,7 +3982,7 @@ function lineaBrief(etiqueta, valor) {
 }
 
 /* ---------------------------------------------------------------------------
-   8. Captura de correo
+   16. Captura de correo
    --------------------------------------------------------------------------- */
 
 function correoValido(correo) {
@@ -2160,7 +4001,7 @@ function mostrarErrorCorreo(form, input) {
   var aviso = form.querySelector('.aviso-correo');
   if (!aviso) {
     aviso = crear('p', 'note aviso-correo');
-    aviso.id = 'aviso-correo-' + Math.random().toString(36).slice(2, 8);
+    aviso.id = 'aviso-correo-' + Math.floor(aleatorio() * 1e9).toString(36);
     aviso.setAttribute('role', 'alert');
     form.appendChild(aviso);
   }
@@ -2204,7 +4045,7 @@ function enviarCorreo(correo, rol) {
   }
 }
 
-/* Engancha los tres formularios de captura (E6, M4/M5, P1). */
+/* Engancha los formularios de captura (E6, M4/M5, P1). */
 function engancharCapturas() {
   var forms = document.querySelectorAll('.captura');
   for (var i = 0; i < forms.length; i++) {
@@ -2242,7 +4083,7 @@ function engancharCapturas() {
 }
 
 /* ---------------------------------------------------------------------------
-   9. Arranque
+   17. Arranque
    --------------------------------------------------------------------------- */
 
 function engancharNavegacion() {
@@ -2285,16 +4126,39 @@ function engancharNavegacion() {
 }
 
 function iniciar() {
+  depurarSecciones();
   engancharNavegacion();
   engancharCapturas();
+  prepararFiltros();
+  engancharBuscar();
+  engancharCrearPerfil();
+  reiniciarAleatorio();
   aplicarHash();   // lee el hash inicial y aplica la misma guarda
 }
+
+/* Ventana de depuracion para el arnes de pruebas. No pinta nada. */
+// Gancho del contrato v2: el arnes lee y muta este arreglo para forzar
+// { adaptativa:false, barajarOpciones:false } y para saber cual opcion es la correcta.
+window.MATERIAS = CONTENIDO.materias;
+window.__calibraMaterias = CONTENIDO.materias;
+
+window.__calibra = {
+  estado: estado,
+  contenido: CONTENIDO,
+  materiaActual: materiaActual,
+  construirRecorrido: construirRecorrido,
+  siguientePregunta: siguientePregunta,
+  calcularDiagnostico: calcularDiagnostico,
+  aleatorio: aleatorio,
+  reiniciarAleatorio: reiniciarAleatorio
+};
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', iniciar);
 } else {
   iniciar();
 }
+
 </script>
 </body>
 </html>
