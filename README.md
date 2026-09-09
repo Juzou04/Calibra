@@ -1,13 +1,15 @@
 # Calibra · prototipo navegable
 
-Prototipo de validación de Calibra: 12 pantallas, sin backend, sin cuentas y sin pagos. Todo vive en `index.html`.
+Prototipo de validación de Calibra: 14 pantallas, sin backend, sin cuentas y sin pagos. La aplicación entera vive en `index.html`; el contenido de las materias vive en `contenido/`.
 
 1. **Abrirlo.** Doble clic en `index.html`. No necesita servidor, internet ni instalar nada. Si no hay internet, la letra cambia y nada más.
 2. **Publicarlo con GitHub Pages.** Sube la carpeta a un repositorio, entra en Settings, Pages, y elige la rama `main` con la carpeta raíz. La URL queda lista en un par de minutos.
 3. **Publicarlo con Netlify Drop.** Arrastra la carpeta a [app.netlify.com/drop](https://app.netlify.com/drop). Da una URL al instante y no pide cuenta.
 4. **Recoger correos.** Busca `const FORM_ENDPOINT = "";` al inicio del `<script>` y pega ahí la URL de tu formulario de Formspree. Vacío, la demo agradece igual y no envía nada.
-5. **Cambiar materias o preguntas.** Todo está entre `/* CONTENIDO EDITABLE */` y `/* FIN CONTENIDO EDITABLE */`. No hace falta tocar el resto.
-6. **Verificarlo.** `verificar.cmd` recorre los dos flujos en Chromium a 390x844, guarda las capturas en `capturas/` y falla si algo se rompe. Última corrida: 199 de 199.
+5. **Cambiar materias o preguntas.** No se editan en `index.html`: viven en `contenido/`, un archivo Markdown por materia. Se llenan ahí y se corre `node contenido/convertir.js --escribir`. Las instrucciones están en `contenido/README.md`.
+6. **Explorar sin hacer la prueba.** Desde el inicio se puede ir directo a la lista de monitores y filtrar por materia, subtema, precio y nivel. La prueba dejó de ser obligatoria.
+7. **Crear perfil de monitor.** Quien certifica arma su perfil y aparece de inmediato en la lista que ve el estudiante.
+8. **Verificarlo.** `verificar.cmd` recorre los dos flujos en Chromium a 390x844, guarda las capturas en `capturas/` y falla si algo se rompe. Última corrida: 368 de 368.
 
 ## Tres cosas que se apartan del brief
 
