@@ -1,7 +1,7 @@
 {
-  "generado": "2026-09-09T20:41:08.918Z",
+  "generado": "2026-09-09T20:56:44.016Z",
   "version": "v2",
-  "base": "http://127.0.0.1:57225/index.html",
+  "base": "http://127.0.0.1:58677/index.html",
   "bloques": [
     {
       "nombre": "Codigo fuente",
@@ -74,7 +74,7 @@
         {
           "nombre": "window.MATERIAS es legible",
           "ok": true,
-          "detalle": "6 materia(s): calculo-integral, calculo-diferencial, calculo-vectorial, algebra-lineal, fisica-1, probabilidad-estadistica"
+          "detalle": "6 materia(s): calculo-integral, algebra-lineal, calculo-diferencial, calculo-vectorial, fisica-1, probabilidad-estadistica"
         },
         {
           "nombre": "existe la materia \"calculo-integral\"",
@@ -5450,9 +5450,9 @@
         {
           "nombre": "B1 · una combinacion sin resultados muestra #buscar-vacio",
           "ok": true,
-          "detalle": "con materia=Cálculo Diferencial",
+          "detalle": "con materia=Álgebra Lineal",
           "datos": [
-            "materia=Cálculo Diferencial"
+            "materia=Álgebra Lineal"
           ]
         },
         {

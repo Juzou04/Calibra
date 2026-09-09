@@ -1020,6 +1020,21 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   .btn:active,.btn:hover{filter:none}
 }
 
+/* El HTML trae .campo-moneda ($ + input + "/ hora") pero nadie le dio estilo,
+   asi que el simbolo caia en su propia linea encima del campo. */
+.campo-moneda{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.campo-moneda input{flex:1 1 auto;min-inline-size:0}
+.prefijo-moneda,.sufijo-moneda{
+  flex:0 0 auto;
+  font-size:16px;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
 </style>
 </head>
 <body>
@@ -1602,7 +1617,9 @@ const SEMILLA = 20260909;
 */
 const MATERIAS = [
 
-  /* ----- Cálculo Integral: la unica materia con banco completo ----- */
+  /* Generado por contenido/convertir.js. No edites aqui: edita los .md
+     de la carpeta contenido/ y vuelve a correr el conversor. */
+
   {
     id: 'calculo-integral',
     codigo: 'MATE-1214',
@@ -1610,167 +1627,127 @@ const MATERIAS = [
     activa: true,
     contexto: 'antes del parcial 2',
     libro: 'Stewart, Cálculo de una variable, 6.ª ed.',
-    subtemas: {
-      partes: 'Integración por partes',
-      sustitucion: 'Sustitución',
-      impropias: 'Integrales impropias',
-    },
+    subtemas: { partes: 'Integración por partes', sustitucion: 'Sustitución', impropias: 'Integrales impropias' },
     preguntas: [
-      {
-        id: 'p1',
-        subtema: 'partes',
-        dificultad: 2,
+      { id: 'p1', subtema: 'partes', dificultad: 2,
         enunciado: 'En ∫ x·ln(x) dx, ¿qué eliges como u?',
         opciones: [
-          { letra: 'A', texto: 'x',         correcta: false, error: 'eliges u por orden de aparición, no por prioridad ILATE' },
-          { letra: 'B', texto: 'ln(x)',     correcta: true },
-          { letra: 'C', texto: 'dx',        correcta: false, error: 'confundes u con dv' },
+          { letra: 'A', texto: 'x', correcta: false, error: 'eliges u por orden de aparición, no por prioridad ILATE' },
+          { letra: 'B', texto: 'ln(x)', correcta: true },
+          { letra: 'C', texto: 'dx', correcta: false, error: 'confundes u con dv' },
           { letra: 'D', texto: 'x · ln(x)', correcta: false, error: 'no separas el producto en u y dv' },
-        ],
-      },
-      {
-        id: 'p2',
-        subtema: 'sustitucion',
-        dificultad: 2,
+        ] },
+      { id: 'p2', subtema: 'sustitucion', dificultad: 2,
         enunciado: 'En ∫ 2x·cos(x²) dx, ¿qué método aplicas?',
         opciones: [
-          { letra: 'A', texto: 'Integración por partes',    correcta: false, error: 'no reconoces que 2x es la derivada de x²' },
-          { letra: 'B', texto: 'Sustitución con u = x²',    correcta: true },
-          { letra: 'C', texto: 'Fracciones parciales',      correcta: false, error: 'aplicas un método que no corresponde a esta forma' },
+          { letra: 'A', texto: 'Integración por partes', correcta: false, error: 'no reconoces que 2x es la derivada de x²' },
+          { letra: 'B', texto: 'Sustitución con u = x²', correcta: true },
+          { letra: 'C', texto: 'Fracciones parciales', correcta: false, error: 'aplicas un método que no corresponde a esta forma' },
           { letra: 'D', texto: 'Integral directa de tabla', correcta: false, error: 'ignoras la regla de la cadena' },
-        ],
-      },
-      {
-        id: 'p3',
-        subtema: 'impropias',
-        dificultad: 3,
+        ] },
+      { id: 'p3', subtema: 'impropias', dificultad: 3,
         enunciado: '∫ desde 1 hasta ∞ de (1/x²) dx:',
         opciones: [
-          { letra: 'A', texto: 'Converge a 1',           correcta: true },
-          { letra: 'B', texto: 'Diverge',                correcta: false, error: 'la confundes con 1/x, que sí diverge' },
-          { letra: 'C', texto: 'Converge a 0',           correcta: false, error: 'evalúas mal el límite superior' },
+          { letra: 'A', texto: 'Converge a 1', correcta: true },
+          { letra: 'B', texto: 'Diverge', correcta: false, error: 'la confundes con 1/x, que sí diverge' },
+          { letra: 'C', texto: 'Converge a 0', correcta: false, error: 'evalúas mal el límite superior' },
           { letra: 'D', texto: 'No se puede determinar', correcta: false, error: 'no reconoces una impropia convergente' },
-        ],
-      },
-      {
-        id: 'p4',
-        subtema: 'partes',
-        dificultad: 2,
+        ] },
+      { id: 'p4', subtema: 'partes', dificultad: 2,
         enunciado: 'En ∫ x·eˣ dx, con u = x y dv = eˣ dx, el resultado es:',
         opciones: [
           { letra: 'A', texto: 'x·eˣ − eˣ + C', correcta: true },
           { letra: 'B', texto: 'x·eˣ + eˣ + C', correcta: false, error: 'te equivocas en el signo de la fórmula de partes' },
-          { letra: 'C', texto: 'eˣ + C',        correcta: false, error: 'omites el término u·v' },
-          { letra: 'D', texto: 'x²·eˣ/2 + C',   correcta: false, error: 'integras como si fuera un producto de potencias' },
-        ],
-      },
+          { letra: 'C', texto: 'eˣ + C', correcta: false, error: 'omites el término u·v' },
+          { letra: 'D', texto: 'x²·eˣ/2 + C', correcta: false, error: 'integras como si fuera un producto de potencias' },
+        ] },
     ],
-    /*
-      adaptativa esta en true: con este banco el recorrido sale p1, p2, p3, p4
-      (una por subtema y la cuarta profundiza en integración por partes, que
-      es el unico subtema con pregunta de sobra).
-      barajarOpciones esta en true: las opciones salen en orden distinto en
-      cada intento, sembrado por window.__calibraSemilla. El arnes lo pone en
-      false por su cuenta cuando corre la tabla oraculo de 16 casos, asi que
-      la regresion sigue siendo exacta.
-      Ponlo en true cuando quieras que las opciones cambien de sitio.
-    */
     prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
     certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
   },
 
-  /* ----- Cálculo Diferencial: todavia sin material ----- */
-  {
-    id: 'calculo-diferencial',
-    codigo: '',                 // pendiente de confirmar el codigo real
-    nombre: 'Cálculo Diferencial',
-    activa: false,
-    contexto: 'antes del parcial 2',
-    libro: '',
-    // Todavia no hay material para esta materia: ni subtemas ni preguntas.
-    // Escribe primero los subtemas, luego las preguntas, y al final pon
-    // activa en true.
-    subtemas: {},
-    preguntas: [],
-    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
-    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
-  },
-
-  /* ----- Cálculo Vectorial ----- */
-  {
-    id: 'calculo-vectorial',
-    codigo: 'MATE-1207',
-    nombre: 'Cálculo Vectorial',
-    activa: false,
-    contexto: 'antes del parcial 2',
-    libro: '',
-    subtemas: {
-      parciales: 'Derivadas parciales y gradiente',
-      multiples: 'Integrales dobles y triples',
-      linea: 'Integrales de línea',
-      teoremas: 'Green, Stokes y Gauss',
-    },
-    preguntas: [],              // pendiente: escribir el banco
-    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
-    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
-  },
-
-  /* ----- Álgebra Lineal ----- */
   {
     id: 'algebra-lineal',
     codigo: 'MATE-1105',
     nombre: 'Álgebra Lineal',
     activa: false,
-    contexto: 'antes del parcial 2',
-    libro: '',
-    subtemas: {
-      vectores: 'Vectores, rectas y planos',
-      sistemas: 'Sistemas lineales y Gauss-Jordan',
-      determinantes: 'Determinantes e inversas',
-      espacios: 'Espacios vectoriales e independencia lineal',
-    },
-    preguntas: [],              // pendiente: escribir el banco
+    contexto: 'antes del parcial 1',
+    libro: 'Winklmeier, Notas de clase Álgebra Lineal. Complementario Grossman, Álgebra Lineal.',
+    subtemas: { vectores: 'Vectores, rectas y planos', sistemas: 'Sistemas lineales y Gauss-Jordan', determinantes: 'Determinantes e inversas', espacios: 'Espacios vectoriales e independencia lineal' },
+    preguntas: [],
     prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
     certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
   },
 
-  /* ----- Física I ----- */
+  {
+    id: 'calculo-diferencial',
+    codigo: '',
+    nombre: 'Cálculo Diferencial',
+    activa: false,
+    contexto: 'antes del parcial 1',
+    libro: '',
+    subtemas: { limites: 'Límites y continuidad', derivada: 'La derivada y sus reglas', aplicaciones: 'Aplicaciones de la derivada', optimizacion: 'Optimización y razones de cambio' },
+    preguntas: [],
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
+  {
+    id: 'calculo-vectorial',
+    codigo: 'MATE-1207',
+    nombre: 'Cálculo Vectorial',
+    activa: false,
+    contexto: 'antes del parcial 1',
+    libro: 'Marsden y Tromba, Cálculo Vectorial, 6.ª ed.',
+    subtemas: { parciales: 'Derivadas parciales y gradiente', multiples: 'Integrales dobles y triples', linea: 'Integrales de línea', teoremas: 'Green, Stokes y Gauss' },
+    preguntas: [],
+    prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
   {
     id: 'fisica-1',
-    codigo: '',                 // pendiente de confirmar el codigo real
+    codigo: '',
     nombre: 'Física I',
     activa: false,
-    contexto: 'antes del parcial 2',
+    contexto: 'antes del parcial 1',
     libro: '',
-    subtemas: {
-      cinematica: 'Cinemática',
-      newton: 'Leyes de Newton',
-      energia: 'Trabajo y energía',
-      rotacional: 'Dinámica rotacional',
-    },
-    preguntas: [],              // pendiente: escribir el banco
+    subtemas: { cinematica: 'Cinemática', newton: 'Leyes de Newton', energia: 'Trabajo y energía', rotacional: 'Dinámica rotacional' },
+    preguntas: [],
     prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
     certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
   },
 
-  /* ----- Probabilidad y Estadística ----- */
   {
     id: 'probabilidad-estadistica',
     codigo: 'IIND-2106',
     nombre: 'Probabilidad y Estadística',
     activa: false,
-    contexto: 'antes del parcial 2',
-    libro: '',
-    subtemas: {
-      conteo: 'Técnicas de conteo',
-      condicional: 'Probabilidad condicional y Bayes',
-      discretas: 'Variables aleatorias discretas',
-      continuas: 'Variables aleatorias continuas',
-    },
-    preguntas: [],              // pendiente: escribir el banco
+    contexto: 'antes del parcial 1',
+    libro: 'Walpole, Myers, Myers y Ye. Probabilidad y Estadística para Ingeniería y Ciencias, 9.ª ed.',
+    subtemas: { conteo: 'Técnicas de conteo', condicional: 'Probabilidad condicional y Bayes', discretas: 'Variables aleatorias discretas', continuas: 'Variables aleatorias continuas' },
+    preguntas: [
+      { id: 'p1', subtema: 'conteo', dificultad: 2,
+        enunciado: 'De un grupo de 10 monitores hay que escoger 3 para un comité. ¿De cuántas formas distintas se puede armar el comité?',
+        opciones: [
+          { letra: 'A', texto: '120', correcta: true },
+          { letra: 'B', texto: '720', correcta: false, error: 'usas permutación y cuentas como si el orden de los tres importara' },
+          { letra: 'C', texto: '1000', correcta: false, error: 'cuentas con repetición, como si un mismo monitor pudiera ocupar dos puestos' },
+          { letra: 'D', texto: '30', correcta: false, error: 'multiplicas 10 por 3 en vez de contar cuántos subconjuntos de 3 hay' },
+        ] },
+      { id: 'p2', subtema: 'condicional', dificultad: 2,
+        enunciado: 'En un curso, el 60% de los estudiantes presentó el parcial 1, y de los que lo presentaron, el 40% aprobó. Si eliges un estudiante al azar del curso completo, ¿cuál es la probabilidad de que haya presentado y aprobado?',
+        opciones: [
+          { letra: 'A', texto: '0,24', correcta: true },
+          { letra: 'B', texto: '0,40', correcta: false, error: 'tomas la probabilidad condicional como si ya fuera la conjunta, e ignoras que solo el 60% presentó' },
+          { letra: 'C', texto: '1,00', correcta: false, error: 'sumas las dos probabilidades cuando la regla del producto pide multiplicarlas' },
+          { letra: 'D', texto: '0,67', correcta: false, error: 'divides una entre otra, que es lo que se hace para despejar una condicional, no para calcular una conjunta' },
+        ] },
+    ],
     prueba:        { longitud: 4, adaptativa: true,  barajarOpciones: true },
-    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+    certificacion: { longitud: 2, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
   },
+
 ];
 
 
@@ -3728,10 +3705,13 @@ function pintarSubtemasPerfil() {
 
   // No es un select: pintamos casillas dentro del contenedor.
   vaciar(cont);
-  var lista = crear('ul', 'chips');
+  // La hoja de estilos define estas casillas bajo .subtemas-check, no bajo
+  // .chips: con la clase equivocada salian los checkbox nativos, cada uno de
+  // un tamano, en vez de las tarjetas seleccionables.
+  var lista = crear('ul', 'subtemas-check');
   claves.forEach(function (clave) {
     var li = document.createElement('li');
-    var label = crear('label', 'chip');
+    var label = document.createElement('label');
     var caja = document.createElement('input');
     caja.type = 'checkbox';
     caja.value = clave;

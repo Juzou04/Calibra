@@ -2415,9 +2415,24 @@ async function rellenarPerfil(page, campos, datos) {
     const c = casillas.nth(i);
     const debe = i < datos.subtemas;
     const esta = await c.isChecked().catch(() => false);
-    if (debe !== esta) await c.setChecked(debe).catch(() => {});
+    if (debe === esta) continue;
+    // El input va oculto detras de su etiqueta, igual que en .opt y .slot del
+    // resto de la app. Se pulsa la etiqueta, que es lo que hace una persona.
+    const etiqueta = c.locator('xpath=ancestor::label[1]');
+    if (await etiqueta.count()) await etiqueta.first().click();
+    else await c.setChecked(debe, { force: true });
   }
   await page.waitForTimeout(120);
+  // Sin este control, un fallo al marcar se tragaba en silencio y reaparecia
+  // mucho despues como "el formulario no navega".
+  let marcadas = 0;
+  for (let i = 0; i < n; i += 1) {
+    if (await casillas.nth(i).isChecked().catch(() => false)) marcadas += 1;
+  }
+  if (marcadas !== datos.subtemas) {
+    registrar('R1 · marcar subtemas en el formulario', false,
+      'se pidieron ' + datos.subtemas + ' subtemas y quedaron ' + marcadas + ' marcados');
+  }
 }
 
 async function mensajeDeError(page, campos) {

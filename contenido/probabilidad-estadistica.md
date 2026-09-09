@@ -4,11 +4,13 @@ codigo: IIND-2106
 nombre: Probabilidad y Estadística
 libro: Walpole, Myers, Myers y Ye. Probabilidad y Estadística para Ingeniería y Ciencias, 9.ª ed.
 contexto: antes del parcial 1
-activa: true
+activa: false
 ---
 
 Subtemas tomados de las sesiones 2, 3, 4 y 5 del programa oficial del curso.
 Faltan 10 preguntas. Las dos que están sirven de referencia de cómo se escribe un distractor.
+
+Está en activa: false a propósito. Con 2 preguntas solo se evaluarían 2 de los 4 subtemas y el diagnóstico saldría a medias. En cuanto haya al menos una pregunta por subtema, cambia esa línea a activa: true y corre el conversor.
 
 ## conteo · Técnicas de conteo
 
