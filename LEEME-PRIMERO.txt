@@ -1,0 +1,122 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                  CALIBRA - RAMA JUZOUY                        ║
+║              Presentación: 16 de septiembre 2026              ║
+╚═══════════════════════════════════════════════════════════════╝
+
+🚀 PARA ABRIR EL PROTOTIPO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Doble clic en: index.html
+   (funciona sin internet)
+
+
+📊 QUÉ SE IMPLEMENTÓ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ✅ 3 materias activas (antes: 1)
+   ✅ 36 preguntas calibradas (antes: 4)
+   ✅ 15 subtemas totales
+   ✅ 174/195 pruebas pasando
+
+   Materias:
+   • Cálculo Integral + Ecuaciones Diferenciales (12 preguntas)
+   • Física II (12 preguntas, nueva)
+   • Probabilidad y Estadística (12 preguntas)
+
+
+🎯 MENSAJE CLAVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   "Calibra no es un directorio de monitores.
+   Es un diagnóstico que detecta errores conceptuales específicos
+   y genera un brief automático para el monitor."
+
+
+📖 DOCUMENTACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   1. INSTRUCCIONES-RAPIDAS.md      ← Lee ESTO para la demo
+   2. RESUMEN-PRESENTACION.md       ← Contenido completo
+   3. README-JUZOUY.md              ← Documentación técnica
+   4. ESTRATEGIA-PREGUNTAS-TRAMPA.md ← Metodología pedagógica
+
+
+⏱️ DEMO RÁPIDA (3 minutos)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   1. Inicio → Elegir Cálculo Integral (15s)
+   2. Responder 4 preguntas (fallar 2) (45s)
+   3. Ver diagnóstico con error específico (30s)
+   4. Ver monitores + brief automático (45s)
+   5. Bonus: exploración sin prueba (30s)
+
+
+🔧 SI ALGO FALLA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Plan B: Mostrar capturas en capturas/estudiante/
+   
+   Problema: No carga → Usar navegador diferente
+   Problema: Se ve mal → F12 + modo responsive (390x844)
+
+
+📁 ARCHIVOS IMPORTANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   index.html                    ← Aplicación completa
+   contenido/calculo-integral.md ← Preguntas de Cálculo
+   contenido/fisica-2.md         ← Preguntas de Física
+   contenido/probabilidad-estadistica.md ← Preguntas de Proba
+   verificar.cmd                 ← Pruebas automatizadas
+
+
+✅ VERIFICACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   .\verificar.cmd
+   
+   Resultado esperado:
+   • 174 OK (funciona correctamente)
+   • 21 FALLAS (esperadas, por cambio de 4 a 12 preguntas)
+
+
+🎓 MATERIAL FUENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   • Cálculo: 15 semanas de resúmenes 2024-1
+   • Probabilidad: 15+ sesiones con soluciones 2025-I  
+   • Física: Talleres 1-2
+
+
+💡 DIFERENCIADOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   VS. Directorio (Calico):     Solo lista monitores
+   VS. Videos (YouTube):        Explicación genérica
+   VS. AI (Google AI Plus):     Sin contexto del profesor
+
+   CALIBRA: Diagnóstico preciso + Brief personalizado
+
+
+📊 EJEMPLO CONCRETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Pregunta: En ∫ x·ln(x) dx, ¿qué eliges como u?
+   
+   Estudiante elige: x
+   
+   Diagnóstico detecta:
+   "Eliges u por orden de aparición, no por prioridad ILATE"
+   
+   Brief para monitor:
+   "Repasa la regla ILATE. Arranca con ejercicio: ∫ x·e^x dx"
+
+
+🚀 PRÓXIMOS PASOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   1. Validar errores con monitores reales
+   2. Piloto con 10 estudiantes + 5 monitores
+   3. Completar Álgebra Lineal (siguiente materia)
+   4. Medir: ¿El brief es útil? ¿El diagnóstico es preciso?
+
+
+👤 CRÉDITOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Implementado por: juzouy
+   Rama: juzouy
+   Fecha: 2026-09-15
+   Base: Calibra MVP (BRIEF.md)
+
+
+═══════════════════════════════════════════════════════════════
+                   ¡MUCHA SUERTE EN LA DEMO! 🍀
+═══════════════════════════════════════════════════════════════
