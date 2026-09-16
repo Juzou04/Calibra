@@ -214,7 +214,10 @@ function serializar(materias) {
     out.push('    activa: ' + (m.activa ? 'true' : 'false') + ',');
     out.push('    contexto: ' + comillas(m.contexto) + ',');
     out.push('    libro: ' + comillas(m.libro) + ',');
-    const subs = Object.keys(m.subtemas).map((k) => k + ': ' + comillas(m.subtemas[k]));
+    const subs = Object.keys(m.subtemas).map((k) => {
+      const clave = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(k) ? k : comillas(k);
+      return clave + ': ' + comillas(m.subtemas[k]);
+    });
     out.push('    subtemas: { ' + subs.join(', ') + ' },');
     if (m.preguntas.length === 0) {
       out.push('    preguntas: [],');

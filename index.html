@@ -504,6 +504,45 @@ body>.btn-reiniciar{
   .slot-grid{grid-template-columns:1fr}
 }
 
+/* Tablet: 768px+ */
+@media (min-width:768px){
+  :root{
+    --col:540px;
+    --pad-x:32px;
+  }
+  .title{font-size:28px}
+  .question{font-size:28px}
+  .opt{min-block-size:72px;padding:14px 18px}
+  .txt{font-size:18px}
+  .key{inline-size:38px;block-size:38px}
+  .btn{min-block-size:52px;font-size:17px}
+  .materias{gap:14px}
+  .ficha{padding:22px}
+}
+
+/* Desktop: 1024px+ */
+@media (min-width:1024px){
+  :root{
+    --col:600px;
+    --pad-x:40px;
+  }
+  .title{font-size:30px}
+  .subtitle{font-size:16px}
+  .question{font-size:30px}
+  .opt{min-block-size:76px;padding:16px 20px;gap:16px}
+  .txt{font-size:19px}
+  .key{inline-size:40px;block-size:40px;font-size:16px}
+  .btn{min-block-size:56px;font-size:18px;padding-inline:32px}
+  .ficha{padding:24px}
+}
+
+/* Areas táctiles mínimas para touch */
+@media (pointer:coarse){
+  .btn{min-block-size:48px}
+  .opt{min-block-size:72px}
+  .materia{min-block-size:68px}
+}
+
 /* ---------- 21. Movimiento reducido ---------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
@@ -1239,7 +1278,43 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   </div>
 
   <div class="footer">
-    <button class="btn" type="button" data-ir="certificacion">Continuar</button>
+    <button class="btn" type="button" data-ir="monitor-correo">Continuar</button>
+  </div>
+</section>
+
+
+<!-- M2.5 · Captura de correo del monitor (antes de certificación) -->
+<section id="s-monitor-correo" class="screen" hidden aria-labelledby="monitor-correo-titulo">
+  <header>
+    <h1 class="title" id="monitor-correo-titulo">D&eacute;janos tu correo</h1>
+    <p class="subtitle">Te contactaremos para evaluar tu dominio de <strong id="monitor-correo-materia">esta materia</strong> presencialmente antes de que puedas dar monitorias.</p>
+  </header>
+
+  <form class="body" id="form-monitor-correo">
+    <div>
+      <div class="callout">
+        <h2>&iquest;Por qu&eacute; evaluaci&oacute;n presencial?</h2>
+        <p>Queremos asegurarnos de que tienes el dominio necesario para ser un excelente monitor. La evaluaci&oacute;n toma <strong>15-20 minutos</strong> y la hacemos en el campus.</p>
+      </div>
+
+      <p class="campo" style="margin-block-start:var(--e5)">
+        <label for="correo-monitor-pre">Tu correo institucional</label>
+        <input id="correo-monitor-pre" name="correo" type="email"
+               inputmode="email" autocomplete="email" required
+               placeholder="tu.correo@uniandes.edu.co">
+      </p>
+
+      <p class="campo">
+        <label for="telefono-monitor-pre">Tu tel&eacute;fono (opcional)</label>
+        <input id="telefono-monitor-pre" name="telefono" type="tel"
+               inputmode="tel" autocomplete="tel"
+               placeholder="3001234567">
+      </p>
+    </div>
+  </form>
+
+  <div class="footer">
+    <button class="btn" type="submit" form="form-monitor-correo">Enviar y continuar</button>
   </div>
 </section>
 
@@ -3554,6 +3629,7 @@ var SECCIONES = {
   'confirmacion': 's-confirmacion',
   'monitor': 's-monitor',
   'monitor-materia': 's-monitor-materia',
+  'monitor-correo': 's-monitor-correo',
   'certificacion': 's-certificacion',
   'monitor-resultado': 's-monitor-resultado',
   'crear-perfil': 's-crear-perfil',
@@ -3571,6 +3647,7 @@ var PINTORES = {
   'buscar': pintarBuscar,
   'perfil': pintarPerfil,
   'confirmacion': pintarConfirmacion,
+  'monitor-correo': pintarMonitorCorreo,
   'certificacion': pintarCertificacion,
   'monitor-resultado': pintarResultadoCert,
   'crear-perfil': pintarCrearPerfil,
@@ -4629,6 +4706,14 @@ function subtemasElegidos() {
     .map(function (c) { return c.value; });
 }
 
+/* M2.5: Captura de correo del monitor antes de certificación */
+function pintarMonitorCorreo() {
+  var materia = materiaActual();
+  var nombreMateria = materia ? materia.nombre : 'esta materia';
+  var span = $('#monitor-correo-materia');
+  if (span) span.textContent = nombreMateria;
+}
+
 function pintarCrearPerfil() {
   limpiarFormularioPerfil();
   pintarSubtemasPerfil();
@@ -4954,6 +5039,37 @@ function engancharCapturas() {
   }
 }
 
+/* Engancha el formulario de correo del monitor (M2.5) */
+function engancharCorreoMonitor() {
+  var form = $('#form-monitor-correo');
+  if (!form) return;
+
+  form.addEventListener('submit', function (evento) {
+    evento.preventDefault();
+    var inputCorreo = $('#correo-monitor-pre');
+    var inputTel = $('#telefono-monitor-pre');
+    var correo = inputCorreo ? inputCorreo.value.trim() : '';
+    var telefono = inputTel ? inputTel.value.trim() : '';
+
+    if (!correoValido(correo)) {
+      mostrarErrorCorreo(form, inputCorreo);
+      return;
+    }
+
+    limpiarErrorCorreo(form);
+
+    // Guardar datos en el estado
+    estado.correoMonitor = correo;
+    if (telefono) estado.telefonoMonitor = telefono;
+
+    // Enviar datos
+    enviarCorreo(correo, 'monitor-evaluacion');
+
+    // Navegar a la certificación
+    ir('certificacion');
+  });
+}
+
 /* ---------------------------------------------------------------------------
    17. Arranque
    --------------------------------------------------------------------------- */
@@ -5001,6 +5117,7 @@ function iniciar() {
   depurarSecciones();
   engancharNavegacion();
   engancharCapturas();
+  engancharCorreoMonitor();
   prepararFiltros();
   engancharBuscar();
   engancharCrearPerfil();
