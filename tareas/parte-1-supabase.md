@@ -35,8 +35,54 @@ Todo lo que necesitas ya está escrito en `esquema.md`, que ya vive en el repo. 
 
 ## Definición de hecho
 
-- [ ] Las 7 tablas existen en Supabase con las columnas de `esquema.md`.
-- [ ] RLS activo con las políticas exactas descritas.
-- [ ] `supabase/schema.sql` comiteado al repo.
-- [ ] `supabase/README.md` con Project URL + anon key comiteado al repo.
-- [ ] La `service_role key` fue compartida por fuera del repo a quien haga la Parte 2.
+### Hecho en el repo
+
+- [x] **`supabase/schema.sql`** — DDL completo de las 7 tablas con los nombres de
+      tabla y columna exactos de `esquema.md`, más `enable row level security`, las
+      políticas del contrato y los privilegios explícitos del rol `anon`. Es
+      idempotente: se puede re-ejecutar para dejar la base limpia.
+- [x] **RLS con las políticas exactas descritas**, escrito y validado: `select`
+      público en las 4 tablas de contenido y en `monitores`; `insert` público solo
+      en `monitores`, `resultados_diagnostico` y `leads`; ninguna política de
+      `update`/`delete` en ninguna tabla; sin `select` público en `leads`.
+- [x] **`supabase/README.md`** — espacios para la Project URL y la anon key, la
+      advertencia sobre la `service_role key`, el modelo de acceso tabla por tabla
+      y el paso a paso para recrear y verificar la base.
+- [x] **`supabase/verificar.sql`** — reporte de 38 comprobaciones para correr en el
+      editor SQL de Supabase y confirmar que la base quedó igual al contrato.
+      No modifica nada.
+- [x] **`supabase/validar-esquema.mjs`** — valida el DDL en local, sin proyecto
+      Supabase, contra un Postgres real (PGlite) en memoria: 55 comprobaciones,
+      incluido el comportamiento efectivo de `anon` al hacer `select`, `insert`,
+      `update` y `delete` en cada tabla. Corre con `cd supabase && npm install &&
+      npm run validar`. Última corrida: 55 de 55.
+
+### Pendiente en el dashboard de Supabase (requiere tu cuenta)
+
+- [ ] Crear el proyecto en Supabase (plan gratuito).
+- [ ] Ejecutar `supabase/schema.sql` en el editor SQL → crea las 7 tablas y activa RLS.
+- [ ] Ejecutar `supabase/verificar.sql` y confirmar que las 38 filas dicen `OK`.
+- [ ] Pegar la `Project URL` y la `anon public key` reales en `supabase/README.md` y comitear.
+- [ ] Compartir la `service_role key` por un canal privado con quien haga la Parte 2. Nunca al repo.
+
+> **Estado.** El esquema está escrito y verificado contra un Postgres real, así que
+> el SQL no va a fallar por sintaxis ni por permisos mal puestos al ejecutarlo. Lo
+> que queda son los pasos del dashboard, que dependen de una cuenta de Supabase.
+>
+> **Nota sobre `package.json`.** El `supabase/package.json` existe solo para el
+> validador local y está acotado a esta carpeta. El frontend no cambia:
+> `index.html` sigue sin build y sin dependencias, como pide el brief.
+
+## Decisión de diseño: privilegios además de RLS
+
+`esquema.md` pide RLS con `select`/`insert` público acotado y sin `update`/`delete`.
+`schema.sql` lo cumple, y añade una segunda capa: revoca los privilegios que
+Supabase concede por defecto a `anon` y concede solo los que el contrato permite.
+
+El motivo es concreto. Al validar el esquema se vio que, con solo RLS, `anon`
+conserva el privilegio de `select` sobre `leads` y de `delete` sobre todo: lo único
+que lo frena son las políticas. Si alguien desactiva RLS en una tabla desde el
+dashboard —un clic— los correos capturados quedarían legibles para cualquiera con
+la anon key, que es pública. Con los privilegios revocados el límite se aplica dos
+veces de forma independiente. `service_role` no se toca, así que la Parte 2 sigue
+teniendo el acceso que necesita.
