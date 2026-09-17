@@ -1,0 +1,13 @@
+{
+  "name": "calibra-supabase",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Herramienta de validación del esquema de Supabase de Calibra. No forma parte del frontend: index.html sigue sin build ni dependencias.",
+  "scripts": {
+    "validar": "node validar-esquema.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8"
+  }
+}
