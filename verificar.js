@@ -2972,6 +2972,375 @@ function escribirContactSheet() {
 // 21. Programa principal
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Bloque: Supabase simulado (Parte 3)
+// ---------------------------------------------------------------------------
+// No necesita un proyecto real: intercepta la API REST de Supabase con
+// page.route y sirve datos de prueba. Comprueba que el frontend lea el
+// contenido de la base, que los tres flujos inserten en su tabla con columnas
+// que existen, y que si Supabase o el CDN fallan la app siga funcionando con
+// los datos del archivo. Requiere internet para descargar supabase-js del CDN.
+
+const SB_URL = 'https://calibra-prueba.supabase.co';
+const SB_KEY = 'clave-anon-de-prueba';
+const SB_CDN = 'cdn.jsdelivr.net';
+
+// Columnas que acepta cada tabla con insert publico, segun supabase/schema.sql
+// (rama main). Una columna de mas hace que PostgREST rechace el insert.
+const COLUMNAS_SUPABASE = {
+  leads: ['correo', 'rol', 'materia_interes'],
+  monitores: ['nombre', 'carrera', 'semestre', 'nivel', 'calificacion', 'precio_hora', 'materia_certificada_id', 'encaje_texto'],
+  resultados_diagnostico: ['materia_id', 'subtema_debil_id', 'error_detectado_texto', 'respuestas'],
+};
+
+function datosSupabasePrueba() {
+  const opcionesDe = (p) => ['A', 'B', 'C', 'D'].map((letra, i) => ({
+    id: p.id * 10 + i,
+    pregunta_id: p.id,
+    letra: letra,
+    texto: '[BD] opcion ' + letra + ' de la pregunta ' + p.numero,
+    es_correcta: i === 0,
+    error_texto: i === 0 ? null : '[BD] error ' + letra + ' de la pregunta ' + p.numero,
+  }));
+  const preguntas = [
+    { id: 401, subtema_id: 201, numero: 1, dificultad: '2', enunciado: '[BD] Pregunta 1 de integracion por partes' },
+    { id: 402, subtema_id: 202, numero: 2, dificultad: '2', enunciado: '[BD] Pregunta 2 de sustitucion' },
+    { id: 403, subtema_id: 201, numero: 3, dificultad: '3', enunciado: '[BD] Pregunta 3 de integracion por partes' },
+    { id: 404, subtema_id: 202, numero: 4, dificultad: '1', enunciado: '[BD] Pregunta 4 de sustitucion' },
+  ];
+  return {
+    materias: [
+      { id: 101, nombre: 'Cálculo Integral desde Supabase', codigo: 'MATE-1214', activa: true },
+      { id: 102, nombre: 'Materia inactiva de la base', codigo: 'BD-0001', activa: false },
+    ],
+    subtemas: [
+      { id: 201, materia_id: 101, clave: 'partes', nombre: 'Integración por partes' },
+      { id: 202, materia_id: 101, clave: 'sustitucion', nombre: 'Sustitución' },
+    ],
+    preguntas: preguntas,
+    opciones: preguntas.reduce((acc, p) => acc.concat(opcionesDe(p)), []),
+    monitores: [
+      { id: 301, nombre: 'Monitora Supabase', carrera: 'Matemáticas', semestre: '6', nivel: 2, calificacion: 4.7,
+        precio_hora: 26000, materia_certificada_id: 101, encaje_texto: 'Viene de la base de datos', creado_en: '2026-09-16T12:00:00Z' },
+    ],
+  };
+}
+
+async function abrirPaginaSupabase(navegador, base, opciones) {
+  const o = opciones || {};
+  const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-CO', timezoneId: 'America/Bogota' });
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(TIEMPO);
+  const registro = { lecturas: [], escrituras: [], errores: [], alSupabase: 0, alCdn: 0, apikeys: [] };
+
+  page.on('pageerror', (e) => registro.errores.push('pageerror: ' + (e && e.message ? e.message : e)));
+  page.on('console', (m) => {
+    if (m.type() !== 'error') return;
+    const t = m.text();
+    // Con la red caida a proposito, el navegador reporta el recurso fallido.
+    // Eso no es un error de la app; los errores de la app si se cuentan.
+    if (/Failed to load resource|net::ERR_/.test(t)) return;
+    registro.errores.push('console.error: ' + t);
+  });
+  page.on('request', (req) => {
+    const u = req.url();
+    if (u.indexOf(SB_URL) === 0) registro.alSupabase += 1;
+    if (u.indexOf(SB_CDN) !== -1) registro.alCdn += 1;
+  });
+
+  if (!o.sinConfig) {
+    await page.addInitScript((cfg) => { window.__calibraSupabase = cfg; }, { url: SB_URL, anonKey: SB_KEY });
+  }
+  if (o.sinCdn) {
+    await page.route('**/' + SB_CDN + '/**', (route) => route.abort('failed'));
+  }
+
+  const datos = datosSupabasePrueba();
+  await page.route(SB_URL + '/**', async (route) => {
+    const req = route.request();
+    if (o.caido) return route.abort('failed');
+    const cors = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-headers': '*',
+      'access-control-allow-methods': 'GET, POST, OPTIONS',
+    };
+    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+    const u = new URL(req.url());
+    const tabla = u.pathname.replace(/^\/rest\/v1\//, '').split('/')[0];
+    registro.apikeys.push(req.headers()['apikey'] || '');
+    if (o.retrasoMs) await new Promise((r) => setTimeout(r, o.retrasoMs));
+    if (req.method() === 'GET') {
+      registro.lecturas.push(tabla);
+      return route.fulfill({
+        status: 200,
+        headers: Object.assign({ 'content-type': 'application/json; charset=utf-8' }, cors),
+        body: JSON.stringify(datos[tabla] || []),
+      });
+    }
+    let cuerpo = null;
+    try { cuerpo = JSON.parse(req.postData() || 'null'); } catch (e) { cuerpo = req.postData(); }
+    registro.escrituras.push({ tabla: tabla, metodo: req.method(), cuerpo: cuerpo, query: u.search, prefer: req.headers()['prefer'] || '' });
+    return route.fulfill({ status: 201, headers: cors, body: '' });
+  });
+
+  await page.goto(base, { waitUntil: 'domcontentloaded' });
+  return { ctx: ctx, page: page, registro: registro };
+}
+
+async function esperarEstadoSupabase(page) {
+  await page.waitForFunction(
+    () => typeof window.__calibraSupabaseEstado === 'string' && window.__calibraSupabaseEstado !== 'cargando',
+    null,
+    { timeout: 15000 }
+  ).catch(() => {});
+  return page.evaluate(() => window.__calibraSupabaseEstado);
+}
+
+async function esperarEscritura(registro, tabla, ms) {
+  const fin = Date.now() + (ms || 5000);
+  while (Date.now() < fin) {
+    const w = registro.escrituras.find((e) => e.tabla === tabla && !e.vista);
+    if (w) { w.vista = true; return w; }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  return null;
+}
+
+async function bloqueSupabase(navegador, base) {
+  abrirBloque('Supabase simulado · Parte 3');
+
+  // ---- 1. Conectado: lee de la base y escribe en las tres tablas ----
+  let s = null;
+  try {
+    contexto = 'supabase conectado';
+    s = await abrirPaginaSupabase(navegador, base, { retrasoMs: 700 });
+    const page = s.page;
+    const registro = s.registro;
+
+    const cargando = await page.locator('#cargando').first().isVisible().catch(() => false);
+    registrar('carga · pantalla de carga visible mientras responde Supabase', cargando,
+      cargando ? '' : '#cargando no estaba visible al arrancar con Supabase configurado');
+
+    const estado = await esperarEstadoSupabase(page);
+    registrar('carga · queda en estado "conectado"', estado === 'conectado', 'estado: ' + estado);
+    await esperarPantalla(page, 's-inicio', 'E1 tras cargar de Supabase');
+    const oculto = !(await page.locator('#cargando').first().isVisible().catch(() => false));
+    registrar('carga · la pantalla de carga se oculta al terminar', oculto, oculto ? '' : '#cargando sigue visible');
+
+    const tablas = ['materias', 'subtemas', 'preguntas', 'opciones', 'monitores'];
+    const sinLeer = tablas.filter((t) => registro.lecturas.indexOf(t) === -1);
+    registrar('lectura · consulta las cuatro tablas de contenido y monitores', sinLeer.length === 0,
+      sinLeer.length ? 'no se leyo: ' + sinLeer.join(', ') : '');
+
+    const materias = await leerMaterias(page);
+    const ci = materias.find((m) => m.codigo === 'MATE-1214');
+    const okMaterias = materias.length === 2 && !!ci && ci.id === MATERIA_DEMO
+      && ci.nombre === 'Cálculo Integral desde Supabase'
+      && ci.preguntas.length === 4 && /^\[BD\]/.test(ci.preguntas[0].enunciado)
+      && ci.preguntas.every((p) => p.opciones.length === 4 && p.opciones.filter((x) => x.correcta).length === 1);
+    registrar('lectura · las materias de la base reemplazan a las del archivo', okMaterias,
+      okMaterias ? '' : 'materias: ' + materias.map((m) => m.codigo + ' ' + m.id + ' (' + (m.preguntas || []).length + ')').join(', '));
+    if (!ci) throw new Error('no llego la materia MATE-1214 desde Supabase; no se puede seguir el recorrido');
+
+    const inactiva = materias.find((m) => m.codigo === 'BD-0001');
+    registrar('lectura · una materia inactiva en la base sale inactiva', !!inactiva && inactiva.activa === false,
+      inactiva ? 'activa=' + inactiva.activa : 'no llego BD-0001');
+    const ids = ci.preguntas.map((p) => p.id).join(',');
+    registrar('lectura · cada pregunta se identifica como p + numero', ids === 'p1,p2,p3,p4', ids);
+    const correctasLimpias = ci.preguntas.every((p) => p.opciones.every((x) => !x.correcta || x.error === undefined));
+    registrar('lectura · la opcion correcta no lleva campo error', correctasLimpias, '');
+    const configHeredada = ci.prueba && ci.certificacion && ci.certificacion.minimoAciertos === 2;
+    registrar('lectura · conserva la configuracion de la prueba del archivo para la misma materia', !!configHeredada,
+      JSON.stringify({ prueba: ci.prueba, certificacion: ci.certificacion }));
+
+    await page.evaluate(() => { location.hash = '#buscar'; });
+    await esperarPantalla(page, 's-buscar', 'B1 con Supabase');
+    const textoBuscar = normalizarEspacios(await page.locator('#buscar-lista').first().textContent());
+    const okMon = textoBuscar.indexOf('Monitora Supabase') !== -1 && textoBuscar.indexOf('Daniela R.') !== -1;
+    registrar('lectura · #buscar muestra el monitor de la base junto a los de ejemplo', okMon,
+      okMon ? '' : 'texto: ' + textoBuscar.slice(0, 140));
+
+    // Prueba del estudiante -> resultados_diagnostico
+    contexto = 'supabase prueba';
+    await page.evaluate(() => { location.hash = '#inicio'; });
+    await esperarPantalla(page, 's-inicio', 'E1');
+    await entrarAPrueba(page, ci);
+    await recorrer(page, SEL_PRUEBA, ci, ({ mapa }) => mapa.findIndex((m) => !m.datos.correcta));
+    await esperarPantalla(page, 's-diagnostico', 'E3 con Supabase');
+    const diag = await esperarEscritura(registro, 'resultados_diagnostico');
+    const cd = diag && diag.cuerpo;
+    const okDiag = !!cd && cd.materia_id === 101 && cd.subtema_debil_id === 201
+      && typeof cd.error_detectado_texto === 'string' && /^\[BD\] error/.test(cd.error_detectado_texto)
+      && !!cd.respuestas && typeof cd.respuestas === 'object';
+    registrar('escritura · al terminar la prueba inserta en resultados_diagnostico', okDiag,
+      okDiag ? '' : 'recibido: ' + JSON.stringify(cd).slice(0, 220));
+    const sinLectura = !!diag && diag.query.indexOf('select=') === -1 && diag.prefer.indexOf('return=representation') === -1;
+    registrar('escritura · el insert no pide devolver la fila (RLS no deja leer esa tabla)', sinLectura,
+      diag ? 'query="' + diag.query + '" prefer="' + diag.prefer + '"' : 'no hubo insert');
+
+    // E6 -> leads (estudiante)
+    contexto = 'supabase E6';
+    await clic(page, '#s-diagnostico [data-ir="monitores"]', 'Ver monitores (E3)');
+    await esperarPantalla(page, 's-monitores', 'E4');
+    await clic(page, '#lista-monitores [data-ir="perfil"]', 'tarjeta de monitor (E4)');
+    await esperarPantalla(page, 's-perfil', 'E5');
+    if (await page.locator('#s-perfil .slot').count()) await page.locator('#s-perfil .slot').first().click();
+    await clic(page, '#s-perfil [data-ir="confirmacion"]', 'Agendar (E5)');
+    await esperarPantalla(page, 's-confirmacion', 'E6');
+    await enviarCorreo(page, '#s-confirmacion form.captura', 'estudiante.bd@uniandes.edu.co');
+    const leadE = await esperarEscritura(registro, 'leads');
+    const ce = leadE && leadE.cuerpo;
+    const okLeadE = !!ce && ce.correo === 'estudiante.bd@uniandes.edu.co' && ce.rol === 'estudiante' && ce.materia_interes === 'MATE-1214';
+    registrar('escritura · el correo de E6 inserta en leads con rol estudiante', okLeadE,
+      okLeadE ? '' : 'recibido: ' + JSON.stringify(ce));
+
+    // P1: el esquema solo admite estudiante y monitor
+    contexto = 'supabase P1';
+    await page.evaluate(() => { location.hash = '#profesor'; });
+    await esperarPantalla(page, 's-profesor', 'P1');
+    const antesProfe = registro.escrituras.length;
+    await enviarCorreo(page, '#s-profesor form.captura', 'profe.bd@uniandes.edu.co');
+    await page.waitForTimeout(1200);
+    const graciasProfe = await page.locator('#s-profesor .gracias').first().isVisible().catch(() => false);
+    const insertsProfe = registro.escrituras.slice(antesProfe).filter((e) => e.tabla === 'leads').length;
+    registrar('escritura · el canal profesor no inserta (leads.rol no admite "profesor") y agradece igual',
+      graciasProfe && insertsProfe === 0, 'gracias=' + graciasProfe + ' inserts=' + insertsProfe);
+
+    // Monitor: M2.5 -> leads (monitor); certificacion -> crear perfil -> monitores
+    contexto = 'supabase monitor';
+    await page.evaluate(() => { location.hash = '#monitor'; });
+    await esperarPantalla(page, 's-monitor', 'M1');
+    await clic(page, '#s-monitor [data-ir="monitor-materia"]', 'M1 hacia M2');
+    await esperarPantalla(page, 's-monitor-materia', 'M2');
+    await elegirMateria(page, '#s-monitor-materia .materias, #s-monitor-materia ul, #s-monitor-materia', ci);
+    await clic(page, '#s-monitor-materia [data-ir="monitor-correo"]', 'M2 hacia M2.5');
+    await esperarPantalla(page, 's-monitor-correo', 'M2.5');
+    await page.locator('#correo-monitor-pre').first().fill('monitor.bd@uniandes.edu.co');
+    await page.locator('#s-monitor-correo button[type="submit"]').first().click();
+    await esperarPantalla(page, 's-certificacion', 'M3');
+    const leadM = await esperarEscritura(registro, 'leads');
+    const cmL = leadM && leadM.cuerpo;
+    const okLeadM = !!cmL && cmL.rol === 'monitor' && cmL.correo === 'monitor.bd@uniandes.edu.co';
+    registrar('escritura · el correo de M2.5 inserta en leads con rol monitor', okLeadM,
+      okLeadM ? '' : 'recibido: ' + JSON.stringify(cmL));
+
+    await recorrer(page, SEL_CERT, ci, ({ mapa }) => mapa.findIndex((m) => !!m.datos.correcta));
+    await esperarPantalla(page, 's-monitor-resultado', 'M4');
+    await clic(page, '#s-monitor-resultado [data-ir="crear-perfil"]', 'M4 hacia R1');
+    await esperarPantalla(page, 's-crear-perfil', 'R1');
+    const campos = await camposCrearPerfil(page);
+    await page.locator('#perfil-carrera').first().fill('Ingeniería de Sistemas').catch(() => {});
+    await rellenarPerfil(page, campos, { nombre: 'Mariana BD', semestre: '7', tarifa: '30000', subtemas: 1 });
+    await page.locator(campos.enviar).first().click();
+    await esperarPantalla(page, 's-panel', 'M5');
+    const mon = await esperarEscritura(registro, 'monitores');
+    const cm = mon && mon.cuerpo;
+    const okMonIns = !!cm && cm.nombre === 'Mariana BD' && cm.carrera === 'Ingeniería de Sistemas'
+      && String(cm.semestre) === '7' && cm.precio_hora === 30000 && cm.materia_certificada_id === 101;
+    registrar('escritura · publicar el perfil inserta en monitores', okMonIns,
+      okMonIns ? '' : 'recibido: ' + JSON.stringify(cm));
+
+    const extras = [];
+    registro.escrituras.forEach((e) => {
+      const permitidas = COLUMNAS_SUPABASE[e.tabla];
+      if (!permitidas) { extras.push(e.tabla + ' (sin insert publico)'); return; }
+      if (Array.isArray(e.cuerpo) || !e.cuerpo || typeof e.cuerpo !== 'object') { extras.push(e.tabla + ' (cuerpo no es un objeto)'); return; }
+      Object.keys(e.cuerpo).forEach((k) => { if (permitidas.indexOf(k) === -1) extras.push(e.tabla + '.' + k); });
+    });
+    registrar('escritura · solo envia columnas que existen en supabase/schema.sql', extras.length === 0,
+      extras.join(', '));
+
+    const sinClave = s.registro.apikeys.filter((k) => k !== SB_KEY).length;
+    registrar('peticiones · todas llevan la anon key', s.registro.apikeys.length > 0 && sinClave === 0,
+      s.registro.apikeys.length + ' peticiones, ' + sinClave + ' sin la clave');
+
+    const ls = await page.evaluate(() => { try { return window.localStorage.length; } catch (e) { return -1; } });
+    registrar('almacenamiento · supabase-js no deja nada en localStorage', ls === 0, 'localStorage.length=' + ls);
+    registrar('consola · sin errores de JavaScript con Supabase conectado', registro.errores.length === 0,
+      registro.errores.slice(0, 3).join(' | '));
+  } catch (e) {
+    registrar('supabase · recorrido conectado', false, e.message);
+  } finally {
+    if (s) await s.ctx.close().catch(() => {});
+  }
+
+  // ---- 2. Supabase caido: la demo sigue con los datos del archivo ----
+  let c = null;
+  try {
+    contexto = 'supabase caido';
+    c = await abrirPaginaSupabase(navegador, base, { caido: true });
+    const page = c.page;
+    const estado = await esperarEstadoSupabase(page);
+    await esperarPantalla(page, 's-inicio', 'E1 con Supabase caido');
+    const mats = await leerMaterias(page);
+    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length === PREGUNTAS_POR_MATERIA);
+    registrar('degradado · Supabase caido: arranca con los datos del archivo', estado === 'sin-conexion' && conArchivo,
+      'estado=' + estado + ' materias=' + mats.length);
+    const oculto = !(await page.locator('#cargando').first().isVisible().catch(() => false));
+    registrar('degradado · Supabase caido: la pantalla de carga no se queda pegada', oculto, '');
+
+    await page.evaluate(() => { location.hash = '#monitor'; });
+    await esperarPantalla(page, 's-monitor', 'M1');
+    await clic(page, '#s-monitor [data-ir="monitor-materia"]', 'M1 hacia M2');
+    await esperarPantalla(page, 's-monitor-materia', 'M2');
+    await clic(page, '#s-monitor-materia [data-ir="monitor-correo"]', 'M2 hacia M2.5');
+    await esperarPantalla(page, 's-monitor-correo', 'M2.5');
+    await page.locator('#correo-monitor-pre').first().fill('caido@uniandes.edu.co');
+    await page.locator('#s-monitor-correo button[type="submit"]').first().click();
+    await esperarPantalla(page, 's-certificacion', 'M3 con Supabase caido');
+    await page.waitForTimeout(800);
+    registrar('degradado · Supabase caido: guardar un correo no bloquea el flujo', true, '');
+    registrar('degradado · Supabase caido: sin errores de JavaScript', c.registro.errores.length === 0,
+      c.registro.errores.slice(0, 3).join(' | '));
+  } catch (e) {
+    registrar('degradado · Supabase caido', false, e.message);
+  } finally {
+    if (c) await c.ctx.close().catch(() => {});
+  }
+
+  // ---- 3. CDN bloqueado: sin cliente, la demo sigue igual ----
+  let b = null;
+  try {
+    contexto = 'supabase sin CDN';
+    b = await abrirPaginaSupabase(navegador, base, { sinCdn: true });
+    const page = b.page;
+    const estado = await esperarEstadoSupabase(page);
+    await esperarPantalla(page, 's-inicio', 'E1 sin CDN');
+    const mats = await leerMaterias(page);
+    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length === PREGUNTAS_POR_MATERIA);
+    registrar('degradado · CDN bloqueado: arranca con los datos del archivo', estado === 'sin-conexion' && conArchivo,
+      'estado=' + estado + ' materias=' + mats.length);
+    registrar('degradado · CDN bloqueado: sin errores de JavaScript', b.registro.errores.length === 0,
+      b.registro.errores.slice(0, 3).join(' | '));
+  } catch (e) {
+    registrar('degradado · CDN bloqueado', false, e.message);
+  } finally {
+    if (b) await b.ctx.close().catch(() => {});
+  }
+
+  // ---- 4. Sin configuracion: modo demo, cero red ----
+  let d = null;
+  try {
+    contexto = 'supabase sin configurar';
+    d = await abrirPaginaSupabase(navegador, base, { sinConfig: true });
+    const page = d.page;
+    await esperarPantalla(page, 's-inicio', 'E1 sin configuracion');
+    const cargandoDemo = await page.locator('#cargando').first().isVisible().catch(() => false);
+    await page.evaluate(() => { location.hash = '#profesor'; });
+    await esperarPantalla(page, 's-profesor', 'P1');
+    await enviarCorreo(page, '#s-profesor form.captura', 'demo@uniandes.edu.co');
+    await page.waitForTimeout(1000);
+    const estado = await page.evaluate(() => window.__calibraSupabaseEstado);
+    const ok = estado === 'demo' && !cargandoDemo && d.registro.alSupabase === 0 && d.registro.alCdn === 0;
+    registrar('demo · sin credenciales no muestra carga ni llama a Supabase ni al CDN', ok,
+      'estado=' + estado + ' cargando=' + cargandoDemo + ' supabase=' + d.registro.alSupabase + ' cdn=' + d.registro.alCdn);
+  } catch (e) {
+    registrar('demo · sin credenciales', false, e.message);
+  } finally {
+    if (d) await d.ctx.close().catch(() => {});
+  }
+}
+
 const ALIAS_BLOQUE = { logica: 'oraculo', oraculo: 'oraculo', 'crear-perfil': 'perfil', buscar: 'buscar' };
 
 function quiere(bloque) {
@@ -3197,6 +3566,14 @@ async function main() {
         false,
         'no se ejecutaron: sin window.MATERIAS y sin la materia "' + MATERIA_DEMO + '" el arnes no puede responder las pruebas'
       );
+    }
+
+    if (quiere('supabase')) {
+      try {
+        await bloqueSupabase(navegador, base);
+      } catch (e) {
+        registrar('supabase', false, e.message);
+      }
     }
 
     // Bloque global: consola y red, ya con todo el recorrido hecho

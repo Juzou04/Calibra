@@ -1,7 +1,7 @@
 {
-  "generado": "2026-09-17T02:33:55.798Z",
+  "generado": "2026-09-17T02:54:33.659Z",
   "version": "v2",
-  "base": "http://127.0.0.1:55540/index.html",
+  "base": "http://127.0.0.1:53769/index.html",
   "bloques": [
     {
       "nombre": "Codigo fuente",
@@ -7905,6 +7905,146 @@
       ]
     },
     {
+      "nombre": "Supabase simulado · Parte 3",
+      "comprobaciones": [
+        {
+          "nombre": "carga · pantalla de carga visible mientras responde Supabase",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "carga · queda en estado \"conectado\"",
+          "ok": true,
+          "detalle": "estado: conectado"
+        },
+        {
+          "nombre": "carga · la pantalla de carga se oculta al terminar",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "lectura · consulta las cuatro tablas de contenido y monitores",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "lectura · las materias de la base reemplazan a las del archivo",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "lectura · una materia inactiva en la base sale inactiva",
+          "ok": true,
+          "detalle": "activa=false"
+        },
+        {
+          "nombre": "lectura · cada pregunta se identifica como p + numero",
+          "ok": true,
+          "detalle": "p1,p2,p3,p4"
+        },
+        {
+          "nombre": "lectura · la opcion correcta no lleva campo error",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "lectura · conserva la configuracion de la prueba del archivo para la misma materia",
+          "ok": true,
+          "detalle": "{\"prueba\":{\"longitud\":12,\"adaptativa\":true,\"barajarOpciones\":true},\"certificacion\":{\"longitud\":3,\"minimoAciertos\":2,\"adaptativa\":false,\"barajarOpciones\":false}}"
+        },
+        {
+          "nombre": "lectura · #buscar muestra el monitor de la base junto a los de ejemplo",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "escritura · al terminar la prueba inserta en resultados_diagnostico",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "escritura · el insert no pide devolver la fila (RLS no deja leer esa tabla)",
+          "ok": true,
+          "detalle": "query=\"\" prefer=\"\""
+        },
+        {
+          "nombre": "escritura · el correo de E6 inserta en leads con rol estudiante",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "escritura · el canal profesor no inserta (leads.rol no admite \"profesor\") y agradece igual",
+          "ok": true,
+          "detalle": "gracias=true inserts=0"
+        },
+        {
+          "nombre": "escritura · el correo de M2.5 inserta en leads con rol monitor",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "escritura · publicar el perfil inserta en monitores",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "escritura · solo envia columnas que existen en supabase/schema.sql",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "peticiones · todas llevan la anon key",
+          "ok": true,
+          "detalle": "9 peticiones, 0 sin la clave"
+        },
+        {
+          "nombre": "almacenamiento · supabase-js no deja nada en localStorage",
+          "ok": true,
+          "detalle": "localStorage.length=0"
+        },
+        {
+          "nombre": "consola · sin errores de JavaScript con Supabase conectado",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "degradado · Supabase caido: arranca con los datos del archivo",
+          "ok": true,
+          "detalle": "estado=sin-conexion materias=7"
+        },
+        {
+          "nombre": "degradado · Supabase caido: la pantalla de carga no se queda pegada",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "degradado · Supabase caido: guardar un correo no bloquea el flujo",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "degradado · Supabase caido: sin errores de JavaScript",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "degradado · CDN bloqueado: arranca con los datos del archivo",
+          "ok": true,
+          "detalle": "estado=sin-conexion materias=7"
+        },
+        {
+          "nombre": "degradado · CDN bloqueado: sin errores de JavaScript",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "demo · sin credenciales no muestra carga ni llama a Supabase ni al CDN",
+          "ok": true,
+          "detalle": "estado=demo cargando=false supabase=0 cdn=0"
+        }
+      ]
+    },
+    {
       "nombre": "Consola y red",
       "comprobaciones": [
         {
@@ -8081,8 +8221,8 @@
     "Se uso el selector alterno \"#perfil-guardar\" para el boton de guardar de #s-crear-perfil (el preferido es \"#s-crear-perfil button[type=\"submit\"]\")."
   ],
   "resumen": {
-    "total": 389,
-    "ok": 389,
+    "total": 416,
+    "ok": 416,
     "fallas": 0
   }
 }

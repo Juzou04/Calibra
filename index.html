@@ -1074,6 +1074,14 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
 }
+/* Pantalla de carga mientras responde Supabase. Queda por debajo del pie
+   "Prototipo · datos de ejemplo" (z-index 20), que se ve siempre. */
+.cargando{
+  position:fixed;inset:0;z-index:15;
+  display:grid;place-items:center;
+  padding:24px;background:var(--bg);
+}
+.cargando-texto{font-size:16px;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
@@ -1574,6 +1582,10 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   </div>
 </section>
 
+<div id="cargando" class="cargando" role="status" aria-live="polite" hidden>
+  <p class="cargando-texto">Cargando materias y monitores&hellip;</p>
+</div>
+
 <p class="pie-prototipo">Prototipo &middot; datos de ejemplo</p>
 <button type="button" class="btn-reiniciar" id="btn-reiniciar">Empezar de nuevo</button>
 
@@ -1603,6 +1615,33 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   de gracias y sirve para demostrar sin depender de internet.
 */
 const FORM_ENDPOINT = ""; // pegar aquí la URL de Formspree o Google Forms
+
+
+/* ---------- 1b. Supabase ---------- */
+
+/*
+  Pega aqui la Project URL y la anon public key del proyecto (Supabase,
+  Project Settings > API). Las dos son publicas por diseno: las protege RLS,
+  asi que pueden vivir en este archivo. La service_role key NUNCA va aqui.
+
+  Vacias, el prototipo funciona como siempre: no toca la red y usa las
+  materias y monitores escritos mas abajo.
+
+  Con credenciales, al arrancar lee materias, subtemas, preguntas, opciones
+  y monitores de la base, y guarda los correos (leads), los perfiles de
+  monitor y los resultados de diagnostico. Si Supabase no responde, la demo
+  sigue con los datos de este archivo y nunca se bloquea.
+*/
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+
+/*
+  true: en las listas de monitores se ven los de la base y, despues, los de
+  ejemplo de este archivo. false: solo los de la base. Si la base no tiene
+  ningun monitor se muestran los de ejemplo igual, para que la lista nunca
+  quede vacia.
+*/
+const MOSTRAR_MONITORES_DE_EJEMPLO = true;
 
 
 /* ---------- 2. Semilla del azar ---------- */
@@ -3062,7 +3101,10 @@ var CONTENIDO = {
   sesion:      leerContenido(function () { return SESION_EJEMPLO; }, {}),
   textos:      leerContenido(function () { return TEXTOS; }, {}),
   semilla:     leerContenido(function () { return SEMILLA; }, 20260909),
-  endpoint:    leerContenido(function () { return FORM_ENDPOINT; }, '')
+  endpoint:    leerContenido(function () { return FORM_ENDPOINT; }, ''),
+  supabaseUrl: leerContenido(function () { return SUPABASE_URL; }, ''),
+  supabaseKey: leerContenido(function () { return SUPABASE_ANON_KEY; }, ''),
+  monitoresEjemplo: leerContenido(function () { return MOSTRAR_MONITORES_DE_EJEMPLO; }, true)
 };
 
 /* Devuelve el primer valor definido entre varias claves posibles del objeto. */
@@ -3845,6 +3887,7 @@ function configEstudiante() {
     },
     alTerminar: function () {
       estado.pruebaTerminada = true;
+      guardarDiagnosticoSupabase();
       ir('diagnostico');
     }
   };
@@ -4254,7 +4297,7 @@ function chipsDe(m) {
   var calif = document.createElement('li');
   calif.className = 'chip';
   if (m.calificacion) {
-    calif.textContent = m.calificacion + ' ★ (' + (m.resenas || 0) + ')';
+    calif.textContent = m.calificacion + ' ★' + (m.resenas ? ' (' + m.resenas + ')' : '');
   } else {
     // Honestidad: un monitor recien creado no tiene calificacion que enseñar.
     calif.textContent = txt('e4ChipNuevo', 'Monitor nuevo');
@@ -4816,6 +4859,16 @@ function recogerPerfilMonitor() {
   estado.monitorNuevo = monitor;
   if (Array.isArray(CONTENIDO.monitores)) CONTENIDO.monitores.push(monitor);
 
+  guardarMonitorSupabase({
+    nombre: nombre,
+    carrera: carrera,
+    semestre: semestre,
+    nivel: monitor.nivel,
+    tarifa: tarifa,
+    encaje: monitor.encaje,
+    materia: materia
+  });
+
   ir('panel');
   return monitor;
 }
@@ -4985,6 +5038,7 @@ function limpiarErrorCorreo(form) {
   Un error de red nunca bloquea la demo: el agradecimiento se muestra igual.
 */
 function enviarCorreo(correo, rol) {
+  guardarLeadSupabase(correo, rol);   // no se espera: la demo nunca se bloquea
   var endpoint = CONTENIDO.endpoint;
   if (!endpoint) return Promise.resolve(false);   // modo demo
 
@@ -5071,6 +5125,344 @@ function engancharCorreoMonitor() {
 }
 
 /* ---------------------------------------------------------------------------
+   16b. Persistencia en Supabase
+   Contrato de datos: supabase/schema.sql (rama main). Sin credenciales todo
+   esto queda apagado y la app no toca la red.
+   --------------------------------------------------------------------------- */
+
+var SUPABASE_JS_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js';
+var SUPABASE_JS_SRI = 'sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP';
+var ESPERA_CDN_MS = 6000;       // tope para descargar supabase-js
+var ESPERA_CARGA_MS = 8000;     // tope total para leer la base al arrancar
+
+var promesaClienteSupabase = null;
+
+// Ids de la base para las materias y subtemas cargados, por id de la app.
+// Hacen falta para las llaves foraneas de monitores y resultados_diagnostico.
+var idsSupabase = { materias: {}, subtemas: {} };
+
+// leads.rol solo admite 'estudiante' y 'monitor' (check en schema.sql).
+var ROL_LEAD_SUPABASE = { estudiante: 'estudiante', monitor: 'monitor', 'monitor-evaluacion': 'monitor' };
+
+function configSupabase() {
+  // window.__calibraSupabase lo usa el arnes de pruebas para simular un proyecto.
+  var o = window.__calibraSupabase;
+  var url = o && o.url ? o.url : CONTENIDO.supabaseUrl;
+  var llave = o && o.anonKey ? o.anonKey : CONTENIDO.supabaseKey;
+  url = String(url || '').trim().replace(/\/+$/, '');
+  llave = String(llave || '').trim();
+  if (!/^https:\/\//.test(url) || !llave) return null;
+  return { url: url, llave: llave };
+}
+
+function fijarEstadoSupabase(valor) {
+  // 'demo' | 'cargando' | 'conectado' | 'sin-conexion'
+  window.__calibraSupabaseEstado = valor;
+}
+
+function mostrarCargando(visible) {
+  var el = $('#cargando');
+  if (el) el.hidden = !visible;
+}
+
+function cargarScriptSupabase() {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    return Promise.resolve(window.supabase);
+  }
+  return new Promise(function (resolver) {
+    var listo = false;
+    function terminar(valor) {
+      if (listo) return;
+      listo = true;
+      resolver(valor);
+    }
+    var s = document.createElement('script');
+    s.src = SUPABASE_JS_URL;
+    s.integrity = SUPABASE_JS_SRI;
+    s.crossOrigin = 'anonymous';
+    s.async = true;
+    s.onload = function () { terminar(window.supabase || null); };
+    s.onerror = function () { terminar(null); };
+    setTimeout(function () { terminar(window.supabase || null); }, ESPERA_CDN_MS);
+    document.head.appendChild(s);
+  });
+}
+
+function obtenerClienteSupabase() {
+  var cfg = configSupabase();
+  if (!cfg) return Promise.resolve(null);
+  if (promesaClienteSupabase) return promesaClienteSupabase;
+  promesaClienteSupabase = cargarScriptSupabase().then(function (lib) {
+    if (!lib || typeof lib.createClient !== 'function') return null;
+    // Sin sesion ni refresco de tokens: no hay login, y asi el cliente no
+    // guarda nada en el almacenamiento del navegador.
+    return lib.createClient(cfg.url, cfg.llave, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+  }).catch(function () { return null; });
+  return promesaClienteSupabase;
+}
+
+function leerTablaSupabase(cliente, tabla, columnas) {
+  return cliente.from(tabla).select(columnas).order('id', { ascending: true }).then(function (r) {
+    if (r.error) throw new Error(tabla + ': ' + (r.error.message || r.error));
+    return r.data || [];
+  });
+}
+
+function slugDe(texto) {
+  return String(texto || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'materia';
+}
+
+function copiaSimple(obj) {
+  return obj ? JSON.parse(JSON.stringify(obj)) : obj;
+}
+
+function agruparPor(filas, campo) {
+  var grupos = {};
+  filas.forEach(function (f) {
+    var k = f[campo];
+    if (!grupos[k]) grupos[k] = [];
+    grupos[k].push(f);
+  });
+  return grupos;
+}
+
+/* Filas de la base -> forma de MATERIAS. La materia se reconoce por su codigo:
+   si el archivo ya la tiene, se conservan su id de la app y la configuracion
+   de la prueba, que la base no guarda. */
+function materiasDesdeSupabase(filas, plantillas) {
+  var subtemasPorMateria = agruparPor(filas.subtemas, 'materia_id');
+  var preguntasPorSubtema = agruparPor(filas.preguntas, 'subtema_id');
+  var opcionesPorPregunta = agruparPor(filas.opciones, 'pregunta_id');
+  var usados = {};
+  var ids = { materias: {}, subtemas: {} };
+
+  var materias = filas.materias.map(function (fm) {
+    var plantilla = null;
+    for (var i = 0; i < plantillas.length; i++) {
+      if (plantillas[i].codigo && plantillas[i].codigo === fm.codigo) { plantilla = plantillas[i]; break; }
+    }
+    var id = plantilla ? plantilla.id : slugDe(fm.nombre);
+    if (usados[id]) id = id + '-' + slugDe(fm.codigo);
+    usados[id] = true;
+    ids.materias[id] = fm.id;
+    ids.subtemas[id] = {};
+
+    var subtemas = {};
+    var preguntas = [];
+    var numerosVistos = {};
+    (subtemasPorMateria[fm.id] || []).forEach(function (fs) {
+      subtemas[fs.clave] = fs.nombre;
+      ids.subtemas[id][fs.clave] = fs.id;
+      (preguntasPorSubtema[fs.id] || []).forEach(function (fp) {
+        var opciones = (opcionesPorPregunta[fp.id] || []).slice().sort(function (a, b) {
+          return String(a.letra).localeCompare(String(b.letra));
+        }).map(function (fo) {
+          var o = { letra: fo.letra, texto: fo.texto, correcta: fo.es_correcta === true };
+          if (!o.correcta) o.error = fo.error_texto || '';
+          return o;
+        });
+        var correctas = opciones.filter(function (o) { return o.correcta; }).length;
+        if (!fp.enunciado || opciones.length !== 4 || correctas !== 1) return;   // pregunta incompleta
+        var idPregunta = 'p' + fp.numero;
+        if (numerosVistos[idPregunta]) idPregunta = idPregunta + '-' + fp.id;
+        numerosVistos[idPregunta] = true;
+        var dificultad = parseInt(fp.dificultad, 10);
+        preguntas.push({
+          id: idPregunta,
+          numero: Number(fp.numero),
+          subtema: fs.clave,
+          dificultad: dificultad >= 1 && dificultad <= 3 ? dificultad : 2,
+          enunciado: fp.enunciado,
+          opciones: opciones
+        });
+      });
+    });
+    preguntas.sort(function (a, b) { return a.numero - b.numero; });
+    preguntas.forEach(function (p) { delete p.numero; });
+
+    var n = preguntas.length;
+    return {
+      id: id,
+      codigo: fm.codigo,
+      nombre: fm.nombre,
+      activa: fm.activa === true && n > 0,
+      contexto: plantilla ? plantilla.contexto : 'antes del parcial',
+      libro: plantilla ? plantilla.libro : '',
+      subtemas: subtemas,
+      preguntas: preguntas,
+      prueba: plantilla ? copiaSimple(plantilla.prueba)
+        : { longitud: Math.min(12, n), adaptativa: true, barajarOpciones: true },
+      certificacion: plantilla ? copiaSimple(plantilla.certificacion)
+        : { longitud: Math.min(3, n), minimoAciertos: 2, adaptativa: false, barajarOpciones: false }
+    };
+  });
+
+  return { materias: materias, ids: ids };
+}
+
+/* Fila de monitores -> forma de MONITORES. La base no guarda subtemas,
+   horarios, resenas ni si es recomendado. */
+function monitorDesdeSupabase(fila, materiaPorIdBase) {
+  var materia = materiaPorIdBase[fila.materia_certificada_id];
+  var carrera = fila.carrera ? String(fila.carrera).trim() : '';
+  var semestre = fila.semestre != null ? String(fila.semestre).trim() : '';
+  var programa = carrera && semestre ? carrera + ' · ' + semestre + 'º semestre'
+    : (carrera || (semestre ? semestre + 'º semestre' : ''));
+  return {
+    inicial: inicialDe(fila.nombre),
+    nombre: fila.nombre,
+    programa: programa,
+    materia: materia ? materia.id : '',
+    subtemas: [],
+    nivel: Number(fila.nivel) || 1,
+    calificacion: fila.calificacion == null ? '' : String(fila.calificacion).replace('.', ','),
+    resenas: 0,
+    precio: Number(fila.precio_hora) || 0,
+    horarios: [],
+    encaje: fila.encaje_texto || '',
+    mismoProfesor: false,
+    recomendado: false,
+    desdeSupabase: true
+  };
+}
+
+function reemplazarEnSitio(lista, nuevos) {
+  // Mismo arreglo: window.MATERIAS y el arnes apuntan a esta referencia.
+  Array.prototype.splice.apply(lista, [0, lista.length].concat(nuevos));
+}
+
+function aplicarDatosSupabase(filas) {
+  var plantillas = listaMaterias().slice();
+  var r = materiasDesdeSupabase(filas, plantillas);
+  var hayContenido = r.materias.some(function (m) { return m.activa; });
+
+  // Si la base todavia no tiene contenido publicado, se quedan las materias
+  // del archivo: una demo sin materias no sirve.
+  if (hayContenido && Array.isArray(CONTENIDO.materias)) {
+    reemplazarEnSitio(CONTENIDO.materias, r.materias);
+    idsSupabase = r.ids;
+  }
+
+  var materiaPorIdBase = {};
+  Object.keys(idsSupabase.materias).forEach(function (idApp) {
+    materiaPorIdBase[idsSupabase.materias[idApp]] = materiaPorId(idApp);
+  });
+  var reales = filas.monitores.map(function (f) { return monitorDesdeSupabase(f, materiaPorIdBase); });
+  if (reales.length && Array.isArray(CONTENIDO.monitores)) {
+    var ejemplos = CONTENIDO.monitores.filter(function (m) { return !m.desdeSupabase; });
+    reemplazarEnSitio(CONTENIDO.monitores, CONTENIDO.monitoresEjemplo ? reales.concat(ejemplos) : reales);
+  }
+
+  // Los filtros se llenaron con los datos del archivo al arrancar.
+  ['#filtro-materia', '#filtro-precio', '#filtro-nivel'].forEach(function (sel) {
+    var el = $(sel);
+    if (el) el.removeAttribute('data-lleno');
+  });
+  prepararFiltros();
+}
+
+function cargarDesdeSupabase() {
+  var vigente = { activo: true };
+  var lectura = obtenerClienteSupabase().then(function (cliente) {
+    if (!cliente) return false;
+    return Promise.all([
+      leerTablaSupabase(cliente, 'materias', 'id,nombre,codigo,activa'),
+      leerTablaSupabase(cliente, 'subtemas', 'id,materia_id,clave,nombre'),
+      leerTablaSupabase(cliente, 'preguntas', 'id,subtema_id,numero,dificultad,enunciado'),
+      leerTablaSupabase(cliente, 'opciones', 'id,pregunta_id,letra,texto,es_correcta,error_texto'),
+      leerTablaSupabase(cliente, 'monitores',
+        'id,nombre,carrera,semestre,nivel,calificacion,precio_hora,materia_certificada_id,encaje_texto,creado_en')
+    ]).then(function (t) {
+      // Si ya se vencio el tiempo, la demo arranco con el archivo: no se
+      // cambian los datos a mitad de una sesion.
+      if (!vigente.activo) return false;
+      aplicarDatosSupabase({ materias: t[0], subtemas: t[1], preguntas: t[2], opciones: t[3], monitores: t[4] });
+      return true;
+    });
+  }).catch(function (e) {
+    console.warn('[Calibra] no se pudo leer Supabase; se usan los datos del archivo:', e && e.message ? e.message : e);
+    return false;
+  });
+
+  var tope = new Promise(function (resolver) {
+    setTimeout(function () { resolver(false); }, ESPERA_CARGA_MS);
+  });
+  return Promise.race([lectura, tope]).then(function (ok) {
+    vigente.activo = false;
+    return ok;
+  });
+}
+
+function insertarEnSupabase(tabla, fila) {
+  if (!configSupabase()) return Promise.resolve(false);
+  return obtenerClienteSupabase().then(function (cliente) {
+    if (!cliente) return false;
+    // Sin .select(): leads y resultados_diagnostico no tienen lectura publica,
+    // y pedir la fila de vuelta haria que RLS rechazara el insert.
+    return cliente.from(tabla).insert(fila).then(function (r) {
+      if (r.error) {
+        console.warn('[Calibra] Supabase no guardo en ' + tabla + ':', r.error.message || r.error);
+        return false;
+      }
+      return true;
+    });
+  }).catch(function (e) {
+    console.warn('[Calibra] Supabase no guardo en ' + tabla + ':', e && e.message ? e.message : e);
+    return false;
+  });
+}
+
+function guardarLeadSupabase(correo, rol) {
+  var rolBase = ROL_LEAD_SUPABASE[rol];
+  if (!rolBase) return Promise.resolve(false);   // p. ej. 'profesor': la base no lo admite
+  var materia = materiaActual();
+  return insertarEnSupabase('leads', {
+    correo: correo,
+    rol: rolBase,
+    materia_interes: materia && materia.codigo ? materia.codigo : null
+  });
+}
+
+function guardarMonitorSupabase(datos) {
+  var materia = datos.materia || materiaActual();
+  return insertarEnSupabase('monitores', {
+    nombre: datos.nombre,
+    carrera: datos.carrera || null,
+    semestre: isFinite(datos.semestre) ? String(datos.semestre) : null,
+    nivel: Number(datos.nivel) || 1,
+    calificacion: null,
+    precio_hora: isFinite(datos.tarifa) ? Number(datos.tarifa) : null,
+    materia_certificada_id: idsSupabase.materias[materia.id] || null,
+    encaje_texto: datos.encaje || null
+  });
+}
+
+function guardarDiagnosticoSupabase() {
+  if (!configSupabase()) return Promise.resolve(false);
+  var materia = materiaActual();
+  var diag = calcularDiagnostico(estado.respuestasEstudiante, { materia: materia });
+  var clave = diag.debil ? diag.debil.subtema : null;
+  var subtemasBase = idsSupabase.subtemas[materia.id] || {};
+  var porcentajes = {};
+  (diag.barras || []).forEach(function (b) { porcentajes[b.subtema] = b.pct; });
+  return insertarEnSupabase('resultados_diagnostico', {
+    materia_id: idsSupabase.materias[materia.id] || null,
+    subtema_debil_id: clave && subtemasBase[clave] ? subtemasBase[clave] : null,
+    error_detectado_texto: diag.error && diag.error !== CONTENIDO.sinFallos ? diag.error : null,
+    respuestas: {
+      codigo: materia.codigo || null,
+      respuestas: copiaSimple(estado.respuestasEstudiante),
+      porcentajes: porcentajes,
+      subtema_debil: clave
+    }
+  });
+}
+
+/* ---------------------------------------------------------------------------
    17. Arranque
    --------------------------------------------------------------------------- */
 
@@ -5122,7 +5514,21 @@ function iniciar() {
   engancharBuscar();
   engancharCrearPerfil();
   reiniciarAleatorio();
-  aplicarHash();   // lee el hash inicial y aplica la misma guarda
+
+  if (!configSupabase()) {
+    fijarEstadoSupabase('demo');
+    aplicarHash();   // lee el hash inicial y aplica la misma guarda
+    return;
+  }
+
+  // Con Supabase: pantalla de carga breve, y pase lo que pase la app arranca.
+  fijarEstadoSupabase('cargando');
+  mostrarCargando(true);
+  cargarDesdeSupabase().then(function (ok) {
+    fijarEstadoSupabase(ok ? 'conectado' : 'sin-conexion');
+    mostrarCargando(false);
+    aplicarHash();
+  });
 }
 
 /* Ventana de depuracion para el arnes de pruebas. No pinta nada. */
@@ -5139,7 +5545,8 @@ window.__calibra = {
   siguientePregunta: siguientePregunta,
   calcularDiagnostico: calcularDiagnostico,
   aleatorio: aleatorio,
-  reiniciarAleatorio: reiniciarAleatorio
+  reiniciarAleatorio: reiniciarAleatorio,
+  supabase: { config: configSupabase, ids: function () { return idsSupabase; } }
 };
 
 if (document.readyState === 'loading') {
