@@ -701,6 +701,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
 /* Linea de conteo: es un dato de servicio ("12 monitores"), no un titulo.
    Va discreta, en --muted y con cifras tabulares para que no baile al
    cambiar de filtro. */
+.conteo-fila{margin-block-start:var(--e3)}
 #buscar-conteo{
   margin-block-start:var(--e3);
   font-size:14px;
@@ -1111,6 +1112,143 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   padding:24px;background:var(--bg);
 }
 .cargando-texto{font-size:16px;color:var(--muted);text-align:center}
+
+/* ---------- 38. Responsive de verdad ------------------------------------
+   Hasta aqui el sistema estaba afinado para un telefono de 390x844, que es el
+   unico tamano que mide el arnes. Fuera de ese tamano .screen{block-size:100dvh}
+   no encoge nada: reparte, y todo lo que sobra desaparece dentro de .body sin
+   avisar. Lo de abajo no cambia el modelo, le da los tramos que le faltaban. */
+
+/* 38.1 · Las casillas de .opt, .slot y .subtemas-check se ocultan en posicion
+   absoluta, pero su etiqueta no estaba posicionada: se anclaban al bloque
+   inicial y escapaban del overflow:hidden de .screen, estirando el documento
+   entero (72 px en #perfil a 360x640, 180 px en horizontal). Tres palabras lo
+   devuelven a su sitio. */
+.opt,.slot,.subtemas-check label,.subtemas-check .opcion{position:relative}
+
+/* 38.2 · Fila de filtros de #buscar. El carril horizontal escondia tres de los
+   cuatro filtros en TODOS los tamanos medidos, hasta en 1920 de ancho, porque
+   la fila se recorta contra la columna y no contra la ventana. En rejilla caben
+   siempre, y a partir de dos columnas ocupa lo mismo que ocupaba el carril. */
+.filtros{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:end;
+  overflow:visible;
+  margin-inline:0;
+  padding-inline:0;
+}
+.filtros>*{inline-size:100%}
+.filtros select,
+.filtros input[type="search"],
+.filtros input[type="text"]{inline-size:100%;max-inline-size:none}
+
+/* 38.2b · El conteo y "Quitar los filtros" comparten renglon. */
+.conteo-fila{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.conteo-fila #buscar-conteo{margin-block-start:0}
+.conteo-fila .enlace-sec{margin-inline:0;padding-inline:0}
+
+/* 38.3 · A partir de tablet las materias van en dos columnas: siete materias en
+   una sola fila vertical dejaban tres fuera de pantalla incluso en escritorio. */
+@media (min-width:768px){
+  .materias{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .filtros{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+}
+
+/* 38.4 · Escritorio. La columna se congelaba en 600 px, asi que 1366 y 1920
+   se veian identicos a 1024 y la lista de 19 monitores escondia 3.500 px. */
+@media (min-width:1200px){
+  :root{--col:780px;--pad-x:48px}
+  .lista-monitores{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:16px;
+  }
+  .monitor-card{block-size:100%}
+  .filtros{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:1600px){
+  :root{--col:1040px}
+  .materias{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .filtros{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+/* 38.5 · Pantallas bajas y telefono en horizontal. A 844x390 el .body de
+   #inicio quedaba en 4 px de alto: cero materias visibles. No se desmonta el
+   modelo de scroll (probado: deja el boton primario 290 px mas abajo), se
+   recorta el gasto vertical de cabecera, pie y tarjetas. Ningun area tactil
+   baja de 44 px ni ningun texto de 14, que es el contrato. */
+@media (max-height:560px){
+  :root{--pie-h:44px}
+  .screen{
+    padding-block-start:max(10px,env(safe-area-inset-top));
+    padding-block-end:calc(var(--pie-h) + 6px + env(safe-area-inset-bottom));
+  }
+  .title{font-size:20px;line-height:1.2}
+  .question{font-size:20px;line-height:1.25}
+  .subtitle{margin-block-start:4px}
+  .body::before,.body::after{display:none}
+  .footer{padding-block-start:10px}
+  .footer>*+*{margin-block-start:8px}
+  .btn{min-block-size:46px;font-size:16px}
+  .btn-sec{min-block-size:46px;font-size:15px}
+  .note{margin-block-start:6px}
+  .materias{gap:8px;margin-block-start:12px}
+  .materia{min-block-size:52px}
+  .options{margin-block-start:12px;gap:8px}
+  .opt{min-block-size:52px;padding:8px 14px}
+  .tutor{margin-block-start:8px;padding:14px}
+  .callout{margin-block-start:12px;padding:14px}
+  .price{margin-block-start:12px}
+  .slots{margin-block-start:10px}
+  .slot{min-block-size:46px}
+  .chips{margin-block-start:10px}
+}
+/* En horizontal sobra ancho: el pie reparte sus botones en una fila en vez de
+   apilarlos y devuelve unos 60 px de alto util al contenido. */
+@media (max-height:560px) and (min-width:600px){
+  :root{--col:min(94vw,860px)}
+  .screen>.footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px}
+  .screen>.footer>*{flex:1 1 200px;margin-block-start:0}
+  .screen>.footer>.note{flex:1 1 100%;margin-block-start:0}
+  .materias{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  #perfil-pie{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px}
+  #perfil-pie>*{margin-block-start:0}
+  #perfil-pie .slots{margin-block-start:0}
+}
+
+/* 38.5b · Con menos de 700 px de alto la ficha del monitor se lleva el espacio
+   que necesita su propia linea de especialidad. Se recorta el aire, nunca el
+   tamano del texto ni el area tactil. */
+@media (max-height:700px){
+  .tutor{margin-block-start:8px;padding:14px}
+  .tutor .avatar{inline-size:48px;block-size:48px;font-size:20px}
+  .tutor .chips{margin-block-start:10px}
+  .tutor .specialty{margin-block-start:10px}
+  .price{margin-block-start:14px}
+  .slots{margin-block-start:12px}
+  .slot{min-block-size:52px}
+  #perfil-contenido .note{margin-block-start:10px}
+}
+
+/* 38.6 · El pill "Empezar de nuevo" tapaba el pie del prototipo. Medido: el
+   texto pide 186 px y el pill ocupa 159, asi que se pisan a 320, 360 y 375, y
+   ya no a 390. El corte va en 380 para no partir en dos lineas un pie que a
+   390 cabe entero. */
+@media (max-width:380px){
+  .pie-prototipo{
+    justify-content:flex-start;
+    text-align:start;
+    line-height:1.25;
+    padding-inline-end:calc(var(--pad-x) + 168px);
+  }
+}
 </style>
 </head>
 <body>
@@ -1171,6 +1309,10 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   <div class="footer">
     <button class="btn" type="button" id="prueba-siguiente" disabled>Siguiente</button>
     <p class="note">Sin nota. Solo para saber qu&eacute; explicarte.</p>
+    <!-- Solo aparece si la prueba se abrio desde el perfil de un monitor: sin
+         esto, aceptar la invitacion opcional dejaba la reserva atrapada
+         detras de 12 preguntas. -->
+    <p class="note" id="prueba-salida" hidden><button class="enlace-sec" type="button" id="prueba-volver">Seguir sin la prueba</button></p>
   </div>
 </section>
 
@@ -1233,6 +1375,13 @@ textarea.visualmente-oculto,button.visualmente-oculto{
          El nombre del monitor va como <h2 class="tutor-name">. -->
     <div id="perfil-contenido"></div>
   </div>
+
+  <!-- El precio, los horarios y "Agendar y pagar" los pinta el motor AQUI, en
+       el pie de primer nivel, no dentro de .body. Es lo que garantiza que el
+       boton de reservar se vea siempre, aunque la tarjeta del monitor no quepa
+       entera: en un telefono de 360x640 vivia 235 px por debajo del pliegue y
+       lo unico accionable en pantalla era la invitacion a la prueba. -->
+  <div class="footer" id="perfil-pie"></div>
 </section>
 
 <!-- ================= E6 - Confirmaci&oacute;n ================= -->
@@ -1503,13 +1652,21 @@ textarea.visualmente-oculto,button.visualmente-oculto{
     </div>
 
     <!-- El motor escribe aqui, por ejemplo, "3 monitores disponibles" -->
-    <p class="count" id="buscar-conteo" role="status" aria-live="polite"></p>
+    <!-- El conteo y el boton de quitar filtros comparten fila: el boton
+         tiene que estar a la vista SIEMPRE, no solo cuando la lista queda
+         en cero, porque para entonces ya no hay nada que deshacer. -->
+    <div class="conteo-fila">
+      <p class="count" id="buscar-conteo" role="status" aria-live="polite"></p>
+      <button class="enlace-sec" type="button" id="buscar-limpiar">Quitar los filtros</button>
+    </div>
 
     <!-- El motor pinta aqui <li class="monitor-card"> con data-ir="perfil",
          igual que en E4 -->
     <ul class="lista-monitores" id="buscar-lista" aria-labelledby="t-buscar"></ul>
 
-    <p class="subtitle" id="buscar-vacio" hidden>Ning&uacute;n monitor coincide con esos filtros. Prueba con un rango de precio m&aacute;s amplio o quita el subtema.</p>
+    <div id="buscar-vacio" hidden>
+      <p>Ning&uacute;n monitor coincide con esos filtros. Prueba con un rango de precio m&aacute;s amplio o quita el subtema.</p>
+    </div>
 
   </div>
 
@@ -3404,8 +3561,8 @@ const TEXTOS = {
 
   /* E5 · Perfil y agendar */
   e5Callout: '{nombre} recibirá tu diagnóstico antes de la sesión: qué explicarte, en qué orden y con qué ejercicio arrancar.',
-  e5SinDiagnostico: 'Todavía no tienes diagnóstico. Haz la prueba y {nombre} sabrá qué explicarte antes de sentarse contigo.',
-  e5SinDiagnosticoBoton: 'Hacer la prueba',
+  e5PruebaOpcional: 'La prueba es opcional. Si la haces, {nombre} sabe qué explicarte antes de la sesión.',
+  e5PruebaOpcionalEnlace: 'Hacer la prueba',
   e5Horarios: 'Elige un horario',
   e5Boton: 'Agendar y pagar',
 
@@ -3773,6 +3930,9 @@ const estado = {
   /* Agenda */
   monitorElegido: null,
   horarioElegido: null,
+  /* La prueba se abrio desde el perfil de un monitor y hay que volver alli
+     al terminarla, en vez de caer en el diagnostico y perder la reserva. */
+  volverAPerfil: false,
 
   /* Buscador */
   filtros: { materia: null, subtema: null, precioMax: null, nivelMin: null },
@@ -4453,6 +4613,14 @@ function enfocarPantalla(hash) {
   var seccion = document.getElementById(SECCIONES[hash]);
   if (!seccion) return;
   seccion.scrollTop = 0;
+  // El que se desplaza es .body, no la seccion (.screen tiene overflow:hidden),
+  // asi que sin esto se entraba a un perfil nuevo a media altura, sin ver el
+  // nombre del monitor. Se exceptua el buscador: volver a la lista donde uno
+  // la dejo es justo lo que se espera al comparar monitores.
+  if (hash !== 'buscar') {
+    var carril = seccion.querySelector('.body');
+    if (carril) carril.scrollTop = 0;
+  }
   if (window.scrollY) window.scrollTo(0, 0);
   if (primeraPintada) { primeraPintada = false; return; }
   var titulo = seccion.querySelector('h1');
@@ -4481,7 +4649,12 @@ function reiniciar() {
 
   estado.monitorElegido = null;
   estado.horarioElegido = null;
+  estado.volverAPerfil = false;
   estado.filtros = { materia: null, subtema: null, precioMax: null, nivelMin: null };
+  // Los <select> del buscador tambien vuelven a cero: sin esto, estado.filtros
+  // quedaba limpio pero pintarBuscar volvia a leer el DOM y la lista seguia
+  // en los mismos cero resultados de antes de reiniciar.
+  vaciarSelectsDeFiltros();
 
   // El perfil que se creo durante la demo desaparece de la lista publica.
   estado.monitorNuevo = null;
@@ -4550,6 +4723,13 @@ function configEstudiante() {
     alTerminar: function () {
       estado.pruebaTerminada = true;
       guardarDiagnosticoSupabase();
+      // Quien abrio la prueba desde un perfil vuelve a ese perfil con el
+      // diagnostico ya hecho; el horario que tenia elegido sigue puesto.
+      if (estado.volverAPerfil && estado.monitorElegido) {
+        estado.volverAPerfil = false;
+        ir('perfil');
+        return;
+      }
       ir('diagnostico');
     }
   };
@@ -4673,7 +4853,11 @@ function pintarPruebaGenerica(cfg) {
   return visibles;
 }
 
-function pintarPrueba() { pintarPruebaGenerica(configEstudiante()); }
+function pintarPrueba() {
+  var salida = $('#prueba-salida');
+  if (salida) salida.hidden = !(estado.volverAPerfil && estado.monitorElegido);
+  pintarPruebaGenerica(configEstudiante());
+}
 function pintarCertificacion() { pintarPruebaGenerica(configMonitor()); }
 
 /* Avanza una pregunta. Blindado contra doble clic: si el boton ya esta
@@ -5187,6 +5371,48 @@ function engancharBuscar() {
     el.addEventListener('change', pintarBuscar);
     el.addEventListener('input', pintarBuscar);
   });
+
+  var limpiar = $('#buscar-limpiar');
+  if (limpiar) limpiar.addEventListener('click', function () {
+    vaciarSelectsDeFiltros();
+    pintarBuscar();
+  });
+
+  var volver = $('#prueba-volver');
+  if (volver) volver.addEventListener('click', function () {
+    estado.volverAPerfil = false;
+    ir(estado.monitorElegido ? 'perfil' : 'buscar');
+  });
+}
+
+/* Deja los cuatro controles del buscador en su opcion vacia. */
+function vaciarSelectsDeFiltros() {
+  estado.filtros = { materia: null, subtema: null, precioMax: null, nivelMin: null };
+  ['#filtro-materia', '#filtro-precio', '#filtro-nivel'].forEach(function (sel) {
+    var el = $(sel);
+    if (el) el.value = '';
+  });
+  // El de subtemas no se vacia: se rehace. Sus opciones dependen de la materia
+  // y leerFiltros() solo lo repuebla cuando ve que la materia cambio, cosa que
+  // aqui ya no ocurre porque acabamos de poner estado.filtros a cero. Sin esto
+  // el desplegable seguia ofreciendo los subtemas de la materia anterior.
+  llenarSelectSubtemas();
+}
+
+/* Prepara la prueba que se abre desde el perfil de un monitor: la materia es
+   la suya, no la que estuviera elegida, y se marca de donde viene para poder
+   devolver al estudiante a su reserva. */
+function prepararPruebaDesdePerfil(m) {
+  var destino = m && m.materia && materiaPorId(m.materia) ? m.materia : estado.materia;
+  if (estado.materia !== destino) {
+    estado.materia = destino;
+    estado.itemsEstudiante = [];
+    estado.respuestasEstudiante = {};
+    estado.indicePregunta = 0;
+    estado.pruebaTerminada = false;
+    reiniciarAleatorio();
+  }
+  estado.volverAPerfil = true;
 }
 
 /* ---------------------------------------------------------------------------
@@ -5195,9 +5421,11 @@ function engancharBuscar() {
 
 function pintarPerfil() {
   var cont = $('#perfil-contenido');
+  var pie = $('#perfil-pie');
   var m = estado.monitorElegido;
   if (!cont || !m) return;
   vaciar(cont);
+  if (pie) vaciar(pie);
 
   if (m.recomendado) cont.appendChild(crear('p', 'eyebrow', txt('e4Recomendado', 'Monitor recomendado')));
 
@@ -5227,62 +5455,67 @@ function pintarPerfil() {
       'qué explicarte, en qué orden y con qué ejercicio arrancar.'));
     cont.appendChild(callout);
   } else {
-    // Sin prueba hecha no hay diagnostico que prometer. Se dice y se invita.
-    var invita = crear('div', 'callout');
-    invita.appendChild(crear('p', null,
-      txt('e5SinDiagnostico',
-        'Todavía no tienes diagnóstico. Haz la prueba y {nombre} sabrá qué explicarte antes de sentarse contigo.',
-        { nombre: nombrePila(m.nombre) })));
-    var botonPrueba = document.createElement('button');
-    botonPrueba.type = 'button';
-    botonPrueba.className = 'btn-sec';
-    botonPrueba.setAttribute('data-ir', 'prueba');
-    botonPrueba.textContent = txt('e5SinDiagnosticoBoton', 'Hacer la prueba');
-    invita.appendChild(botonPrueba);
-    cont.appendChild(invita);
+    // Sin prueba hecha no hay diagnostico que prometer. Va como nota de una
+    // linea y NO como tarjeta destacada: con el borde azul y un boton de 52 px
+    // se leia como un requisito para poder reservar, que es justo lo que no es.
+    var nota = crear('p', 'note nota-opcional');
+    nota.appendChild(document.createTextNode(txt('e5PruebaOpcional',
+      'La prueba es opcional. Si la haces, {nombre} sabe qué explicarte antes de la sesión.',
+      { nombre: nombrePila(m.nombre) }) + ' '));
+    var enlacePrueba = document.createElement('button');
+    enlacePrueba.type = 'button';
+    enlacePrueba.className = 'enlace-sec';
+    enlacePrueba.setAttribute('data-ir', 'prueba');
+    enlacePrueba.textContent = txt('e5PruebaOpcionalEnlace', 'Hacer la prueba');
+    // Corre antes que el manejador delegado de [data-ir], que burbujea hasta
+    // document: deja lista la materia del monitor y la vuelta a este perfil.
+    enlacePrueba.addEventListener('click', function () { prepararPruebaDesdePerfil(m); });
+    nota.appendChild(enlacePrueba);
+    cont.appendChild(nota);
   }
 
-  cont.appendChild(precioElemento(m.precio));
+  // Precio, horarios y boton van al pie de la pantalla, fuera del carril que
+  // se desplaza. Si el pie no existiera (HTML antiguo), caen donde caian.
+  var destino = pie || cont;
+  destino.appendChild(precioElemento(m.precio));
 
-  // Boton de agendar: se crea antes para que los radios puedan habilitarlo
+  var horarios = horariosNormalizados(m);
+  // El primer horario viene marcado para que "Agendar y pagar" nazca vivo.
+  // Un boton gris que no responde se lee como "bloqueado porque no hiciste la
+  // prueba", y habilitarlo sin horario tampoco sirve: la guarda de
+  // #confirmacion exige horario y devolveria al inicio.
+  if (!estado.horarioElegido && horarios.length) estado.horarioElegido = horarios[0];
+
   var agendar = document.createElement('button');
   agendar.type = 'button';
   agendar.className = 'btn';
   agendar.textContent = txt('e5Boton', 'Agendar y pagar');
   agendar.disabled = !estado.horarioElegido;
-  // Marcador declarativo del contrato. El manejador delegado de [data-ir] ignora
-  // los botones deshabilitados, asi que no hace falta comprobar el horario aqui.
   agendar.setAttribute('data-ir', 'confirmacion');
 
-  // Horarios como radios
-  var horarios = horariosNormalizados(m);
   var fs = crear('fieldset', 'slots');
   fs.appendChild(crear('legend', 'slots-legend', txt('e5Horarios', 'Elige un horario')));
   var grid = crear('ul', 'slot-grid');
-  horarios.forEach(function (h) {
+  horarios.forEach(function (hor) {
     var li = document.createElement('li');
     var label = crear('label', 'slot');
     var radio = document.createElement('input');
     radio.type = 'radio';
     radio.name = 'horario';
-    radio.value = h.id;
-    if (estado.horarioElegido && estado.horarioElegido.id === h.id) radio.checked = true;
+    radio.value = hor.id;
+    if (estado.horarioElegido && estado.horarioElegido.id === hor.id) radio.checked = true;
     radio.addEventListener('change', function () {
-      estado.horarioElegido = h;
+      estado.horarioElegido = hor;
       agendar.disabled = false;
     });
     label.appendChild(radio);
-    label.appendChild(document.createTextNode(h.texto));
+    label.appendChild(document.createTextNode(hor.texto));
     li.appendChild(label);
     grid.appendChild(li);
   });
   fs.appendChild(grid);
-  cont.appendChild(fs);
-
-  // Pie con el boton de agendar (deshabilitado hasta elegir horario)
-  var pie = crear('div', 'footer');
-  pie.appendChild(agendar);
-  cont.appendChild(pie);
+  destino.appendChild(fs);
+  destino.appendChild(agendar);
 }
 
 /* E6: resumen de lo agendado. */
