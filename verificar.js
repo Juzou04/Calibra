@@ -142,6 +142,15 @@ const CFG_FIJA = { adaptativa: false, barajarOpciones: false };
 const CFG_BARAJADA = { adaptativa: false, barajarOpciones: true };
 const CFG_ADAPTATIVA = { adaptativa: true, barajarOpciones: true };
 
+// Cada materia activa trae 12 preguntas desde la rama juzouy.
+const PREGUNTAS_POR_MATERIA = 12;
+// La tabla ORACULO describe las 4 preguntas originales del brief (p1..p4 de
+// Calculo Integral, que siguen intactas). Los bloques que comparan contra el
+// oraculo acotan la prueba a esas 4; el resto del arnes usa la longitud real.
+const LONGITUD_ORACULO = 4;
+const CFG_ORACULO = { longitud: LONGITUD_ORACULO, adaptativa: false, barajarOpciones: false };
+const CFG_ORACULO_BARAJADA = { longitud: LONGITUD_ORACULO, adaptativa: false, barajarOpciones: true };
+
 // Datos validos para crear el perfil del monitor.
 const PERFIL_NUEVO = { nombre: 'Mariana T.', semestre: '7', tarifa: '30000' };
 const PERFIL_TARIFA_TEXTO = '$30.000';
@@ -1169,6 +1178,31 @@ async function entrarAPrueba(page, materia) {
   await esperarPantalla(page, 's-prueba', 'E2');
 }
 
+// Desde juzouy, M2 no salta a la certificacion: pasa por M2.5 (#monitor-correo),
+// que pide el correo antes de evaluar. Se soportan los dos flujos.
+async function pasarDeM2aCertificacion(page, retratar) {
+  const directo = page.locator('#s-monitor-materia [data-ir="certificacion"]').first();
+  if (await directo.isVisible().catch(() => false)) {
+    await directo.click();
+    await esperarPantalla(page, 's-certificacion', 'M3');
+    return;
+  }
+  await clic(page, '#s-monitor-materia [data-ir="monitor-correo"]', 'boton de M2 hacia M2.5');
+  await esperarPantalla(page, 's-monitor-correo', 'M2.5');
+  if (retratar) {
+    await auditarPantalla(page, 'm-02b-correo-monitor');
+    await capturar(page, DIR_MON, 'm-02b-correo-monitor.png', 'M2.5 · Correo del monitor');
+    await page.locator('#correo-monitor-pre').first().fill('no-es-un-correo');
+    await page.locator('#s-monitor-correo button[type="submit"]').first().click();
+    await page.waitForTimeout(300);
+    const sigue = await seccionVisible(page, 's-monitor-correo');
+    registrar('M2.5 · un correo invalido no deja pasar a la certificacion', sigue, sigue ? '' : 'avanzo con "no-es-un-correo"');
+  }
+  await page.locator('#correo-monitor-pre').first().fill('monitor.demo@uniandes.edu.co');
+  await page.locator('#s-monitor-correo button[type="submit"]').first().click();
+  await esperarPantalla(page, 's-certificacion', 'M3 tras M2.5');
+}
+
 async function entrarACertificacion(page, base, materia, cfg) {
   await preparar(page, base, { certificacion: cfg || CFG_FIJA });
   await clic(page, '#s-inicio [data-ir="monitor"]', 'enlace Soy monitor (E1)');
@@ -1176,8 +1210,7 @@ async function entrarACertificacion(page, base, materia, cfg) {
   await clic(page, '#s-monitor [data-ir="monitor-materia"]', 'boton de M1 hacia M2');
   await esperarPantalla(page, 's-monitor-materia', 'M2');
   await elegirMateria(page, '#s-monitor-materia .materias, #s-monitor-materia ul, #s-monitor-materia', materia);
-  await clic(page, '#s-monitor-materia [data-ir="certificacion"]', 'boton de M2 hacia M3');
-  await esperarPantalla(page, 's-certificacion', 'M3');
+  await pasarDeM2aCertificacion(page, false);
 }
 
 async function enviarCorreo(page, selectorForm, correo) {
@@ -1355,6 +1388,39 @@ async function bloqueCapturas(page, base, materia) {
     });
   }
 
+  // Con 12 preguntas, despues de las 4 retratadas quedan mas. Se responden en
+  // orden hasta el diagnostico; la ultima se audita y se retrata.
+  const totalPrueba = (materia.prueba && materia.prueba.longitud) || COMBO_CAPTURA.length;
+  let contadorFinal = '';
+  for (let i = COMBO_CAPTURA.length; i < totalPrueba; i += 1) {
+    const n = i + 1;
+    contexto = 'E2 pregunta ' + n;
+    if (await seccionVisible(page, 's-diagnostico')) break;
+    if (n === totalPrueba) {
+      contadorFinal = normalizarEspacios(await page.locator('#prueba-contador').first().textContent().catch(() => ''));
+      await auditarPantalla(page, 'e-05b-pregunta-' + n);
+      await capturar(page, DIR_EST, 'e-05b-pregunta-' + n + '.png', 'E2 · Pregunta ' + n + ' (ultima)');
+    }
+    const dom = await leerPreguntaActual(page, SEL_PRUEBA);
+    const pregunta = localizarPregunta(materia, dom.enunciado);
+    const mapa = emparejarOpciones(pregunta, dom.opciones);
+    await clicOpcionPorIndice(page, SEL_PRUEBA.opciones, mapa.findIndex((m) => !!m.datos.correcta), 'E2 pregunta ' + n);
+    await avanzarPregunta(page, {
+      enunciado: SEL_PRUEBA.enunciado,
+      boton: SEL_PRUEBA.boton,
+      destino: SEL_PRUEBA.destino,
+      etiqueta: 'E2 pregunta ' + n,
+    });
+  }
+  if (totalPrueba > COMBO_CAPTURA.length) {
+    const esperadoContador = 'Pregunta ' + totalPrueba + ' de ' + totalPrueba;
+    registrar(
+      'E2 · la prueba recorre las ' + totalPrueba + ' preguntas configuradas',
+      contadorFinal === esperadoContador,
+      contadorFinal === esperadoContador ? '' : 'contador en la ultima pregunta: "' + contadorFinal + '", se esperaba "' + esperadoContador + '"'
+    );
+  }
+
   contexto = 'E3 diagnostico';
   await esperarPantalla(page, 's-diagnostico', 'E3');
   await auditarPantalla(page, 'e-06-diagnostico');
@@ -1429,8 +1495,7 @@ async function bloqueCapturas(page, base, materia) {
 
   contexto = 'M3 certificacion';
   await elegirMateria(page, '#s-monitor-materia .materias, #s-monitor-materia ul, #s-monitor-materia', materia);
-  await clic(page, '#s-monitor-materia [data-ir="certificacion"]', 'boton de M2 hacia M3');
-  await esperarPantalla(page, 's-certificacion', 'M3');
+  await pasarDeM2aCertificacion(page, true);
 
   const longitudCert = (materia.certificacion && materia.certificacion.longitud) || 3;
   for (let i = 0; i < longitudCert; i += 1) {
@@ -1635,7 +1700,7 @@ async function bloqueOraculo(page, base, materia) {
     contexto = 'combinacion ' + combo;
     const esperado = ORACULO[combo];
     try {
-      await preparar(page, base, { prueba: CFG_FIJA, semilla: 12345 });
+      await preparar(page, base, { prueba: CFG_ORACULO, semilla: 12345 });
       await entrarAPrueba(page, materia);
       const traza = await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica(combo));
       await esperarPantalla(page, 's-diagnostico', 'E3 tras ' + combo);
@@ -1913,7 +1978,7 @@ async function bloqueBarajado(page, base, materia) {
     const esperado = ORACULO[combo];
     try {
       // Orden de preguntas fijo (adaptativa:false) pero opciones barajadas.
-      await preparar(page, base, { prueba: CFG_BARAJADA, semilla: 20260909 });
+      await preparar(page, base, { prueba: CFG_ORACULO_BARAJADA, semilla: 20260909 });
       await entrarAPrueba(page, materia);
       const traza = await recorrer(page, SEL_PRUEBA, materia, estrategiaPatronCanonica(combo));
       await esperarPantalla(page, 's-diagnostico', 'E3 tras ' + combo + ' (barajado)');
@@ -3028,12 +3093,29 @@ async function main() {
         problemas.slice(0, 5).join(' | ')
       );
 
-      const cfgOk = materia.prueba.longitud === 4 && materia.certificacion.longitud === 3 && materia.certificacion.minimoAciertos === 2;
+      const cfgOk = materia.preguntas.length === PREGUNTAS_POR_MATERIA
+        && materia.prueba.longitud === PREGUNTAS_POR_MATERIA
+        && materia.certificacion.longitud === 3 && materia.certificacion.minimoAciertos === 2;
       registrar(
-        'configuracion de ' + MATERIA_DEMO + ' (prueba 4, certificacion 3 con minimo 2)',
+        'configuracion de ' + MATERIA_DEMO + ' (' + PREGUNTAS_POR_MATERIA + ' preguntas, prueba de ' + PREGUNTAS_POR_MATERIA + ', certificacion 3 con minimo 2)',
         cfgOk,
-        cfgOk ? '' : 'prueba.longitud=' + materia.prueba.longitud + ' certificacion.longitud=' + materia.certificacion.longitud + ' minimoAciertos=' + materia.certificacion.minimoAciertos
+        cfgOk ? '' : 'preguntas=' + materia.preguntas.length + ' prueba.longitud=' + materia.prueba.longitud + ' certificacion.longitud=' + materia.certificacion.longitud + ' minimoAciertos=' + materia.certificacion.minimoAciertos
       );
+
+      const activas = materias.filter((m) => m.activa);
+      const sinBanco = activas.filter((m) => (m.preguntas || []).length !== PREGUNTAS_POR_MATERIA);
+      registrar(
+        'cada materia activa tiene ' + PREGUNTAS_POR_MATERIA + ' preguntas (' + activas.length + ' activas)',
+        sinBanco.length === 0,
+        sinBanco.map((m) => m.id + '=' + (m.preguntas || []).length).join(', ')
+      );
+      // La longitud de la prueba es decision de contenido (contenido/*.md): se
+      // avisa si no coincide, sin bloquear.
+      const longitudDistinta = activas.filter((m) => m.prueba && m.prueba.longitud !== PREGUNTAS_POR_MATERIA);
+      if (longitudDistinta.length) {
+        console.log('  AVISO prueba con longitud distinta de ' + PREGUNTAS_POR_MATERIA + ': ' +
+          longitudDistinta.map((m) => m.id + '=' + m.prueba.longitud).join(', ') + ' (revisar el frontmatter en contenido/)');
+      }
 
       const forzado = await forzarConfig(page, MATERIA_DEMO, CFG_FIJA, CFG_FIJA);
       registrar(
