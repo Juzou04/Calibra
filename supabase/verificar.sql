@@ -15,10 +15,13 @@ esperado_columnas (tabla, columnas) as (
         ('materias',               array['activa','codigo','id','nombre']),
         ('subtemas',               array['clave','id','materia_id','nombre']),
         ('preguntas',              array['dificultad','enunciado','id','numero','subtema_id']),
-        ('opciones',               array['error_texto','es_correcta','id','letra','pregunta_id','texto']),
+        ('opciones',               array['error_texto','es_correcta','id','letra','misconcepcion_id','pregunta_id','texto']),
+        ('knowledge_components',   array['clave','id','nombre','subtema_id']),
+        ('misconcepciones',        array['clave','id','kc_id','texto']),
+        ('pregunta_kc',            array['kc_id','pregunta_id']),
         ('monitores',              array['calificacion','carrera','creado_en','encaje_texto','id',
                                          'materia_certificada_id','nivel','nombre','precio_hora','semestre']),
-        ('resultados_diagnostico', array['creado_en','error_detectado_texto','id','materia_id',
+        ('resultados_diagnostico', array['creado_en','error_detectado_texto','id','kcs','materia_id',
                                          'respuestas','subtema_debil_id']),
         ('leads',                  array['correo','creado_en','id','materia_interes','rol'])
 ),
@@ -29,6 +32,9 @@ esperado_politicas (tabla, comandos) as (
         ('subtemas',               array['SELECT']),
         ('preguntas',              array['SELECT']),
         ('opciones',               array['SELECT']),
+        ('knowledge_components',   array['SELECT']),
+        ('misconcepciones',        array['SELECT']),
+        ('pregunta_kc',            array['SELECT']),
         ('monitores',              array['INSERT','SELECT']),
         ('resultados_diagnostico', array['INSERT']),
         ('leads',                  array['INSERT'])
@@ -40,12 +46,15 @@ esperado_privilegios (tabla, privilegios) as (
         ('subtemas',               array['SELECT']),
         ('preguntas',              array['SELECT']),
         ('opciones',               array['SELECT']),
+        ('knowledge_components',   array['SELECT']),
+        ('misconcepciones',        array['SELECT']),
+        ('pregunta_kc',            array['SELECT']),
         ('monitores',              array['INSERT','SELECT']),
         ('resultados_diagnostico', array['INSERT']),
         ('leads',                  array['INSERT'])
 ),
 
--- 1. Existencia de las 7 tablas.
+-- 1. Existencia de las 10 tablas.
 chk_tablas as (
     select
         1 as orden,
@@ -81,7 +90,7 @@ chk_columnas as (
     left join reales_columnas r on r.tabla = e.tabla
 ),
 
--- 3. RLS activo en las 7 tablas.
+-- 3. RLS activo en las 10 tablas.
 chk_rls as (
     select
         3 as orden,
