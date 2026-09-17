@@ -5,6 +5,7 @@ nombre: Cálculo Vectorial
 libro: Marsden y Tromba, Cálculo Vectorial, 6.ª ed.
 contexto: antes del parcial 1
 activa: true
+longitud: 12
 ---
 
 Subtemas tomados del cronograma oficial de MATE-1207 (secciones de Marsden entre paréntesis).

@@ -15,19 +15,51 @@ y lo verifica.
 
 ## Credenciales del proyecto
 
-Estas dos son **públicas por diseño**: están protegidas por RLS, así que es seguro
-comitearlas. Las consumen la Parte 2 (`convertir.js`) y la Parte 3 (`index.html`).
+> ### ⚠️ Estado actual: aquí abajo hay marcadores, no las claves reales
+>
+> **La `Project URL` y la `anon public key` las tiene quien creó el proyecto de
+> Supabase en la Parte 1.** Si estás trabajando la Parte 2 o la Parte 3 y
+> necesitas conectarte, pídeselas directamente por el chat del equipo.
+>
+> En cuanto alguien las tenga a mano, **péguelas en el bloque de abajo y comitee
+> el cambio**: son públicas por diseño y van al repo a propósito, así nadie más
+> del equipo tiene que volver a pedirlas.
+
+Estas dos son **seguras de comitear y de compartir**. La `anon key` no es un
+secreto: va incrustada en el frontend, cualquiera puede leerla desde el navegador,
+y lo que la protege es Row Level Security (ver [Modelo de acceso](#modelo-de-acceso)),
+no el hecho de estar oculta. Las consumen la Parte 2 (`convertir.js`) y la
+Parte 3 (`index.html`).
 
 ```
 Project URL:      <PEGAR_AQUI_LA_PROJECT_URL>      (ej. https://xxxxxxxx.supabase.co)
 anon public key:  <PEGAR_AQUI_LA_ANON_PUBLIC_KEY>
 ```
 
-> **La `service_role key` NUNCA va en este archivo ni en ningún archivo del repo.**
-> Omite RLS y da acceso total a la base. Compártela por un canal privado del
-> equipo con quien trabaje la **Parte 2**, que la necesita para que `convertir.js`
-> inserte contenido, y que debe leerla desde una variable de entorno local. Si
-> alguna vez se filtra, revócala y genera una nueva en Supabase de inmediato.
+Dónde sacarlas en el dashboard: **Project Settings → API**. La `Project URL` está
+en *Project URL* y la `anon public key` en *Project API keys → `anon` `public`*.
+
+### Quién necesita qué
+
+| Parte | Necesita | De dónde la saca |
+| --- | --- | --- |
+| Parte 2 · `convertir.js` | `Project URL` + `service_role key` | URL de este archivo; la `service_role` por chat privado |
+| Parte 3 · `index.html` | `Project URL` + `anon public key` | Las dos de este archivo |
+| Parte 4 · Vercel | nada | el frontend lleva las claves incrustadas |
+
+### La única que no va al repo: `service_role key`
+
+Compártela por el chat privado del equipo con quien trabaje la **Parte 2**, que la
+necesita para que `convertir.js` inserte contenido, y que debe leerla desde una
+variable de entorno local.
+
+Aunque esto sea un proyecto académico, mantenerla fuera del repo no es
+formalismo, son dos problemas prácticos: omite RLS, así que con ella cualquiera
+que vea el repo puede leer los correos de `leads` o borrar la base entera; y
+GitHub detecta automáticamente las llaves de Supabase en repos públicos y avisa
+a Supabase, que la revoca sola — con lo que el pipeline de contenido deja de
+funcionar y hay que regenerarla. Si se filtra, revócala en **Project Settings →
+API → Reset service_role key** y reparte la nueva.
 
 ## Cómo crear la base desde cero
 
@@ -54,12 +86,25 @@ Lo que puede hacer el público (rol `anon`, la llave que va en el frontend):
 | `subtemas` | sí | no | no |
 | `preguntas` | sí | no | no |
 | `opciones` | sí | no | no |
+| `knowledge_components` | sí | no | no |
+| `misconcepciones` | sí | no | no |
+| `pregunta_kc` | sí | no | no |
 | `monitores` | sí | sí | no |
 | `resultados_diagnostico` | no | sí | no |
 | `leads` | no | sí | no |
 
-El contenido (las 4 primeras tablas) lo escribe `convertir.js` con la
-`service_role key`. La lectura de `leads` y `resultados_diagnostico` también
+El contenido (las 7 primeras tablas) lo escribe `convertir.js` con la
+`service_role key`.
+
+### Diagnóstico por knowledge components (rama `prueba-cuestionario`)
+
+`knowledge_components`, `misconcepciones` y `pregunta_kc`, más las columnas
+`opciones.misconcepcion_id` y `resultados_diagnostico.kcs`, soportan el
+diagnóstico por habilidad (ver `contenido/README.md`). Solo tienen filas las
+materias cuyo `.md` declara `kc:`; hoy, el piloto de Cálculo Integral. Son
+cambios aditivos, pero un proyecto creado con el `schema.sql` anterior **no**
+las tiene: antes de correr `convertir.js --supabase` desde esta rama hay que
+volver a ejecutar `schema.sql` (borra los datos) o agregarlas a mano. La lectura de `leads` y `resultados_diagnostico` también
 requiere `service_role`, porque esa llave omite RLS.
 
 ### Dos capas, no una

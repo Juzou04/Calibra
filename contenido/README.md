@@ -45,6 +45,41 @@ Dos reglas que no son obvias y que cuestan un rato si se descubren tarde:
 - **El separador es un punto medio con espacio a cada lado.** El punto medio pegado es multiplicación y no separa nada, así que `x·ln(x)` se escribe tal cual y `x·eˣ − eˣ + C · CORRECTA` se lee bien. Lo que no puedes hacer es meter un ` · ` suelto dentro del texto del error.
 - **El orden de las preguntas lo manda el id, no el archivo.** Puedes agrupar por subtema como quieras: el conversor ordena por P1, P2, P3... Eso importa porque la prueba de Cálculo Integral tiene dos preguntas del mismo subtema separadas.
 
+## Knowledge components y misconcepciones (opcional, piloto en Cálculo Integral)
+
+El subtema dice *dónde* falla el estudiante; esto dice *qué habilidad* le falta y *qué error de razonamiento* comete, y le permite a la prueba confirmar un patrón en vez de adivinarlo. Una materia sin líneas `kc:` funciona exactamente como antes.
+
+```
+## partes · Integración por partes
+
+kc: partes-eleccion-u · Elegir u y dv con la prioridad ILATE
+kc: partes-formula · Aplicar uv − ∫v du con signos y términos correctos
+mc: u-orden-aparicion · partes-eleccion-u · eliges u por orden de aparición, no por la prioridad ILATE
+mc: signo-partes · partes-formula · te equivocas en el signo de la fórmula uv − ∫v du
+
+### P1 · dificultad 2 · kc: partes-eleccion-u
+En ∫ x·ln(x) dx, ¿qué eliges como u?
+
+- A) x · [u-orden-aparicion] eliges u por orden de aparición, no por prioridad ILATE
+- B) ln(x) · CORRECTA
+
+### P13 · dificultad 2 · kc: partes-eleccion-u · borrador
+```
+
+- **kc** (knowledge component): una habilidad concreta, verificable con una pregunta. `kc: clave · Nombre`, dentro del subtema al que pertenece. Apunten a 2 o 3 por subtema.
+- **mc** (misconcepción): un error de razonamiento que **se repite entre preguntas**. `mc: clave · kc-al-que-pertenece · texto`. El texto sigue las mismas reglas del error (segunda persona, minúscula, sin punto).
+- Cada pregunta dice qué kc mide con `· kc: clave` en el encabezado (pueden ser dos, separados por coma).
+- Cada opción incorrecta dice qué mc delata con `[clave]` al inicio de su error. El texto de la opción puede ser más específico que el de la mc: el de la opción es el que sale en "Error detectado", el de la mc es el que sale en "Lo que detectamos" y en el brief del monitor.
+- **Para que la prueba pueda confirmar un error, esa mc tiene que salir como trampa en al menos 2 preguntas distintas**, y cada kc necesita al menos 2 preguntas. El conversor avisa cuando no se cumple.
+- `· borrador` marca preguntas que aún no revisó alguien que sepa la materia. No entran a la app salvo que se convierta con `--borradores`. Revisar = leer la pregunta, confirmar la respuesta y los errores, y borrar `· borrador`.
+
+Cómo usa esto la prueba: si el estudiante cae en una mc, la siguiente pregunta le ofrece esa misma trampa. Si vuelve a caer, sale **Confirmado**; si acierta, se descarta. Además, cada intento sale con preguntas distintas.
+
+```bash
+node contenido/convertir.js --cobertura                # cuántas preguntas tiene cada kc y cada mc
+node contenido/convertir.js --escribir --borradores    # incluye los borradores en index.html
+```
+
 ## Cuántas preguntas
 
 Con 3 preguntas por subtema la prueba ya puede adaptarse: pregunta una, y si fallas profundiza en ese subtema en vez de seguir de largo. Con 1 por subtema solo alcanza para recorrer.
