@@ -11,6 +11,12 @@ Prototipo de validación de Calibra: 14 pantallas, sin backend, sin cuentas y si
 7. **Crear perfil de monitor.** Quien certifica arma su perfil y aparece de inmediato en la lista que ve el estudiante.
 8. **Verificarlo.** `verificar.cmd` recorre los dos flujos en Chromium a 390x844, guarda las capturas en `capturas/` y falla si algo se rompe. Última corrida: 368 de 368.
 
+## Base de datos (Supabase)
+
+El MVP mueve la persistencia a Supabase: materias, subtemas, preguntas, monitores, resultados de diagnóstico y los correos capturados. El esquema completo y las instrucciones están en **[`supabase/README.md`](supabase/README.md)**; el contrato de datos, en [`esquema.md`](esquema.md).
+
+**Credenciales.** La `Project URL` y la `anon public key` las tiene quien creó el proyecto en la Parte 1. Hoy `supabase/README.md` tiene marcadores, no las claves: pídeselas por el chat del equipo y péguelas ahí, que son públicas por diseño y van al repo a propósito. La `service_role key` (solo la necesita `contenido/convertir.js`) se reparte por chat privado y no va al repositorio.
+
 ## Tres cosas que se apartan del brief
 
 Las tres son de accesibilidad y se decidieron con el contraste medido, no a ojo:
