@@ -14,10 +14,10 @@ Lee, en este orden: `esquema.md` (arquitectura y decisiones, rama `main`), `tare
 
 | Rama | Qué tiene |
 | --- | --- |
-| `main` | `juzouy` más `esquema.md`, `tareas/parte-*.md` y la Parte 1 (`supabase/`). Va a ser la rama de producción. |
-| `juzouy` | La app con 7 materias y 84 preguntas, la Parte 3 (Supabase en `index.html`) y la Parte 4 (arnés, `.vercelignore`, checklist). Hoy es la rama por defecto en GitHub. |
-| `dvarela5101` | La Parte 2: `contenido/convertir.js --supabase`. |
-| `prueba-cuestionario` | Experimento de diagnóstico por knowledge components. Cambia `index.html`, `verificar.js` y lleva el esquema a 10 tablas. No fusionar sin decidirlo en equipo. |
+| `juzouy` | Consolidada y al día: la app con 7 materias y 84 preguntas, la Parte 3 (Supabase en `index.html`), la Parte 4 (arnés, `.vercelignore`, checklist), más `main` y `dvarela5101` fusionadas dentro. Es la rama con todo. Hoy también es la rama por defecto en GitHub. |
+| `main` | Va por detrás de `juzouy`. Tiene la Parte 1 (`supabase/`), `esquema.md` y `tareas/parte-*.md`. Va a ser la rama de producción, así que falta subirle `juzouy` por pull request. |
+| `dvarela5101` | La Parte 2: `contenido/convertir.js --supabase`. Ya está dentro de `juzouy`. |
+| `prueba-cuestionario` | Experimento de diagnóstico por knowledge components. Evaluado el 16 de septiembre, ver más abajo. Sin fusionar. |
 
 ## Cómo está armado
 
@@ -61,9 +61,29 @@ node contenido/convertir.js       # revisa el contenido sin escribir nada
 - El flujo del monitor pasa por M2.5 (`#monitor-correo`) antes de la certificación. No hay botón directo de M2 a M3.
 - Si un chequeo de texto falla por mencionar algo en un comentario, cambia el comentario antes de aflojar el chequeo.
 
+## Qué está verificado
+
+Corrido el 16 de septiembre sobre `juzouy` consolidada:
+
+- `verificar.cmd`: 416 comprobaciones, 416 OK, exit 0.
+- Los tres inserts de la Parte 3 contra un Postgres real (PGlite con `supabase/schema.sql` y los roles de Supabase): 26 de 26 casos como se esperaba. La base acepta los payloads tal como los arma `index.html` y rechaza lo que debe: `rol` `profesor`, `RETURNING *` como anon, y `update`/`delete` en `monitores`.
+- `convertir.js --supabase --dry-run`: 7 materias, 31 subtemas, 84 preguntas y 336 opciones, con los códigos que `index.html` empareja.
+- Abrir `index.html` con doble clic (`file://`): sin errores, en modo demo y conectado.
+
+Nada de esto toca un proyecto Supabase real: no hay credenciales todavía.
+
+## Si se va a fusionar `prueba-cuestionario`
+
+Se probó la fusión en un worktree aislado. Entra sin conflictos y el JS queda válido, pero hacen falta dos arreglos antes:
+
+1. `verificar.js` exige exactamente 12 preguntas por materia y esa rama lleva Cálculo Integral a 51. Son cuatro comparaciones (`PREGUNTAS_POR_MATERIA`) que pasan de `===` a `>=`, y dos textos. Sin eso el arnés queda en 424 de 428.
+2. Con credenciales reales, el diagnóstico por knowledge components se apaga solo: `cargarDesdeSupabase` lee 5 tablas y no las tres nuevas (`knowledge_components`, `misconcepciones`, `pregunta_kc`), así que `usaKc()` da falso y la app vuelve al diagnóstico viejo. Los datos sí estarían en la base, porque `convertir.js` los sube.
+
+Además, el `schema.sql` de esa rama empieza con `drop table ... cascade`. Re-ejecutarlo sobre un proyecto con datos borra los correos y los diagnósticos ya registrados. Para un proyecto vivo hace falta un archivo de migración aditivo, no ese.
+
 ## Pendientes al 16 de septiembre
 
-- Cambiar la rama por defecto de GitHub a `main` y fusionar `dvarela5101` y `juzouy` por pull request.
+- Subir `juzouy` a `main` por pull request y cambiar la rama por defecto de GitHub a `main`.
 - Poner las credenciales reales de Supabase y subir el contenido con `convertir.js --supabase`.
 - Crear el proyecto en Vercel (preset "Other", sin build, rama `main`).
 - `contenido/calculo-vectorial.md` no tiene `longitud: 12` y su prueba queda en 4 preguntas. El arnés lo avisa.
