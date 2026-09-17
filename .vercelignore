@@ -1,0 +1,27 @@
+# Vercel publica solo la app: index.html en la raiz, sin build.
+# Lo demas vive en el repo pero no se sirve en el sitio publico.
+
+# Documentos del equipo, brief y tareas
+*.md
+*.txt
+tareas/
+
+# Pruebas y sus capturas
+verificar.js
+verificar.cmd
+capturas/
+
+# Contenido fuente y conversor (se sube a Supabase con convertir.js)
+contenido/
+
+# Esquema y verificadores de la base
+supabase/
+*.sql
+
+# Respaldos, credenciales locales y dependencias
+*.bak.*
+.env
+.env.*
+node_modules/
+package.json
+package-lock.json

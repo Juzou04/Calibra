@@ -3402,6 +3402,19 @@ async function main() {
     const page = await contextoNav.newPage();
     page.setDefaultTimeout(TIEMPO);
 
+    // Si index.html ya tiene credenciales reales de Supabase, este recorrido no
+    // debe llenar la base de produccion con correos, perfiles y diagnosticos de
+    // prueba. Las lecturas llegan a Supabase; las escrituras se responden aqui.
+    let escriturasRetenidas = 0;
+    await contextoNav.route(/\.supabase\.co\/rest\/v1\//, (route) => {
+      const metodo = route.request().method();
+      if (metodo === 'GET' || metodo === 'HEAD') return route.continue();
+      const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS' };
+      if (metodo === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+      escriturasRetenidas += 1;
+      return route.fulfill({ status: 201, headers: cors, body: '' });
+    });
+
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
         reporte.consola.push({ pantalla: contexto, tipo: 'console.error', texto: msg.text() });
@@ -3574,6 +3587,10 @@ async function main() {
       } catch (e) {
         registrar('supabase', false, e.message);
       }
+    }
+
+    if (escriturasRetenidas) {
+      linea('  AVISO ' + escriturasRetenidas + ' escritura(s) a Supabase retenidas por el arnes: no llegaron a la base real.');
     }
 
     // Bloque global: consola y red, ya con todo el recorrido hecho
