@@ -11,8 +11,8 @@
  *   verificar.cmd --headed           (abre el navegador visible)
  *   verificar.cmd --solo=oraculo     (bloques, separados por coma:
  *                                     fuente, capturas, oraculo, monitor,
- *                                     adaptativo, barajado, buscar, perfil,
- *                                     robustez)
+ *                                     adaptativo, kc, barajado, buscar,
+ *                                     perfil, robustez)
  *
  * Requisitos ya verificados del entorno:
  *   - playwright 1.61.1 instalado GLOBALMENTE, se resuelve via NODE_PATH.
@@ -1808,7 +1808,9 @@ function invariantesAdaptativo(materia, traza, d, etiqueta) {
   const fallosPorSubtema = {};
   traza.forEach((t) => { if (!t.correcta) fallosPorSubtema[t.subtema] = (fallosPorSubtema[t.subtema] || 0) + 1; });
   const huboFallos = Object.keys(fallosPorSubtema).length > 0;
-  const debil = d.faltaTitulo ? null : claveSubtema(d.titulo);
+  // Por nombre visible de la materia, no por la lista fija de 3 subtemas del brief:
+  // el recorrido adaptativo puede terminar en cualquiera de ellos.
+  const debil = d.faltaTitulo ? null : claveDeBarra(materia, { nombre: d.titulo });
   if (!huboFallos) {
     if (!contieneTexto(d.error || '', SIN_FALLOS)) {
       problemas.push('no fallo ninguna y el texto deberia ser "' + SIN_FALLOS + '" pero dice: ' + (d.error || '(vacio)'));
@@ -1963,6 +1965,170 @@ async function bloqueAdaptativo(page, base, materia) {
       ? 'ningun recorrido adaptativo llego a completarse'
       : (algunoBarajado ? '' : 'con barajarOpciones:true todas las opciones salieron en el orden original de los datos')
   );
+}
+
+// ---------------------------------------------------------------------------
+// 15b. Bloque: knowledge components (sospecha, confirmacion y dinamismo)
+// ---------------------------------------------------------------------------
+//
+// Solo aplica a materias que declaran kcs (hoy, el piloto de MATERIA_DEMO).
+// Cada opcion incorrecta trae mc: la misconcepcion que delata. El motor debe:
+//   - tras caer en una mc, mandar enseguida otra pregunta que la ofrezca;
+//   - marcarla Confirmado si vuelve a caer, y no listarla si luego acierta;
+//   - cambiar de preguntas entre semillas y repetirlas con la misma;
+//   - tocar todos los subtemas aunque el estudiante falle todo.
+
+function trampasDeDatos(pregunta) {
+  return (pregunta.opciones || []).filter((o) => !o.correcta && o.mc).map((o) => o.mc);
+}
+
+// Cae en la primera trampa que vea; despues, si repetir es true, vuelve a caer
+// en esa misma cada vez que la ofrezcan, y si no, acierta todo.
+function estrategiaTrampa(repetir) {
+  const s = { objetivo: null };
+  const fn = ({ mapa }) => {
+    if (!s.objetivo) {
+      const i = mapa.findIndex((m) => !m.datos.correcta && m.datos.mc);
+      if (i >= 0) { s.objetivo = mapa[i].datos.mc; return i; }
+      return mapa.findIndex((m) => !!m.datos.correcta);
+    }
+    if (repetir) {
+      const i = mapa.findIndex((m) => m.datos.mc === s.objetivo);
+      if (i >= 0) return i;
+    }
+    return mapa.findIndex((m) => !!m.datos.correcta);
+  };
+  fn.estado = s;
+  return fn;
+}
+
+async function leerDetalleKc(page) {
+  return page.evaluate(() => {
+    const caja = document.querySelector('#diag-kc');
+    if (!caja) return { existe: false };
+    return {
+      existe: true,
+      visible: !caja.hidden && caja.getClientRects().length > 0,
+      errores: Array.prototype.map.call(document.querySelectorAll('#diag-kc-errores li[data-mc]'), (li) => ({
+        mc: li.getAttribute('data-mc'),
+        estado: li.getAttribute('data-estado'),
+      })),
+    };
+  });
+}
+
+async function correrKc(page, base, materia, semilla, estrategia) {
+  const opciones = { prueba: CFG_ADAPTATIVA, materia: materia.id };
+  if (semilla !== null) opciones.semilla = semilla;
+  await preparar(page, base, opciones);
+  await entrarAPrueba(page, materia);
+  const traza = await recorrer(page, SEL_PRUEBA, materia, estrategia);
+  await esperarPantalla(page, 's-diagnostico', 'E3 kc');
+  const detalle = await leerDetalleKc(page);
+  return { traza, detalle };
+}
+
+async function bloqueKc(page, base, materia, materias) {
+  abrirBloque('Knowledge components · sospecha, confirmacion y dinamismo');
+  if (!materia.kcs || !Object.keys(materia.kcs).length) {
+    registrar('kc · ' + materia.id + ' declara knowledge components', false, 'la materia no trae kcs; corre convertir.js con --borradores');
+    return;
+  }
+  const porId = (id) => materia.preguntas.find((p) => p.id === id);
+
+  // -- confirmacion y descarte ------------------------------------------------
+  for (const semilla of [1, 42, 1234]) {
+    for (const repetir of [true, false]) {
+      const nombre = (repetir ? 'confirmacion' : 'descarte') + ' · semilla ' + semilla;
+      contexto = 'kc ' + nombre;
+      try {
+        const est = estrategiaTrampa(repetir);
+        const { traza, detalle } = await correrKc(page, base, materia, semilla, est);
+        const x = est.estado.objetivo;
+        const problemas = [];
+        const i = traza.findIndex((t) => porId(t.preguntaId).opciones[t.idxDatos].mc === x);
+        if (!x || i < 0) problemas.push('el recorrido nunca ofrecio una opcion con mc');
+        else if (!traza[i + 1]) problemas.push('la prueba termino justo despues de caer en ' + x);
+        else if (trampasDeDatos(porId(traza[i + 1].preguntaId)).indexOf(x) === -1) {
+          problemas.push('despues de caer en "' + x + '" (' + traza[i].preguntaId + ') la siguiente pregunta (' +
+            traza[i + 1].preguntaId + ') no la ofrece como trampa');
+        }
+        if (!detalle.visible) problemas.push('el bloque #diag-kc no esta visible en E3');
+        const fila = detalle.errores.find((e) => e.mc === x);
+        if (repetir && (!fila || fila.estado !== 'confirmada')) {
+          problemas.push('"' + x + '" deberia salir Confirmado y sale ' + (fila ? fila.estado : 'ausente'));
+        }
+        if (!repetir && fila) problemas.push('"' + x + '" se descarto al acertar el sondeo y aun sale como ' + fila.estado);
+        registrar('kc · ' + nombre, problemas.length === 0, problemas.join(' | '),
+          { objetivo: x, recorrido: traza.map((t) => t.preguntaId + (t.correcta ? '' : '*')).join(' '), detalle });
+      } catch (e) {
+        registrar('kc · ' + nombre, false, e.message);
+      }
+    }
+  }
+
+  // -- dinamismo, determinismo y cobertura --------------------------------------
+  const recorridos = {};
+  for (const semilla of SEMILLAS) {
+    contexto = 'kc dinamismo semilla ' + semilla;
+    try {
+      const { traza } = await correrKc(page, base, materia, semilla, ESTRATEGIAS['todo-bien']);
+      recorridos[semilla] = traza.map((t) => t.preguntaId).join(',');
+    } catch (e) {
+      registrar('kc · recorrido todo-bien semilla ' + semilla, false, e.message);
+    }
+  }
+  const distintos = new Set(Object.values(recorridos)).size;
+  registrar('kc · semillas distintas dan pruebas distintas', distintos >= Math.min(3, SEMILLAS.length),
+    distintos + ' recorridos distintos en ' + Object.keys(recorridos).length + ' semillas', recorridos);
+
+  contexto = 'kc determinismo';
+  try {
+    const { traza } = await correrKc(page, base, materia, SEMILLAS[0], ESTRATEGIAS['todo-bien']);
+    const otra = traza.map((t) => t.preguntaId).join(',');
+    registrar('kc · la misma semilla repite la prueba', otra === recorridos[SEMILLAS[0]],
+      otra === recorridos[SEMILLAS[0]] ? '' : 'primera: ' + recorridos[SEMILLAS[0]] + ' | segunda: ' + otra);
+  } catch (e) {
+    registrar('kc · la misma semilla repite la prueba', false, e.message);
+  }
+
+  const nSub = Object.keys(materia.subtemas).length;
+  for (const semilla of [7, 99991]) {
+    contexto = 'kc cobertura semilla ' + semilla;
+    try {
+      const { traza } = await correrKc(page, base, materia, semilla, ESTRATEGIAS['todo-mal']);
+      const tocados = new Set(traza.map((t) => t.subtema)).size;
+      registrar('kc · con todo mal toca los ' + nSub + ' subtemas (semilla ' + semilla + ')', tocados === nSub,
+        tocados === nSub ? '' : 'solo toco ' + tocados + ': ' + traza.map((t) => t.subtema).join(', '));
+    } catch (e) {
+      registrar('kc · cobertura semilla ' + semilla, false, e.message);
+    }
+  }
+
+  // -- sin semilla fijada, cada carga es distinta ------------------------------
+  contexto = 'kc sin semilla';
+  try {
+    const a = await correrKc(page, base, materia, null, ESTRATEGIAS['todo-bien']);
+    const b = await correrKc(page, base, materia, null, ESTRATEGIAS['todo-bien']);
+    const ia = a.traza.map((t) => t.preguntaId).join(',');
+    const ib = b.traza.map((t) => t.preguntaId).join(',');
+    registrar('kc · sin fijar semilla, dos cargas dan pruebas distintas', ia !== ib, ia !== ib ? '' : 'las dos cargas dieron ' + ia);
+  } catch (e) {
+    registrar('kc · sin fijar semilla, dos cargas dan pruebas distintas', false, e.message);
+  }
+
+  // -- una materia sin kc no muestra el bloque ---------------------------------
+  const sinKc = (materias || []).find((m) => m.activa && m.id !== materia.id && !(m.kcs && Object.keys(m.kcs).length));
+  if (sinKc) {
+    contexto = 'kc materia sin kc';
+    try {
+      const { detalle } = await correrKc(page, base, sinKc, 42, ESTRATEGIAS['todo-bien']);
+      registrar('kc · ' + sinKc.id + ' (sin kc) no muestra "Lo que detectamos"', detalle.existe && !detalle.visible,
+        detalle.visible ? 'el bloque se ve en una materia sin kc' : '');
+    } catch (e) {
+      registrar('kc · materia sin kc', false, e.message);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3273,7 +3439,7 @@ async function bloqueSupabase(navegador, base) {
     const estado = await esperarEstadoSupabase(page);
     await esperarPantalla(page, 's-inicio', 'E1 con Supabase caido');
     const mats = await leerMaterias(page);
-    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length === PREGUNTAS_POR_MATERIA);
+    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length >= PREGUNTAS_POR_MATERIA);
     registrar('degradado · Supabase caido: arranca con los datos del archivo', estado === 'sin-conexion' && conArchivo,
       'estado=' + estado + ' materias=' + mats.length);
     const oculto = !(await page.locator('#cargando').first().isVisible().catch(() => false));
@@ -3307,7 +3473,7 @@ async function bloqueSupabase(navegador, base) {
     const estado = await esperarEstadoSupabase(page);
     await esperarPantalla(page, 's-inicio', 'E1 sin CDN');
     const mats = await leerMaterias(page);
-    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length === PREGUNTAS_POR_MATERIA);
+    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length >= PREGUNTAS_POR_MATERIA);
     registrar('degradado · CDN bloqueado: arranca con los datos del archivo', estado === 'sin-conexion' && conArchivo,
       'estado=' + estado + ' materias=' + mats.length);
     registrar('degradado · CDN bloqueado: sin errores de JavaScript', b.registro.errores.length === 0,
@@ -3475,7 +3641,14 @@ async function main() {
         problemas.slice(0, 5).join(' | ')
       );
 
-      const cfgOk = materia.preguntas.length === PREGUNTAS_POR_MATERIA
+      // Una materia con knowledge components (kcs) usa un banco mayor a 12 para
+      // poder sondear y confirmar sospechas; la prueba sigue mostrando 12. Las
+      // materias sin kc mantienen banco == prueba == 12.
+      const tieneKc = !!(materia.kcs && Object.keys(materia.kcs).length);
+      const bancoOk = tieneKc
+        ? materia.preguntas.length >= PREGUNTAS_POR_MATERIA
+        : materia.preguntas.length === PREGUNTAS_POR_MATERIA;
+      const cfgOk = bancoOk
         && materia.prueba.longitud === PREGUNTAS_POR_MATERIA
         && materia.certificacion.longitud === 3 && materia.certificacion.minimoAciertos === 2;
       registrar(
@@ -3485,7 +3658,13 @@ async function main() {
       );
 
       const activas = materias.filter((m) => m.activa);
-      const sinBanco = activas.filter((m) => (m.preguntas || []).length !== PREGUNTAS_POR_MATERIA);
+      // El banco debe ser exactamente 12, salvo en materias con knowledge
+      // components, donde puede ser mayor (la prueba mostrada sigue en 12).
+      const sinBanco = activas.filter((m) => {
+        var n = (m.preguntas || []).length;
+        var conKc = !!(m.kcs && Object.keys(m.kcs).length);
+        return conKc ? n < PREGUNTAS_POR_MATERIA : n !== PREGUNTAS_POR_MATERIA;
+      });
       registrar(
         'cada materia activa tiene ' + PREGUNTAS_POR_MATERIA + ' preguntas (' + activas.length + ' activas)',
         sinBanco.length === 0,
@@ -3539,6 +3718,14 @@ async function main() {
           await bloqueAdaptativo(page, base, materia);
         } catch (e) {
           registrar('invariantes del adaptativo', false, e.message);
+        }
+      }
+
+      if (quiere('kc')) {
+        try {
+          await bloqueKc(page, base, materia, materias);
+        } catch (e) {
+          registrar('knowledge components', false, e.message);
         }
       }
 

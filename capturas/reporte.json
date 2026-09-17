@@ -1,7 +1,7 @@
 {
-  "generado": "2026-09-17T03:14:03.207Z",
+  "generado": "2026-09-17T18:32:38.968Z",
   "version": "v2",
-  "base": "http://127.0.0.1:61397/index.html",
+  "base": "http://127.0.0.1:60642/index.html",
   "bloques": [
     {
       "nombre": "Codigo fuente",
@@ -3550,86 +3550,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "0312"
               },
               {
-                "id": "p2",
+                "id": "p25",
                 "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "1320"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p48",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": true,
                 "orden": "2103"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "2301"
+              },
+              {
+                "id": "p17",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p45",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "1032"
+              },
+              {
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "2031"
               },
               {
                 "id": "p5",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
-                "orden": "2301"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "2130"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "1032"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": true,
-                "orden": "2031"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
                 "orden": "3120"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p1",
+                "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "0132"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p29",
+                "sub": "impropias",
+                "dif": 2,
                 "ok": true,
                 "orden": "0213"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p50",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
                 "ok": true,
                 "orden": "3102"
               }
@@ -3689,86 +3689,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0312"
+              },
+              {
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": false,
+                "orden": "1320"
+              },
+              {
+                "id": "p38",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 3,
+                "ok": false,
+                "orden": "2103"
               },
               {
                 "id": "p2",
                 "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
-                "orden": "1320"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": false,
-                "orden": "2103"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
                 "orden": "2301"
               },
               {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
+                "id": "p22",
+                "sub": "sustitucion",
+                "dif": 3,
                 "ok": false,
                 "orden": "2130"
               },
               {
-                "id": "p11",
+                "id": "p50",
                 "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
                 "orden": "1032"
               },
               {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
+                "id": "p51",
+                "sub": "aplicaciones-integral",
+                "dif": 3,
                 "ok": false,
                 "orden": "2031"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p27",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": false,
                 "orden": "3120"
               },
               {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p3",
+                "sub": "impropias",
                 "dif": 3,
                 "ok": false,
                 "orden": "0132"
               },
               {
-                "id": "p10",
-                "sub": "series",
-                "dif": 2,
+                "id": "p28",
+                "sub": "impropias",
+                "dif": 3,
                 "ok": false,
                 "orden": "0213"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p13",
+                "sub": "partes",
+                "dif": 2,
                 "ok": false,
                 "orden": "0231"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p45",
+                "sub": "series",
+                "dif": 2,
                 "ok": false,
                 "orden": "3102"
               }
@@ -3818,7 +3818,7 @@
               }
             ],
             "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            "error": "Error detectado: eliges u por el orden en que aparece, no por la prioridad ILATE"
           }
         },
         {
@@ -3828,86 +3828,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "0312"
               },
               {
-                "id": "p2",
+                "id": "p25",
                 "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
                 "orden": "1320"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
+                "id": "p26",
+                "sub": "sustitucion",
                 "dif": 3,
                 "ok": true,
                 "orden": "2103"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "2301"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "2130"
               },
               {
                 "id": "p11",
                 "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
+                "orden": "2301"
+              },
+              {
+                "id": "p46",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": false,
                 "orden": "1032"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
+                "id": "p32",
+                "sub": "impropias",
+                "dif": 3,
                 "ok": true,
                 "orden": "2031"
-              },
-              {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
-                "ok": false,
-                "orden": "3120"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "0132"
               },
               {
                 "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": false,
-                "orden": "0213"
+                "orden": "3120"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p15",
+                "sub": "partes",
+                "dif": 2,
                 "ok": true,
-                "orden": "0231"
+                "orden": "0132"
               },
               {
                 "id": "p10",
                 "sub": "series",
                 "dif": 2,
+                "ok": false,
+                "orden": "0213"
+              },
+              {
+                "id": "p43",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "0231"
+              },
+              {
+                "id": "p44",
+                "sub": "series",
+                "dif": 3,
                 "ok": false,
                 "orden": "3102"
               }
@@ -3922,42 +3922,42 @@
               },
               {
                 "nombre": "Sustitución",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "sustitucion",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Integrales impropias",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "impropias",
                 "debil": false
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
-                "pct": 61,
-                "crudo": "67",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "ecuaciones-diferenciales",
                 "debil": false
               },
               {
                 "nombre": "Series y convergencia",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "33",
                 "subtema": "series",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Sustitución",
-            "error": "Error detectado: ignoras la regla de la cadena"
+            "titulo": "Tu punto débil: Series y convergencia",
+            "error": "Error detectado: confundes e^x con su función inversa"
           }
         },
         {
@@ -3967,86 +3967,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0312"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "1320"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p23",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "2103"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "2301"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "2130"
               },
               {
                 "id": "p11",
                 "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
+                "orden": "2301"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p17",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
                 "orden": "1032"
               },
               {
-                "id": "p4",
-                "sub": "partes",
+                "id": "p8",
+                "sub": "series",
                 "dif": 2,
                 "ok": true,
                 "orden": "2031"
               },
               {
-                "id": "p6",
+                "id": "p38",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 3,
                 "ok": true,
                 "orden": "3120"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p41",
+                "sub": "series",
                 "dif": 2,
                 "ok": true,
                 "orden": "0132"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p48",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": true,
                 "orden": "0213"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p5",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p13",
+                "sub": "partes",
+                "dif": 2,
                 "ok": true,
                 "orden": "3102"
               }
@@ -4054,10 +4054,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 61,
-                "crudo": "50",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -4075,10 +4075,10 @@
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "75",
                 "subtema": "ecuaciones-diferenciales",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Series y convergencia",
@@ -4095,8 +4095,8 @@
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            "titulo": "Tu punto débil: Ecuaciones diferenciales de primer orden",
+            "error": "Error detectado: olvidas la constante k en el exponente"
           }
         },
         {
@@ -4106,85 +4106,85 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0312"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "1320"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p23",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "2103"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "2301"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "2130"
               },
               {
                 "id": "p11",
                 "sub": "aplicaciones-integral",
                 "dif": 2,
+                "ok": false,
+                "orden": "2301"
+              },
+              {
+                "id": "p46",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
                 "ok": true,
                 "orden": "1032"
               },
               {
-                "id": "p4",
+                "id": "p1",
                 "sub": "partes",
                 "dif": 2,
                 "ok": false,
                 "orden": "2031"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p13",
+                "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "3120"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "0132"
-              },
-              {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
-                "ok": false,
-                "orden": "0213"
               },
               {
                 "id": "p10",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
+                "orden": "0132"
+              },
+              {
+                "id": "p14",
+                "sub": "partes",
+                "dif": 3,
+                "ok": false,
+                "orden": "0213"
+              },
+              {
+                "id": "p47",
+                "sub": "aplicaciones-integral",
+                "dif": 3,
+                "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
+                "id": "p38",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 3,
                 "ok": true,
                 "orden": "3102"
@@ -4193,8 +4193,8 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "33",
                 "subtema": "partes",
                 "debil": true
               },
@@ -4221,21 +4221,21 @@
               },
               {
                 "nombre": "Series y convergencia",
-                "pct": 61,
-                "crudo": "67",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "series",
                 "debil": false
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "67",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
             "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            "error": "Error detectado: confundes u con dv"
           }
         },
         {
@@ -4245,86 +4245,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p2",
+                "id": "p23",
                 "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "2031"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "0321"
-              },
-              {
-                "id": "p8",
+                "id": "p43",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
-                "orden": "3021"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "3012"
+                "orden": "2031"
               },
               {
                 "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p46",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": true,
+                "orden": "3021"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
                 "orden": "3012"
               },
               {
-                "id": "p6",
+                "id": "p35",
                 "sub": "ecuaciones-diferenciales",
-                "dif": 3,
+                "dif": 2,
+                "ok": true,
+                "orden": "3012"
+              },
+              {
+                "id": "p33",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
                 "ok": true,
                 "orden": "2130"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p2",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "1320"
               },
               {
-                "id": "p9",
+                "id": "p8",
                 "sub": "series",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "0132"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p25",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "1032"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
                 "ok": true,
                 "orden": "1320"
               }
@@ -4384,86 +4384,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0231"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0231"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
+                "id": "p38",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 3,
                 "ok": false,
                 "orden": "2031"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p21",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
                 "orden": "0321"
+              },
+              {
+                "id": "p23",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "3021"
+              },
+              {
+                "id": "p24",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "3012"
               },
               {
                 "id": "p8",
                 "sub": "series",
                 "dif": 2,
                 "ok": false,
-                "orden": "3021"
+                "orden": "3012"
               },
               {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
+                "id": "p39",
+                "sub": "series",
                 "dif": 2,
                 "ok": false,
-                "orden": "3012"
+                "orden": "2130"
+              },
+              {
+                "id": "p40",
+                "sub": "series",
+                "dif": 3,
+                "ok": false,
+                "orden": "1320"
               },
               {
                 "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": false,
-                "orden": "3012"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "2130"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": false,
-                "orden": "1320"
-              },
-              {
-                "id": "p10",
-                "sub": "series",
-                "dif": 2,
-                "ok": false,
                 "orden": "0132"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p46",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": false,
                 "orden": "1032"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p29",
+                "sub": "impropias",
+                "dif": 2,
                 "ok": false,
                 "orden": "1320"
               }
@@ -4513,7 +4513,7 @@
               }
             ],
             "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            "error": "Error detectado: te equivocas en el signo de la fórmula de partes"
           }
         },
         {
@@ -4523,86 +4523,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p2",
+                "id": "p23",
                 "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
                 "orden": "0231"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p24",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "2031"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p10",
+                "sub": "series",
                 "dif": 2,
                 "ok": false,
                 "orden": "0321"
               },
               {
-                "id": "p8",
+                "id": "p43",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
                 "orden": "3021"
               },
               {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
+                "id": "p15",
+                "sub": "partes",
                 "dif": 2,
                 "ok": false,
                 "orden": "3012"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "3012"
-              },
-              {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
-                "ok": false,
-                "orden": "2130"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "1320"
               },
               {
                 "id": "p4",
                 "sub": "partes",
                 "dif": 2,
+                "ok": true,
+                "orden": "3012"
+              },
+              {
+                "id": "p50",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": false,
+                "orden": "2130"
+              },
+              {
+                "id": "p51",
+                "sub": "aplicaciones-integral",
+                "dif": 3,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
                 "ok": false,
                 "orden": "0132"
               },
               {
-                "id": "p9",
-                "sub": "series",
+                "id": "p3",
+                "sub": "impropias",
                 "dif": 3,
                 "ok": true,
                 "orden": "1032"
               },
               {
-                "id": "p10",
-                "sub": "series",
-                "dif": 2,
+                "id": "p18",
+                "sub": "partes",
+                "dif": 3,
                 "ok": false,
                 "orden": "1320"
               }
@@ -4611,48 +4611,48 @@
               {
                 "nombre": "Integración por partes",
                 "pct": 61,
-                "crudo": "50",
+                "crudo": "33",
                 "subtema": "partes",
-                "debil": false
-              },
-              {
-                "nombre": "Sustitución",
-                "pct": 34,
-                "crudo": "0",
-                "subtema": "sustitucion",
                 "debil": true
               },
               {
+                "nombre": "Sustitución",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
                 "nombre": "Integrales impropias",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "impropias",
                 "debil": false
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
-                "pct": 61,
-                "crudo": "67",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "ecuaciones-diferenciales",
                 "debil": false
               },
               {
                 "nombre": "Series y convergencia",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "series",
                 "debil": false
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Sustitución",
-            "error": "Error detectado: no reconoces que 2x es la derivada de x²"
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: integras cada factor por separado"
           }
         },
         {
@@ -4662,86 +4662,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0231"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p24",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "2031"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "0321"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "3021"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "3012"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": true,
-                "orden": "3012"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "2130"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "1320"
-              },
-              {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
-                "ok": true,
-                "orden": "0132"
               },
               {
                 "id": "p10",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "3021"
+              },
+              {
+                "id": "p50",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": true,
+                "orden": "3012"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "3012"
+              },
+              {
+                "id": "p38",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 3,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p5",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
+                "orden": "0132"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
                 "orden": "1032"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p39",
+                "sub": "series",
+                "dif": 2,
                 "ok": true,
                 "orden": "1320"
               }
@@ -4749,10 +4749,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 61,
-                "crudo": "50",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -4771,9 +4771,9 @@
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
                 "pct": 82,
-                "crudo": "100",
+                "crudo": "80",
                 "subtema": "ecuaciones-diferenciales",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Series y convergencia",
@@ -4790,8 +4790,8 @@
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            "titulo": "Tu punto débil: Ecuaciones diferenciales de primer orden",
+            "error": "Error detectado: integras k dos veces ignorando que y está en la ecuación"
           }
         },
         {
@@ -4801,84 +4801,84 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0231"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p24",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "2031"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p10",
+                "sub": "series",
                 "dif": 2,
                 "ok": false,
                 "orden": "0321"
               },
               {
-                "id": "p8",
+                "id": "p43",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
                 "orden": "3021"
               },
               {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
+                "id": "p15",
+                "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "3012"
               },
               {
-                "id": "p4",
-                "sub": "partes",
+                "id": "p11",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
                 "orden": "3012"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p46",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
                 "orden": "2130"
               },
               {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
+                "id": "p29",
+                "sub": "impropias",
+                "dif": 2,
                 "ok": true,
                 "orden": "1320"
               },
               {
-                "id": "p9",
-                "sub": "series",
+                "id": "p38",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 3,
                 "ok": false,
                 "orden": "0132"
               },
               {
-                "id": "p10",
+                "id": "p44",
                 "sub": "series",
-                "dif": 2,
+                "dif": 3,
                 "ok": true,
                 "orden": "1032"
               },
               {
-                "id": "p12",
+                "id": "p47",
                 "sub": "aplicaciones-integral",
                 "dif": 3,
                 "ok": true,
@@ -4888,10 +4888,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -4910,9 +4910,9 @@
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "33",
                 "subtema": "ecuaciones-diferenciales",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Series y convergencia",
@@ -4923,14 +4923,14 @@
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "67",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: eliges u por orden de aparición, no por prioridad ILATE"
+            "titulo": "Tu punto débil: Ecuaciones diferenciales de primer orden",
+            "error": "Error detectado: integras k dos veces ignorando que y está en la ecuación"
           }
         },
         {
@@ -4940,60 +4940,32 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
+                "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "2013"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p11",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
                 "orden": "0123"
               },
               {
-                "id": "p3",
+                "id": "p31",
                 "sub": "impropias",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p21",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "2031"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "3210"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "0312"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": true,
-                "orden": "1302"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "1230"
               },
               {
                 "id": "p7",
@@ -5003,23 +4975,51 @@
                 "orden": "3210"
               },
               {
-                "id": "p9",
+                "id": "p39",
                 "sub": "series",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
-                "orden": "3201"
+                "orden": "0312"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "1302"
+              },
+              {
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "1230"
               },
               {
                 "id": "p10",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
+                "orden": "3210"
+              },
+              {
+                "id": "p50",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
                 "orden": "3021"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p25",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "1023"
               }
@@ -5079,86 +5079,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
+                "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": false,
                 "orden": "2013"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p15",
+                "sub": "partes",
                 "dif": 2,
                 "ok": false,
                 "orden": "0123"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p17",
+                "sub": "partes",
+                "dif": 2,
                 "ok": false,
                 "orden": "0231"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
+                "id": "p18",
+                "sub": "partes",
+                "dif": 3,
                 "ok": false,
                 "orden": "2031"
               },
               {
-                "id": "p8",
-                "sub": "series",
+                "id": "p19",
+                "sub": "partes",
+                "dif": 3,
+                "ok": false,
+                "orden": "3210"
+              },
+              {
+                "id": "p20",
+                "sub": "partes",
+                "dif": 3,
+                "ok": false,
+                "orden": "0312"
+              },
+              {
+                "id": "p16",
+                "sub": "partes",
+                "dif": 3,
+                "ok": false,
+                "orden": "1302"
+              },
+              {
+                "id": "p48",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": false,
+                "orden": "1230"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": false,
                 "orden": "3210"
               },
               {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
+                "id": "p25",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
-                "orden": "0312"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": false,
-                "orden": "1302"
+                "orden": "3201"
               },
               {
                 "id": "p7",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
-                "orden": "1230"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": false,
-                "orden": "3210"
-              },
-              {
-                "id": "p10",
-                "sub": "series",
-                "dif": 2,
-                "ok": false,
-                "orden": "3201"
-              },
-              {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
-                "ok": false,
                 "orden": "3021"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
                 "ok": false,
                 "orden": "1023"
               }
@@ -5208,7 +5208,7 @@
               }
             ],
             "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: confundes u con dv"
+            "error": "Error detectado: omites el término u·v"
           }
         },
         {
@@ -5218,58 +5218,58 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
+                "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "2013"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p11",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
                 "orden": "0123"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p46",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p29",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": false,
                 "orden": "2031"
               },
               {
-                "id": "p8",
-                "sub": "series",
+                "id": "p31",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": true,
                 "orden": "3210"
               },
               {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
+                "id": "p21",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
                 "orden": "0312"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p23",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "1302"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
                 "ok": false,
                 "orden": "1230"
               },
@@ -5281,22 +5281,22 @@
                 "orden": "3210"
               },
               {
-                "id": "p4",
-                "sub": "partes",
+                "id": "p43",
+                "sub": "series",
                 "dif": 2,
                 "ok": false,
                 "orden": "3201"
               },
               {
-                "id": "p9",
+                "id": "p10",
                 "sub": "series",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "3021"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p2",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
                 "orden": "1023"
@@ -5305,49 +5305,49 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 61,
-                "crudo": "50",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
                 "debil": false
               },
               {
                 "nombre": "Sustitución",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "33",
                 "subtema": "sustitucion",
                 "debil": true
               },
               {
                 "nombre": "Integrales impropias",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "impropias",
                 "debil": false
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "ecuaciones-diferenciales",
                 "debil": false
               },
               {
                 "nombre": "Series y convergencia",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "series",
                 "debil": false
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
             "titulo": "Tu punto débil: Sustitución",
-            "error": "Error detectado: no reconoces que 2x es la derivada de x²"
+            "error": "Error detectado: ajustas mal la constante al pasar de dx a du"
           }
         },
         {
@@ -5357,86 +5357,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
+                "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": false,
                 "orden": "2013"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p15",
+                "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "0123"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p50",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p29",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": true,
                 "orden": "2031"
               },
               {
-                "id": "p8",
-                "sub": "series",
+                "id": "p21",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "3210"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "0312"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": true,
-                "orden": "1302"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "1230"
               },
               {
                 "id": "p7",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
-                "orden": "3210"
-              },
-              {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
-                "ok": true,
-                "orden": "3201"
+                "orden": "0312"
               },
               {
                 "id": "p10",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
+                "orden": "1302"
+              },
+              {
+                "id": "p18",
+                "sub": "partes",
+                "dif": 3,
+                "ok": true,
+                "orden": "1230"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "3210"
+              },
+              {
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
                 "orden": "3021"
               },
               {
-                "id": "p12",
+                "id": "p46",
                 "sub": "aplicaciones-integral",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "1023"
               }
@@ -5445,7 +5445,7 @@
               {
                 "nombre": "Integración por partes",
                 "pct": 61,
-                "crudo": "50",
+                "crudo": "67",
                 "subtema": "partes",
                 "debil": true
               },
@@ -5486,7 +5486,7 @@
               }
             ],
             "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: confundes u con dv"
+            "error": "Error detectado: omites el término u·v"
           }
         },
         {
@@ -5496,32 +5496,60 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
+                "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": false,
                 "orden": "2013"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p15",
+                "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "0123"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p50",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": true,
                 "orden": "0231"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p29",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": false,
                 "orden": "2031"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "3210"
+              },
+              {
+                "id": "p21",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "0312"
+              },
+              {
+                "id": "p7",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": false,
+                "orden": "1302"
+              },
+              {
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
+                "orden": "1230"
               },
               {
                 "id": "p8",
@@ -5531,50 +5559,22 @@
                 "orden": "3210"
               },
               {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "0312"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": false,
-                "orden": "1302"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "1230"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "3210"
-              },
-              {
-                "id": "p9",
-                "sub": "series",
+                "id": "p32",
+                "sub": "impropias",
                 "dif": 3,
                 "ok": false,
                 "orden": "3201"
               },
               {
-                "id": "p10",
-                "sub": "series",
-                "dif": 2,
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
                 "ok": true,
                 "orden": "3021"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
+                "id": "p18",
+                "sub": "partes",
                 "dif": 3,
                 "ok": true,
                 "orden": "1023"
@@ -5583,10 +5583,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "67",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -5597,22 +5597,22 @@
               },
               {
                 "nombre": "Integrales impropias",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "impropias",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "ecuaciones-diferenciales",
                 "debil": false
               },
               {
                 "nombre": "Series y convergencia",
-                "pct": 61,
-                "crudo": "67",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "series",
                 "debil": false
               },
@@ -5624,8 +5624,8 @@
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: confundes u con dv"
+            "titulo": "Tu punto débil: Integrales impropias",
+            "error": "Error detectado: confundes que el integrando tienda a 0 con el valor de la integral"
           }
         },
         {
@@ -5635,86 +5635,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p46",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
                 "orden": "3120"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p13",
+                "sub": "partes",
                 "dif": 2,
                 "ok": true,
                 "orden": "0321"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "1203"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "0123"
               },
               {
                 "id": "p8",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
+                "orden": "1203"
+              },
+              {
+                "id": "p29",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "0123"
+              },
+              {
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
                 "orden": "3210"
               },
               {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
+                "id": "p25",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "1230"
               },
               {
-                "id": "p4",
-                "sub": "partes",
+                "id": "p23",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "0321"
               },
               {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
+                "id": "p43",
+                "sub": "series",
+                "dif": 2,
                 "ok": true,
                 "orden": "3210"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
+                "id": "p19",
+                "sub": "partes",
+                "dif": 3,
                 "ok": true,
                 "orden": "3201"
               },
               {
-                "id": "p9",
+                "id": "p41",
                 "sub": "series",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "0132"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p21",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "0312"
               },
               {
-                "id": "p12",
+                "id": "p50",
                 "sub": "aplicaciones-integral",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "1230"
               }
@@ -5774,86 +5774,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p46",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
                 "orden": "3120"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": false,
-                "orden": "0321"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": false,
-                "orden": "1203"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "0123"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": false,
-                "orden": "3210"
               },
               {
                 "id": "p11",
                 "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
-                "orden": "1230"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": false,
                 "orden": "0321"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p1",
+                "sub": "partes",
                 "dif": 2,
+                "ok": false,
+                "orden": "1203"
+              },
+              {
+                "id": "p13",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "0123"
+              },
+              {
+                "id": "p14",
+                "sub": "partes",
+                "dif": 3,
                 "ok": false,
                 "orden": "3210"
               },
               {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
+                "id": "p45",
+                "sub": "series",
+                "dif": 2,
                 "ok": false,
-                "orden": "3201"
+                "orden": "1230"
               },
               {
                 "id": "p10",
                 "sub": "series",
                 "dif": 2,
                 "ok": false,
+                "orden": "0321"
+              },
+              {
+                "id": "p43",
+                "sub": "series",
+                "dif": 2,
+                "ok": false,
+                "orden": "3210"
+              },
+              {
+                "id": "p29",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": false,
+                "orden": "3201"
+              },
+              {
+                "id": "p3",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
                 "orden": "0132"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
                 "ok": false,
                 "orden": "0312"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": false,
                 "orden": "1230"
               }
@@ -5903,7 +5903,7 @@
               }
             ],
             "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: no separas el producto en u y dv"
+            "error": "Error detectado: confundes u con dv"
           }
         },
         {
@@ -5913,86 +5913,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p46",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
                 "orden": "3120"
               },
               {
-                "id": "p2",
-                "sub": "sustitucion",
+                "id": "p13",
+                "sub": "partes",
                 "dif": 2,
                 "ok": false,
                 "orden": "0321"
               },
               {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
                 "ok": true,
                 "orden": "1203"
               },
               {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p41",
+                "sub": "series",
                 "dif": 2,
                 "ok": false,
                 "orden": "0123"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "3210"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": false,
-                "orden": "1230"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "0321"
-              },
-              {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
-                "ok": false,
-                "orden": "3210"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "3201"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": false,
-                "orden": "0132"
               },
               {
                 "id": "p9",
                 "sub": "series",
                 "dif": 3,
                 "ok": true,
+                "orden": "3210"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": false,
+                "orden": "1230"
+              },
+              {
+                "id": "p32",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p33",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": false,
+                "orden": "3210"
+              },
+              {
+                "id": "p5",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "0132"
+              },
+              {
+                "id": "p21",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
                 "orden": "0312"
               },
               {
-                "id": "p10",
+                "id": "p42",
                 "sub": "series",
-                "dif": 2,
+                "dif": 3,
                 "ok": false,
                 "orden": "1230"
               }
@@ -6007,42 +6007,42 @@
               },
               {
                 "nombre": "Sustitución",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "sustitucion",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Integrales impropias",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "impropias",
                 "debil": false
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "ecuaciones-diferenciales",
                 "debil": false
               },
               {
                 "nombre": "Series y convergencia",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "33",
                 "subtema": "series",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Sustitución",
-            "error": "Error detectado: no reconoces que 2x es la derivada de x²"
+            "titulo": "Tu punto débil: Series y convergencia",
+            "error": "Error detectado: olvidas que el intervalo va centrado en 3"
           }
         },
         {
@@ -6052,86 +6052,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p46",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
                 "orden": "3120"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": true,
-                "orden": "0321"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "1203"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "0123"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "3210"
               },
               {
                 "id": "p11",
                 "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "1203"
+              },
+              {
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "0123"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "3210"
+              },
+              {
+                "id": "p37",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
                 "orden": "1230"
               },
               {
-                "id": "p4",
-                "sub": "partes",
+                "id": "p24",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "0321"
               },
               {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p47",
+                "sub": "aplicaciones-integral",
                 "dif": 3,
                 "ok": true,
                 "orden": "3210"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p43",
+                "sub": "series",
                 "dif": 2,
                 "ok": true,
                 "orden": "3201"
               },
               {
-                "id": "p9",
+                "id": "p8",
                 "sub": "series",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "0132"
               },
               {
-                "id": "p10",
-                "sub": "series",
-                "dif": 2,
+                "id": "p19",
+                "sub": "partes",
+                "dif": 3,
                 "ok": true,
                 "orden": "0312"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p2",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "1230"
               }
@@ -6139,10 +6139,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 61,
-                "crudo": "50",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -6174,14 +6174,14 @@
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "67",
                 "subtema": "aplicaciones-integral",
-                "debil": false
+                "debil": true
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: no separas el producto en u y dv"
+            "titulo": "Tu punto débil: Aplicaciones de la integral",
+            "error": "Error detectado: usas cascarones para una rotación alrededor del eje x"
           }
         },
         {
@@ -6191,85 +6191,85 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p46",
+                "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": false,
                 "orden": "3120"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": true,
-                "orden": "0321"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "1203"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "0123"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "3210"
               },
               {
                 "id": "p11",
                 "sub": "aplicaciones-integral",
                 "dif": 2,
                 "ok": true,
+                "orden": "0321"
+              },
+              {
+                "id": "p1",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "1203"
+              },
+              {
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
+                "ok": false,
+                "orden": "0123"
+              },
+              {
+                "id": "p9",
+                "sub": "series",
+                "dif": 3,
+                "ok": true,
+                "orden": "3210"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
                 "orden": "1230"
               },
               {
-                "id": "p4",
-                "sub": "partes",
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "0321"
               },
               {
-                "id": "p7",
+                "id": "p36",
                 "sub": "ecuaciones-diferenciales",
-                "dif": 2,
+                "dif": 3,
                 "ok": true,
                 "orden": "3210"
               },
               {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
+                "id": "p21",
+                "sub": "sustitucion",
+                "dif": 2,
                 "ok": true,
                 "orden": "3201"
               },
               {
-                "id": "p9",
+                "id": "p42",
                 "sub": "series",
                 "dif": 3,
                 "ok": false,
                 "orden": "0132"
               },
               {
-                "id": "p10",
+                "id": "p39",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
                 "orden": "0312"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
+                "id": "p40",
+                "sub": "series",
                 "dif": 3,
                 "ok": true,
                 "orden": "1230"
@@ -6278,10 +6278,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -6300,27 +6300,27 @@
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "ecuaciones-diferenciales",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Series y convergencia",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "60",
                 "subtema": "series",
                 "debil": false
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: no separas el producto en u y dv"
+            "titulo": "Tu punto débil: Ecuaciones diferenciales de primer orden",
+            "error": "Error detectado: mezclas el coeficiente de y con el lado derecho"
           }
         },
         {
@@ -6330,86 +6330,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
-                "dif": 2,
-                "ok": true,
-                "orden": "3021"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": true,
-                "orden": "3201"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "1320"
-              },
-              {
-                "id": "p5",
+                "id": "p35",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
-                "orden": "2031"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "1302"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "2130"
+                "orden": "3021"
               },
               {
                 "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": true,
-                "orden": "3012"
+                "orden": "3201"
               },
               {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
+                "id": "p29",
+                "sub": "impropias",
+                "dif": 2,
                 "ok": true,
                 "orden": "1320"
               },
               {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
+                "id": "p2",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
-                "orden": "1023"
+                "orden": "2031"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p46",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": true,
-                "orden": "3210"
+                "orden": "1302"
+              },
+              {
+                "id": "p39",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "3012"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "1320"
               },
               {
                 "id": "p10",
                 "sub": "series",
                 "dif": 2,
                 "ok": true,
+                "orden": "1023"
+              },
+              {
+                "id": "p5",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
+                "ok": true,
+                "orden": "3210"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
                 "orden": "2301"
               },
               {
-                "id": "p12",
+                "id": "p48",
                 "sub": "aplicaciones-integral",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "3201"
               }
@@ -6469,86 +6469,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "3021"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": false,
-                "orden": "3201"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": false,
-                "orden": "1320"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "2031"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": false,
-                "orden": "1302"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": false,
-                "orden": "2130"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": false,
-                "orden": "3012"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "1320"
               },
               {
                 "id": "p6",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 3,
                 "ok": false,
+                "orden": "3201"
+              },
+              {
+                "id": "p15",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "1320"
+              },
+              {
+                "id": "p4",
+                "sub": "partes",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              },
+              {
+                "id": "p16",
+                "sub": "partes",
+                "dif": 3,
+                "ok": false,
+                "orden": "1302"
+              },
+              {
+                "id": "p29",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": false,
+                "orden": "2130"
+              },
+              {
+                "id": "p31",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": false,
+                "orden": "3012"
+              },
+              {
+                "id": "p32",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
+                "orden": "1320"
+              },
+              {
+                "id": "p30",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": false,
                 "orden": "1023"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p23",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": false,
                 "orden": "3210"
               },
               {
-                "id": "p9",
-                "sub": "series",
-                "dif": 3,
+                "id": "p11",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
                 "ok": false,
                 "orden": "2301"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p8",
+                "sub": "series",
+                "dif": 2,
                 "ok": false,
                 "orden": "3201"
               }
@@ -6598,7 +6598,7 @@
               }
             ],
             "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: no separas el producto en u y dv"
+            "error": "Error detectado: te equivocas en el signo de la fórmula de partes"
           }
         },
         {
@@ -6608,86 +6608,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": true,
                 "orden": "3021"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": false,
-                "orden": "3201"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "1320"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "2031"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "1302"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": false,
-                "orden": "2130"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "3012"
-              },
-              {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
-                "ok": false,
-                "orden": "1320"
-              },
-              {
-                "id": "p6",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 3,
-                "ok": true,
-                "orden": "1023"
               },
               {
                 "id": "p4",
                 "sub": "partes",
                 "dif": 2,
                 "ok": false,
+                "orden": "3201"
+              },
+              {
+                "id": "p17",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              },
+              {
+                "id": "p28",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1302"
+              },
+              {
+                "id": "p23",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": false,
+                "orden": "2130"
+              },
+              {
+                "id": "p24",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "3012"
+              },
+              {
+                "id": "p50",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": false,
+                "orden": "1320"
+              },
+              {
+                "id": "p51",
+                "sub": "aplicaciones-integral",
+                "dif": 3,
+                "ok": true,
+                "orden": "1023"
+              },
+              {
+                "id": "p39",
+                "sub": "series",
+                "dif": 2,
+                "ok": false,
                 "orden": "3210"
               },
               {
-                "id": "p9",
+                "id": "p8",
                 "sub": "series",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "2301"
               },
               {
-                "id": "p10",
-                "sub": "series",
-                "dif": 2,
+                "id": "p16",
+                "sub": "partes",
+                "dif": 3,
                 "ok": false,
                 "orden": "3201"
               }
@@ -6696,48 +6696,48 @@
               {
                 "nombre": "Integración por partes",
                 "pct": 61,
-                "crudo": "50",
+                "crudo": "33",
                 "subtema": "partes",
-                "debil": false
-              },
-              {
-                "nombre": "Sustitución",
-                "pct": 34,
-                "crudo": "0",
-                "subtema": "sustitucion",
                 "debil": true
               },
               {
+                "nombre": "Sustitución",
+                "pct": 61,
+                "crudo": "50",
+                "subtema": "sustitucion",
+                "debil": false
+              },
+              {
                 "nombre": "Integrales impropias",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "impropias",
                 "debil": false
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
-                "pct": 61,
-                "crudo": "67",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "ecuaciones-diferenciales",
                 "debil": false
               },
               {
                 "nombre": "Series y convergencia",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "series",
                 "debil": false
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Sustitución",
-            "error": "Error detectado: ignoras la regla de la cadena"
+            "titulo": "Tu punto débil: Integración por partes",
+            "error": "Error detectado: integras como si fuera un producto de potencias"
           }
         },
         {
@@ -6747,86 +6747,86 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "3021"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": true,
-                "orden": "3201"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "1320"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "2031"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "1302"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "2130"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": true,
-                "orden": "3012"
               },
               {
                 "id": "p6",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 3,
                 "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p15",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
                 "orden": "1320"
               },
               {
-                "id": "p7",
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": true,
+                "orden": "2031"
+              },
+              {
+                "id": "p23",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "1302"
+              },
+              {
+                "id": "p46",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p41",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
+                "orden": "3012"
+              },
+              {
+                "id": "p36",
                 "sub": "ecuaciones-diferenciales",
+                "dif": 3,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p2",
+                "sub": "sustitucion",
                 "dif": 2,
                 "ok": true,
                 "orden": "1023"
               },
               {
-                "id": "p9",
+                "id": "p43",
                 "sub": "series",
-                "dif": 3,
+                "dif": 2,
                 "ok": true,
                 "orden": "3210"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p29",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": true,
                 "orden": "2301"
               },
               {
-                "id": "p12",
-                "sub": "aplicaciones-integral",
-                "dif": 3,
+                "id": "p5",
+                "sub": "ecuaciones-diferenciales",
+                "dif": 2,
                 "ok": true,
                 "orden": "3201"
               }
@@ -6834,10 +6834,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 61,
-                "crudo": "50",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -6855,10 +6855,10 @@
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "75",
                 "subtema": "ecuaciones-diferenciales",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Series y convergencia",
@@ -6875,8 +6875,8 @@
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: no separas el producto en u y dv"
+            "titulo": "Tu punto débil: Ecuaciones diferenciales de primer orden",
+            "error": "Error detectado: mezclas el coeficiente de y con el lado derecho"
           }
         },
         {
@@ -6886,78 +6886,78 @@
           "datos": {
             "traza": [
               {
-                "id": "p1",
-                "sub": "partes",
+                "id": "p35",
+                "sub": "ecuaciones-diferenciales",
                 "dif": 2,
                 "ok": false,
                 "orden": "3021"
-              },
-              {
-                "id": "p2",
-                "sub": "sustitucion",
-                "dif": 2,
-                "ok": true,
-                "orden": "3201"
-              },
-              {
-                "id": "p3",
-                "sub": "impropias",
-                "dif": 3,
-                "ok": true,
-                "orden": "1320"
-              },
-              {
-                "id": "p5",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": false,
-                "orden": "2031"
-              },
-              {
-                "id": "p8",
-                "sub": "series",
-                "dif": 2,
-                "ok": true,
-                "orden": "1302"
-              },
-              {
-                "id": "p11",
-                "sub": "aplicaciones-integral",
-                "dif": 2,
-                "ok": true,
-                "orden": "2130"
-              },
-              {
-                "id": "p4",
-                "sub": "partes",
-                "dif": 2,
-                "ok": false,
-                "orden": "3012"
-              },
-              {
-                "id": "p7",
-                "sub": "ecuaciones-diferenciales",
-                "dif": 2,
-                "ok": true,
-                "orden": "1320"
               },
               {
                 "id": "p6",
                 "sub": "ecuaciones-diferenciales",
                 "dif": 3,
                 "ok": true,
+                "orden": "3201"
+              },
+              {
+                "id": "p15",
+                "sub": "partes",
+                "dif": 2,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p27",
+                "sub": "impropias",
+                "dif": 2,
+                "ok": false,
+                "orden": "2031"
+              },
+              {
+                "id": "p28",
+                "sub": "impropias",
+                "dif": 3,
+                "ok": true,
+                "orden": "1302"
+              },
+              {
+                "id": "p23",
+                "sub": "sustitucion",
+                "dif": 2,
+                "ok": true,
+                "orden": "2130"
+              },
+              {
+                "id": "p48",
+                "sub": "aplicaciones-integral",
+                "dif": 2,
+                "ok": false,
+                "orden": "3012"
+              },
+              {
+                "id": "p49",
+                "sub": "aplicaciones-integral",
+                "dif": 3,
+                "ok": true,
+                "orden": "1320"
+              },
+              {
+                "id": "p8",
+                "sub": "series",
+                "dif": 2,
+                "ok": true,
                 "orden": "1023"
               },
               {
-                "id": "p9",
-                "sub": "series",
+                "id": "p3",
+                "sub": "impropias",
                 "dif": 3,
                 "ok": false,
                 "orden": "3210"
               },
               {
-                "id": "p10",
-                "sub": "series",
+                "id": "p29",
+                "sub": "impropias",
                 "dif": 2,
                 "ok": true,
                 "orden": "2301"
@@ -6973,10 +6973,10 @@
             "barras": [
               {
                 "nombre": "Integración por partes",
-                "pct": 34,
-                "crudo": "0",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "partes",
-                "debil": true
+                "debil": false
               },
               {
                 "nombre": "Sustitución",
@@ -6987,35 +6987,35 @@
               },
               {
                 "nombre": "Integrales impropias",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "50",
                 "subtema": "impropias",
-                "debil": false
+                "debil": true
               },
               {
                 "nombre": "Ecuaciones diferenciales de primer orden",
                 "pct": 61,
-                "crudo": "67",
+                "crudo": "50",
                 "subtema": "ecuaciones-diferenciales",
                 "debil": false
               },
               {
                 "nombre": "Series y convergencia",
-                "pct": 61,
-                "crudo": "67",
+                "pct": 82,
+                "crudo": "100",
                 "subtema": "series",
                 "debil": false
               },
               {
                 "nombre": "Aplicaciones de la integral",
-                "pct": 82,
-                "crudo": "100",
+                "pct": 61,
+                "crudo": "67",
                 "subtema": "aplicaciones-integral",
                 "debil": false
               }
             ],
-            "titulo": "Tu punto débil: Integración por partes",
-            "error": "Error detectado: no separas el producto en u y dv"
+            "titulo": "Tu punto débil: Integrales impropias",
+            "error": "Error detectado: inviertes la condición y crees que converge con p < 1"
           }
         },
         {
@@ -7033,94 +7033,405 @@
           "ok": true,
           "detalle": "",
           "datos": {
-            "p1": {
+            "p7": {
               "1": "0312",
               "7": "0231",
-              "42": "2013",
-              "1234": "3120",
-              "99991": "3021"
+              "42": "1302"
             },
-            "p2": {
+            "p25": {
               "1": "1320",
-              "7": "0231",
-              "42": "0123",
-              "1234": "0321",
-              "99991": "3201"
+              "7": "1032",
+              "42": "3201",
+              "1234": "1230"
             },
-            "p3": {
-              "1": "2103",
-              "7": "2031",
-              "42": "0231",
-              "1234": "1203",
-              "99991": "1320"
-            },
-            "p5": {
-              "1": "2301",
-              "7": "0321",
-              "42": "2031",
-              "1234": "0123",
-              "99991": "2031"
-            },
-            "p8": {
-              "1": "2130",
-              "7": "3021",
-              "42": "3210",
-              "1234": "3210",
-              "99991": "1302"
-            },
-            "p11": {
-              "1": "1032",
-              "7": "3012",
-              "42": "0312",
-              "1234": "1230",
-              "99991": "2130"
-            },
-            "p4": {
-              "1": "2031",
-              "7": "3012",
-              "42": "1302",
-              "1234": "0321",
+            "p48": {
+              "1": "0213",
+              "42": "1230",
               "99991": "3012"
             },
-            "p6": {
-              "1": "0132",
-              "7": "1320",
-              "42": "3210",
-              "1234": "3201",
-              "99991": "1023"
-            },
-            "p7": {
+            "p27": {
               "1": "3120",
-              "7": "2130",
-              "42": "1230",
-              "1234": "3210",
+              "7": "3012",
+              "42": "3210",
+              "99991": "2031"
+            },
+            "p17": {
+              "1": "1032",
+              "42": "0231",
               "99991": "1320"
             },
-            "p9": {
-              "1": "0213",
-              "7": "0132",
+            "p45": {
+              "1": "3102",
+              "1234": "1230"
+            },
+            "p41": {
+              "1": "0132",
+              "7": "1320",
               "42": "3201",
+              "1234": "0123",
+              "99991": "3012"
+            },
+            "p5": {
+              "1": "0231",
+              "7": "0132",
+              "1234": "3201",
+              "99991": "3201"
+            },
+            "p1": {
+              "1": "2031",
+              "1234": "1203"
+            },
+            "p29": {
+              "1": "0213",
+              "7": "1320",
+              "42": "2031",
+              "1234": "3201",
+              "99991": "2301"
+            },
+            "p50": {
+              "1": "1032",
+              "7": "3012",
+              "42": "0231",
+              "1234": "1230",
+              "99991": "1320"
+            },
+            "p35": {
+              "1": "3102",
+              "7": "1320",
+              "42": "3021",
+              "1234": "0321",
+              "99991": "3021"
+            },
+            "p37": {
+              "1": "1320",
+              "7": "0231",
+              "42": "1230",
+              "1234": "1230"
+            },
+            "p38": {
+              "1": "3102",
+              "7": "0132"
+            },
+            "p2": {
+              "1": "2301",
+              "7": "1032",
+              "42": "1023",
+              "1234": "1230",
+              "99991": "1023"
+            },
+            "p22": {
+              "1": "2130"
+            },
+            "p51": {
+              "1": "2031",
+              "7": "1320",
+              "99991": "1023"
+            },
+            "p3": {
+              "1": "0132",
+              "7": "1032",
+              "42": "3021",
               "1234": "0132",
               "99991": "3210"
             },
-            "p10": {
-              "1": "0231",
-              "7": "1032",
-              "42": "3021",
-              "1234": "0312",
+            "p28": {
+              "1": "0213",
+              "99991": "1302"
+            },
+            "p13": {
+              "1": "3120",
+              "1234": "0321"
+            },
+            "p26": {
+              "1": "2103"
+            },
+            "p11": {
+              "1": "2301",
+              "7": "3012",
+              "42": "0123",
+              "1234": "0321",
               "99991": "2301"
             },
-            "p12": {
-              "1": "3102",
-              "7": "1320",
+            "p46": {
+              "1": "2130",
+              "7": "2130",
               "42": "1023",
+              "1234": "3120",
+              "99991": "2130"
+            },
+            "p31": {
+              "1": "1032",
+              "7": "3012",
+              "42": "3210",
               "1234": "1230",
+              "99991": "3012"
+            },
+            "p32": {
+              "1": "2031",
+              "42": "3201",
+              "1234": "0321",
+              "99991": "1320"
+            },
+            "p4": {
+              "1": "3120",
+              "7": "3021",
+              "42": "2013",
+              "99991": "3201"
+            },
+            "p15": {
+              "1": "0132",
+              "7": "3012",
+              "42": "0123",
+              "99991": "1320"
+            },
+            "p10": {
+              "1": "0132",
+              "7": "0321",
+              "42": "1302",
+              "1234": "0321",
+              "99991": "1023"
+            },
+            "p43": {
+              "1": "0231",
+              "7": "3021",
+              "42": "3201",
+              "1234": "3201",
+              "99991": "3210"
+            },
+            "p44": {
+              "1": "3102",
+              "7": "1032"
+            },
+            "p23": {
+              "1": "2103",
+              "7": "0231",
+              "42": "1302",
+              "1234": "0321",
+              "99991": "2130"
+            },
+            "p8": {
+              "1": "2031",
+              "7": "3012",
+              "42": "3210",
+              "1234": "0132",
+              "99991": "1023"
+            },
+            "p14": {
+              "1": "0213",
+              "1234": "3210"
+            },
+            "p47": {
+              "1": "0231",
+              "7": "1320",
+              "1234": "3210"
+            },
+            "p33": {
+              "7": "2130",
+              "1234": "3210"
+            },
+            "p21": {
+              "7": "0321",
+              "42": "0312",
+              "1234": "3201"
+            },
+            "p24": {
+              "7": "2031",
+              "1234": "0321",
+              "99991": "3012"
+            },
+            "p39": {
+              "7": "1320",
+              "42": "0312",
+              "1234": "0312",
+              "99991": "3210"
+            },
+            "p40": {
+              "7": "1320",
+              "1234": "1230"
+            },
+            "p18": {
+              "7": "1320",
+              "42": "1023"
+            },
+            "p19": {
+              "42": "3210",
+              "1234": "0312"
+            },
+            "p20": {
+              "42": "0312"
+            },
+            "p16": {
+              "42": "1302",
+              "99991": "3201"
+            },
+            "p6": {
+              "42": "3210",
+              "99991": "3201"
+            },
+            "p9": {
+              "1234": "3210"
+            },
+            "p42": {
+              "1234": "0132"
+            },
+            "p36": {
+              "1234": "3210",
+              "99991": "1320"
+            },
+            "p30": {
+              "99991": "1023"
+            },
+            "p49": {
+              "99991": "1320"
+            },
+            "p12": {
               "99991": "3201"
             }
           }
         },
         {
           "nombre": "barajado · al menos una pregunta salio en orden distinto al de los datos",
+          "ok": true,
+          "detalle": ""
+        }
+      ]
+    },
+    {
+      "nombre": "Knowledge components · sospecha, confirmacion y dinamismo",
+      "comprobaciones": [
+        {
+          "nombre": "kc · confirmacion · semilla 1",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "objetivo": "pierde-k-exponente",
+            "recorrido": "p7* p37* p23 p11 p31 p17 p8 p38* p41 p48 p5 p13",
+            "detalle": {
+              "existe": true,
+              "visible": true,
+              "errores": [
+                {
+                  "mc": "pierde-k-exponente",
+                  "estado": "confirmada"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "nombre": "kc · descarte · semilla 1",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "objetivo": "pierde-k-exponente",
+            "recorrido": "p7* p37 p23 p11 p31 p17 p8 p38 p41 p48 p5 p13",
+            "detalle": {
+              "existe": true,
+              "visible": true,
+              "errores": []
+            }
+          }
+        },
+        {
+          "nombre": "kc · confirmacion · semilla 42",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "objetivo": "omite-uv",
+            "recorrido": "p4* p15* p50 p29 p21 p7 p10 p17 p27 p41 p35 p46",
+            "detalle": {
+              "existe": true,
+              "visible": true,
+              "errores": [
+                {
+                  "mc": "omite-uv",
+                  "estado": "confirmada"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "nombre": "kc · descarte · semilla 42",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "objetivo": "omite-uv",
+            "recorrido": "p4* p15 p50 p29 p21 p7 p10 p18 p27 p41 p35 p46",
+            "detalle": {
+              "existe": true,
+              "visible": true,
+              "errores": []
+            }
+          }
+        },
+        {
+          "nombre": "kc · confirmacion · semilla 1234",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "objetivo": "discos-vs-cascarones",
+            "recorrido": "p46* p11* p1 p41 p31 p37 p24 p47* p43 p8 p19 p2",
+            "detalle": {
+              "existe": true,
+              "visible": true,
+              "errores": [
+                {
+                  "mc": "discos-vs-cascarones",
+                  "estado": "confirmada"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "nombre": "kc · descarte · semilla 1234",
+          "ok": true,
+          "detalle": "",
+          "datos": {
+            "objetivo": "discos-vs-cascarones",
+            "recorrido": "p46* p11 p1 p41 p31 p37 p24 p47 p43 p8 p19 p2",
+            "detalle": {
+              "existe": true,
+              "visible": true,
+              "errores": []
+            }
+          }
+        },
+        {
+          "nombre": "kc · semillas distintas dan pruebas distintas",
+          "ok": true,
+          "detalle": "5 recorridos distintos en 5 semillas",
+          "datos": {
+            "1": "p7,p25,p48,p27,p17,p45,p41,p5,p1,p29,p50,p35",
+            "7": "p7,p23,p43,p4,p46,p31,p35,p33,p2,p8,p25,p41",
+            "42": "p4,p11,p31,p21,p7,p39,p27,p41,p10,p50,p35,p25",
+            "1234": "p46,p13,p8,p29,p35,p25,p23,p43,p19,p41,p21,p50",
+            "99991": "p35,p4,p29,p2,p46,p39,p41,p27,p10,p5,p31,p48"
+          }
+        },
+        {
+          "nombre": "kc · la misma semilla repite la prueba",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "kc · con todo mal toca los 6 subtemas (semilla 7)",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "kc · con todo mal toca los 6 subtemas (semilla 99991)",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "kc · sin fijar semilla, dos cargas dan pruebas distintas",
+          "ok": true,
+          "detalle": ""
+        },
+        {
+          "nombre": "kc · algebra-lineal (sin kc) no muestra \"Lo que detectamos\"",
           "ok": true,
           "detalle": ""
         }
@@ -8221,8 +8532,8 @@
     "Se uso el selector alterno \"#perfil-guardar\" para el boton de guardar de #s-crear-perfil (el preferido es \"#s-crear-perfil button[type=\"submit\"]\")."
   ],
   "resumen": {
-    "total": 416,
-    "ok": 416,
+    "total": 428,
+    "ok": 428,
     "fallas": 0
   }
 }

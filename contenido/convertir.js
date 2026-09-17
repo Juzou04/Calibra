@@ -26,6 +26,7 @@ const path = require('path');
 const DIR = __dirname;
 const INDEX = path.join(DIR, '..', 'index.html');
 const IGNORAR = ['README.md', 'plantilla-materia.md'];
+const INCLUIR_BORRADORES = process.argv.indexOf('--borradores') !== -1;
 
 const errores = [];
 const avisos = [];
@@ -70,12 +71,15 @@ function leerMateria(archivo) {
     contexto: d.contexto || '',
     libro: d.libro || '',
     subtemas: {},
+    kcs: {},
+    misconcepciones: {},
     preguntas: [],
   };
 
   let subtemaActual = null;
   let preguntaActual = null;
   const idsVistos = {};
+  const lineaMc = {};
 
   for (let i = fm.desde; i < lineas.length; i += 1) {
     const l = lineas[i];
@@ -94,8 +98,30 @@ function leerMateria(archivo) {
       continue;
     }
 
-    // ### P1 · dificultad 2
-    const mPre = l.match(/^###\s+([A-Za-z0-9_-]+)\s*[·|-]\s*dificultad\s*([123])\s*$/);
+    // kc: clave · Nombre de la habilidad
+    // mc: clave · kc-al-que-pertenece · texto canonico del error
+    if (/^(kc|mc):/.test(l)) {
+      if (!subtemaActual) {
+        error(archivo, nl, 'las lineas kc: y mc: van dentro de un subtema (despues de su "##")');
+        continue;
+      }
+      const mKc = l.match(/^kc:\s*([a-z0-9_-]+)\s*·\s*(.+)$/);
+      const mMc = l.match(/^mc:\s*([a-z0-9_-]+)\s*·\s*([a-z0-9_-]+)\s*·\s*(.+)$/);
+      if (mKc) {
+        if (materia.kcs[mKc[1]]) error(archivo, nl, 'el kc "' + mKc[1] + '" esta repetido');
+        materia.kcs[mKc[1]] = { subtema: subtemaActual, nombre: mKc[2].trim() };
+      } else if (mMc) {
+        if (materia.misconcepciones[mMc[1]]) error(archivo, nl, 'la mc "' + mMc[1] + '" esta repetida');
+        materia.misconcepciones[mMc[1]] = { kc: mMc[2], texto: mMc[3].trim() };
+        lineaMc[mMc[1]] = nl;
+      } else {
+        error(archivo, nl, 'linea mal formada. Debe ser "kc: clave · Nombre" o "mc: clave · kc · texto del error"');
+      }
+      continue;
+    }
+
+    // ### P1 · dificultad 2 [· kc: clave, clave] [· borrador]
+    const mPre = l.match(/^###\s+([A-Za-z0-9_-]+)\s*[·|-]\s*dificultad\s*([123])\s*(.*)$/);
     if (mPre) {
       if (!subtemaActual) {
         error(archivo, nl, 'la pregunta ' + mPre[1] + ' no esta dentro de ningun subtema');
@@ -104,10 +130,24 @@ function leerMateria(archivo) {
       const id = mPre[1].toLowerCase();
       if (idsVistos[id]) error(archivo, nl, 'el id de pregunta "' + mPre[1] + '" esta repetido');
       idsVistos[id] = true;
+      let kcsPregunta = [];
+      let borrador = false;
+      const resto = mPre[3].trim();
+      if (resto) {
+        for (const seg of resto.replace(/^·\s*/, '').split(/\s*·\s*/)) {
+          const mK = seg.match(/^kc:\s*([a-z0-9_,\s-]+)$/);
+          if (mK) kcsPregunta = mK[1].split(',').map((s) => s.trim()).filter(Boolean);
+          else if (seg === 'borrador') borrador = true;
+          else error(archivo, nl, 'no entiendo "' + seg + '" en el encabezado. Solo se acepta "· kc: clave, clave" y "· borrador"');
+        }
+        if (!/^·/.test(resto)) error(archivo, nl, 'encabezado de pregunta mal formado. Debe ser "### P1 · dificultad 2 · kc: clave"');
+      }
       preguntaActual = {
         id: id,
         subtema: subtemaActual,
         dificultad: Number(mPre[2]),
+        kcs: kcsPregunta,
+        borrador: borrador,
         enunciado: '',
         opciones: [],
         _linea: nl,
@@ -140,11 +180,14 @@ function leerMateria(archivo) {
       const texto = (corte === -1 ? bruto : bruto.slice(0, corte)).trim();
       const cola = (corte === -1 ? '' : bruto.slice(corte + largo)).trim();
       const esCorrecta = /^CORRECTA$/i.test(cola);
+      // - B) texto · [clave-mc] texto del error
+      const mEt = esCorrecta ? null : cola.match(/^\[([a-z0-9_-]+)\]\s*(.*)$/);
       preguntaActual.opciones.push({
         letra: mOp[1],
         texto: texto,
         correcta: esCorrecta,
-        error: esCorrecta ? '' : cola,
+        error: esCorrecta ? '' : (mEt ? mEt[2] : cola),
+        mc: mEt ? mEt[1] : '',
       });
       continue;
     }
@@ -155,8 +198,17 @@ function leerMateria(archivo) {
     }
   }
 
+  // Catalogo de knowledge components: solo se exige si la materia declara alguno.
+  const usaKc = Object.keys(materia.kcs).length > 0;
+  for (const idMc of Object.keys(materia.misconcepciones)) {
+    if (!materia.kcs[materia.misconcepciones[idMc].kc]) {
+      error(archivo, lineaMc[idMc], 'la mc "' + idMc + '" pertenece al kc "' + materia.misconcepciones[idMc].kc + '", que no esta declarado');
+    }
+  }
+
   // Validacion de cada pregunta
   const completas = [];
+  let borradores = 0;
   for (const p of materia.preguntas) {
     const vacia = !p.enunciado && p.opciones.every((o) => !o.texto);
     if (vacia) {
@@ -171,8 +223,58 @@ function leerMateria(archivo) {
       if (!o.texto) error(archivo, p._linea, 'la opcion ' + o.letra + ' de ' + p.id + ' no tiene texto');
       if (!o.correcta && !o.error) error(archivo, p._linea, 'la opcion ' + o.letra + ' de ' + p.id + ' no dice que error conceptual delata');
     }
+    if (!usaKc) {
+      if (p.kcs.length || p.opciones.some((o) => o.mc)) {
+        error(archivo, p._linea, 'la pregunta ' + p.id + ' usa kc o [mc] pero la materia no declara ningun "kc:"');
+      }
+    } else {
+      if (!p.kcs.length) error(archivo, p._linea, 'la pregunta ' + p.id + ' no dice que kc mide. Agrega "· kc: clave" al encabezado');
+      for (const k of p.kcs) {
+        if (!materia.kcs[k]) error(archivo, p._linea, 'la pregunta ' + p.id + ' usa el kc "' + k + '", que no esta declarado');
+        else if (materia.kcs[k].subtema !== p.subtema) avisos.push(archivo + ':' + p._linea + '  la pregunta ' + p.id + ' mide "' + k + '", que es de otro subtema');
+      }
+      for (const o of p.opciones) {
+        if (o.correcta) continue;
+        if (!o.mc) {
+          error(archivo, p._linea, 'la opcion ' + o.letra + ' de ' + p.id + ' no tiene [mc]. Escribe "· [clave-mc] texto del error"');
+        } else if (!materia.misconcepciones[o.mc]) {
+          error(archivo, p._linea, 'la opcion ' + o.letra + ' de ' + p.id + ' usa la mc "' + o.mc + '", que no esta declarada');
+        } else if (p.kcs.indexOf(materia.misconcepciones[o.mc].kc) === -1) {
+          avisos.push(archivo + ':' + p._linea + '  la opcion ' + o.letra + ' de ' + p.id + ' usa "' + o.mc + '", que es de un kc que la pregunta no mide');
+        }
+      }
+    }
     delete p._linea;
+    if (p.borrador) {
+      borradores += 1;
+      if (!INCLUIR_BORRADORES) continue;
+    }
     completas.push(p);
+  }
+  if (borradores) {
+    avisos.push(archivo + '  ' + borradores + ' preguntas en borrador ' +
+      (INCLUIR_BORRADORES ? 'INCLUIDAS (--borradores)' : 'omitidas. Para incluirlas: --borradores'));
+  }
+
+  // Cobertura sobre las preguntas que si entran: para confirmar un patron hace
+  // falta que cada kc tenga 2 preguntas y que cada mc salga en 2 preguntas.
+  if (usaKc) {
+    const cob = { kc: {}, mc: {} };
+    for (const k of Object.keys(materia.kcs)) cob.kc[k] = [];
+    for (const k of Object.keys(materia.misconcepciones)) cob.mc[k] = [];
+    for (const p of completas) {
+      for (const k of p.kcs) if (cob.kc[k]) cob.kc[k].push(p.id);
+      const vistas = {};
+      for (const o of p.opciones) {
+        if (o.mc && cob.mc[o.mc] && !vistas[o.mc]) { cob.mc[o.mc].push(p.id); vistas[o.mc] = true; }
+      }
+    }
+    const kcCortos = Object.keys(cob.kc).filter((k) => cob.kc[k].length < 2);
+    const mcCortas = Object.keys(cob.mc).filter((k) => cob.mc[k].length < 2);
+    const lista = (xs) => (xs.length > 6 ? xs.slice(0, 6).join(', ') + ' y ' + (xs.length - 6) + ' mas' : xs.join(', '));
+    if (kcCortos.length) avisos.push(archivo + '  ' + kcCortos.length + ' kc con menos de 2 preguntas (no se pueden confirmar): ' + lista(kcCortos));
+    if (mcCortas.length) avisos.push(archivo + '  ' + mcCortas.length + ' mc en menos de 2 preguntas (no se pueden confirmar): ' + lista(mcCortas) + '. Detalle: --cobertura');
+    materia._cobertura = cob;
   }
   // El .md agrupa las preguntas por subtema porque asi es comodo escribirlas,
   // pero el banco debe quedar en el orden de los ids (p1, p2, p3, p4...).
@@ -226,17 +328,31 @@ function serializar(materias) {
       return clave + ': ' + comillas(m.subtemas[k]);
     });
     out.push('    subtemas: { ' + subs.join(', ') + ' },');
+    if (Object.keys(m.kcs).length) {
+      out.push('    kcs: {');
+      for (const k of Object.keys(m.kcs)) {
+        out.push('      ' + comillas(k) + ': { subtema: ' + comillas(m.kcs[k].subtema) + ', nombre: ' + comillas(m.kcs[k].nombre) + ' },');
+      }
+      out.push('    },');
+      out.push('    misconcepciones: {');
+      for (const k of Object.keys(m.misconcepciones)) {
+        out.push('      ' + comillas(k) + ': { kc: ' + comillas(m.misconcepciones[k].kc) + ', texto: ' + comillas(m.misconcepciones[k].texto) + ' },');
+      }
+      out.push('    },');
+    }
     if (m.preguntas.length === 0) {
       out.push('    preguntas: [],');
     } else {
       out.push('    preguntas: [');
       for (const p of m.preguntas) {
-        out.push('      { id: ' + comillas(p.id) + ', subtema: ' + comillas(p.subtema) + ', dificultad: ' + p.dificultad + ',');
+        const kcs = p.kcs.length ? ', kcs: [' + p.kcs.map(comillas).join(', ') + ']' : '';
+        out.push('      { id: ' + comillas(p.id) + ', subtema: ' + comillas(p.subtema) + ', dificultad: ' + p.dificultad + kcs + ',');
         out.push('        enunciado: ' + comillas(p.enunciado) + ',');
         out.push('        opciones: [');
         for (const o of p.opciones) {
           const campos = ['letra: ' + comillas(o.letra), 'texto: ' + comillas(o.texto), 'correcta: ' + (o.correcta ? 'true' : 'false')];
           if (!o.correcta) campos.push('error: ' + comillas(o.error));
+          if (o.mc) campos.push('mc: ' + comillas(o.mc));
           out.push('          { ' + campos.join(', ') + ' },');
         }
         out.push('        ] },');
@@ -268,8 +384,24 @@ const materias = archivos.map(leerMateria)
 
 console.log('Archivos leidos: ' + archivos.length);
 for (const m of materias) {
+  const nKc = Object.keys(m.kcs).length;
   console.log('  ' + (m.activa ? '[activa] ' : '[pronto] ') + m.nombre +
-    '  ' + Object.keys(m.subtemas).length + ' subtemas, ' + m.preguntas.length + ' preguntas completas');
+    '  ' + Object.keys(m.subtemas).length + ' subtemas, ' + m.preguntas.length + ' preguntas completas' +
+    (nKc ? ', ' + nKc + ' kc, ' + Object.keys(m.misconcepciones).length + ' misconcepciones' : ''));
+}
+
+if (process.argv.indexOf('--cobertura') !== -1) {
+  for (const m of materias) {
+    if (!m._cobertura) continue;
+    console.log('\nCobertura de ' + m.nombre + (INCLUIR_BORRADORES ? ' (con borradores)' : ' (sin borradores)') + ':');
+    for (const k of Object.keys(m.kcs)) {
+      const mcs = Object.keys(m.misconcepciones).filter((x) => m.misconcepciones[x].kc === k);
+      console.log('  kc ' + k + '  [' + m.kcs[k].subtema + ']  ' + m._cobertura.kc[k].length + ' preguntas: ' + (m._cobertura.kc[k].join(', ') || '-'));
+      for (const x of mcs) {
+        console.log('     mc ' + x.padEnd(26) + m._cobertura.mc[x].length + ' preguntas: ' + (m._cobertura.mc[x].join(', ') || '-'));
+      }
+    }
+  }
 }
 
 if (avisos.length) {
@@ -331,14 +463,17 @@ function procesarIndex() {
 }
 
 /* =========================================================================
-   Supabase: materias -> subtemas -> preguntas -> opciones
+   Supabase: materias -> subtemas -> kc -> mc -> preguntas -> opciones
    -------------------------------------------------------------------------
    Las tablas usan ids numericos autogenerados (supabase/schema.sql), asi que
    cada fila se reconoce por su llave natural, no por el id:
-     materias   codigo
-     subtemas   (materia_id, clave)
-     preguntas  (subtema_id, numero)   <- sin unique en la base
-     opciones   (pregunta_id, letra)
+     materias              codigo
+     subtemas              (materia_id, clave)
+     knowledge_components  (subtema_id, clave)
+     misconcepciones       (kc_id, clave)
+     preguntas             (subtema_id, numero)   <- sin unique en la base
+     pregunta_kc           (pregunta_id, kc_id)
+     opciones              (pregunta_id, letra)
    Por cada padre se leen sus hijos existentes en una sola consulta; lo que
    ya existe igual no se toca, lo que cambio se actualiza y lo nuevo se
    inserta. Asi correrlo dos veces no duplica filas.
@@ -349,6 +484,11 @@ function filasDeMateria(m) {
   const subtemas = Object.keys(m.subtemas).map(function (clave) {
     return {
       fila: { clave: clave, nombre: m.subtemas[clave] },
+      kcs: Object.keys(m.kcs).filter((k) => m.kcs[k].subtema === clave).map((k) => ({
+        fila: { clave: k, nombre: m.kcs[k].nombre },
+        mcs: Object.keys(m.misconcepciones).filter((x) => m.misconcepciones[x].kc === k)
+          .map((x) => ({ clave: x, texto: m.misconcepciones[x].texto })),
+      })),
       preguntas: m.preguntas.filter((p) => p.subtema === clave).map(function (p) {
         return {
           fila: {
@@ -356,11 +496,15 @@ function filasDeMateria(m) {
             dificultad: String(p.dificultad),
             enunciado: p.enunciado,
           },
+          kcs: p.kcs,
           opciones: p.opciones.map((o) => ({
-            letra: o.letra,
-            texto: o.texto,
-            es_correcta: o.correcta,
-            error_texto: o.correcta ? null : o.error,
+            fila: {
+              letra: o.letra,
+              texto: o.texto,
+              es_correcta: o.correcta,
+              error_texto: o.correcta ? null : o.error,
+            },
+            mc: o.mc || null,
           })),
         };
       }),
@@ -393,23 +537,34 @@ async function subirASupabase(lista) {
   }
 
   if (DRY_RUN) {
-    const t = { materias: 0, subtemas: 0, preguntas: 0, opciones: 0 };
+    const t = { materias: 0, subtemas: 0, kc: 0, mc: 0, preguntas: 0, preguntaKc: 0, opciones: 0 };
     console.log('\nModo revision de Supabase (--dry-run). No se conecta a la base.');
     for (const m of arbol) {
       const nP = m.subtemas.reduce((a, s) => a + s.preguntas.length, 0);
       const nO = m.subtemas.reduce((a, s) => a + s.preguntas.reduce((b, p) => b + p.opciones.length, 0), 0);
-      console.log('  ' + m.fila.codigo + '  ' + m.fila.nombre + ': ' + m.subtemas.length + ' subtemas, ' + nP + ' preguntas, ' + nO + ' opciones');
+      const nK = m.subtemas.reduce((a, s) => a + s.kcs.length, 0);
+      const nM = m.subtemas.reduce((a, s) => a + s.kcs.reduce((b, k) => b + k.mcs.length, 0), 0);
+      const nPK = m.subtemas.reduce((a, s) => a + s.preguntas.reduce((b, p) => b + p.kcs.length, 0), 0);
+      console.log('  ' + m.fila.codigo + '  ' + m.fila.nombre + ': ' + m.subtemas.length + ' subtemas, ' + nP + ' preguntas, ' + nO + ' opciones' +
+        (nK ? ', ' + nK + ' kc, ' + nM + ' mc, ' + nPK + ' pregunta_kc' : ''));
       t.materias += 1; t.subtemas += m.subtemas.length; t.preguntas += nP; t.opciones += nO;
+      t.kc += nK; t.mc += nM; t.preguntaKc += nPK;
     }
-    console.log('Total: ' + t.materias + ' materias, ' + t.subtemas + ' subtemas, ' + t.preguntas + ' preguntas, ' + t.opciones + ' opciones');
-    const muestra = arbol.find((m) => m.subtemas.some((s) => s.preguntas.length));
+    console.log('Total: ' + t.materias + ' materias, ' + t.subtemas + ' subtemas, ' + t.preguntas + ' preguntas, ' + t.opciones + ' opciones, ' +
+      t.kc + ' knowledge_components, ' + t.mc + ' misconcepciones, ' + t.preguntaKc + ' pregunta_kc');
+    const muestra = arbol.find((m) => m.subtemas.some((s) => s.kcs.length)) || arbol.find((m) => m.subtemas.some((s) => s.preguntas.length));
     if (muestra) {
       const s = muestra.subtemas.find((x) => x.preguntas.length);
+      const op = s.preguntas[0].opciones.find((o) => o.mc) || s.preguntas[0].opciones[0];
       console.log('\nMuestra de filas (' + muestra.fila.nombre + '):');
-      console.log('  materias  ' + JSON.stringify(muestra.fila));
-      console.log('  subtemas  ' + JSON.stringify(s.fila));
-      console.log('  preguntas ' + JSON.stringify(s.preguntas[0].fila));
-      console.log('  opciones  ' + JSON.stringify(s.preguntas[0].opciones[0]));
+      console.log('  materias             ' + JSON.stringify(muestra.fila));
+      console.log('  subtemas             ' + JSON.stringify(s.fila));
+      if (s.kcs.length) {
+        console.log('  knowledge_components ' + JSON.stringify(s.kcs[0].fila));
+        if (s.kcs[0].mcs.length) console.log('  misconcepciones      ' + JSON.stringify(s.kcs[0].mcs[0]));
+      }
+      console.log('  preguntas            ' + JSON.stringify(s.preguntas[0].fila) + (s.preguntas[0].kcs.length ? '  kc: ' + s.preguntas[0].kcs.join(', ') : ''));
+      console.log('  opciones             ' + JSON.stringify(op.fila) + (op.mc ? '  mc: ' + op.mc : ''));
     }
     console.log('\nPara escribir de verdad:  node --env-file=.env contenido/convertir.js --supabase');
     return;
@@ -429,7 +584,7 @@ async function subirASupabase(lista) {
   const { createClient } = require('@supabase/supabase-js');
   const db = createClient(url, llave, { auth: { persistSession: false, autoRefreshToken: false } });
   const stats = {};
-  for (const tabla of ['materias', 'subtemas', 'preguntas', 'opciones']) {
+  for (const tabla of ['materias', 'subtemas', 'knowledge_components', 'misconcepciones', 'preguntas', 'pregunta_kc', 'opciones']) {
     stats[tabla] = { nuevas: 0, actualizadas: 0, iguales: 0 };
   }
 
@@ -438,12 +593,33 @@ async function subirASupabase(lista) {
   for (const m of arbol) {
     const materiaId = idsMaterias.get(clave(m.fila, ['codigo']));
     const idsSub = await sincronizar(db, stats, 'subtemas', { materia_id: materiaId }, ['clave'], m.subtemas.map((s) => s.fila));
+
+    // Primero todos los kc y mc de la materia: una pregunta puede medir un kc
+    // de otro subtema, y una opcion necesita el id de su mc.
+    const idKc = new Map();
+    const idMc = new Map();
+    for (const s of m.subtemas) {
+      if (!s.kcs.length) continue;
+      const subtemaId = idsSub.get(clave(s.fila, ['clave']));
+      const ids = await sincronizar(db, stats, 'knowledge_components', { subtema_id: subtemaId }, ['clave'], s.kcs.map((k) => k.fila));
+      for (const k of s.kcs) {
+        const kcId = ids.get(clave(k.fila, ['clave']));
+        idKc.set(k.fila.clave, kcId);
+        const idsM = await sincronizar(db, stats, 'misconcepciones', { kc_id: kcId }, ['clave'], k.mcs);
+        for (const x of k.mcs) idMc.set(x.clave, idsM.get(clave(x, ['clave'])));
+      }
+    }
+
     for (const s of m.subtemas) {
       const subtemaId = idsSub.get(clave(s.fila, ['clave']));
       const idsPre = await sincronizar(db, stats, 'preguntas', { subtema_id: subtemaId }, ['numero'], s.preguntas.map((p) => p.fila));
       for (const p of s.preguntas) {
         const preguntaId = idsPre.get(clave(p.fila, ['numero']));
-        await sincronizar(db, stats, 'opciones', { pregunta_id: preguntaId }, ['letra'], p.opciones);
+        if (p.kcs.length) {
+          await sincronizar(db, stats, 'pregunta_kc', { pregunta_id: preguntaId }, ['kc_id'], p.kcs.map((k) => ({ kc_id: idKc.get(k) })));
+        }
+        const opciones = p.opciones.map((o) => Object.assign({}, o.fila, { misconcepcion_id: o.mc ? idMc.get(o.mc) : null }));
+        await sincronizar(db, stats, 'opciones', { pregunta_id: preguntaId }, ['letra'], opciones);
       }
     }
     console.log('  listo: ' + m.fila.nombre);
@@ -452,7 +628,7 @@ async function subirASupabase(lista) {
   console.log('\nResumen:');
   for (const tabla of Object.keys(stats)) {
     const s = stats[tabla];
-    console.log('  ' + (tabla + ':').padEnd(11) + s.nuevas + ' nuevas, ' + s.actualizadas + ' actualizadas, ' + s.iguales + ' sin cambios');
+    console.log('  ' + (tabla + ':').padEnd(22) + s.nuevas + ' nuevas, ' + s.actualizadas + ' actualizadas, ' + s.iguales + ' sin cambios');
   }
 }
 

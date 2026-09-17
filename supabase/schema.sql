@@ -4,14 +4,16 @@
 -- Contrato definido en esquema.md (raíz del repo). Ejecuta este archivo en el
 -- editor SQL de Supabase para recrear la base completa desde cero.
 --
--- 7 tablas:
+-- 10 tablas:
 --   Contenido (escribe convertir.js con service_role):
 --     materias, subtemas, preguntas, opciones
+--     knowledge_components, misconcepciones, pregunta_kc  (diagnóstico por kc;
+--     solo tienen filas las materias cuyo .md declara "kc:")
 --   Escritura pública desde el frontend (anon key):
 --     monitores, resultados_diagnostico, leads
 --
 -- RLS:
---   - SELECT público en las 4 tablas de contenido y en monitores
+--   - SELECT público en las 7 tablas de contenido y en monitores
 --   - INSERT público solo en monitores, resultados_diagnostico y leads
 --   - Sin UPDATE/DELETE público en ninguna tabla
 --   - Sin SELECT público en leads (protege los correos capturados)
@@ -28,7 +30,10 @@ drop table if exists public.resultados_diagnostico cascade;
 drop table if exists public.leads cascade;
 drop table if exists public.monitores cascade;
 drop table if exists public.opciones cascade;
+drop table if exists public.pregunta_kc cascade;
 drop table if exists public.preguntas cascade;
+drop table if exists public.misconcepciones cascade;
+drop table if exists public.knowledge_components cascade;
 drop table if exists public.subtemas cascade;
 drop table if exists public.materias cascade;
 
@@ -53,6 +58,25 @@ create table public.subtemas (
     unique (materia_id, clave)
 );
 
+-- knowledge_components: habilidades concretas dentro de un subtema.
+create table public.knowledge_components (
+    id         bigint generated always as identity primary key,
+    subtema_id bigint not null references public.subtemas (id) on delete cascade,
+    clave      text   not null,
+    nombre     text   not null,
+    unique (subtema_id, clave)
+);
+
+-- misconcepciones: errores de razonamiento que se repiten entre preguntas.
+-- Cada una pertenece a un knowledge component.
+create table public.misconcepciones (
+    id    bigint generated always as identity primary key,
+    kc_id bigint not null references public.knowledge_components (id) on delete cascade,
+    clave text   not null,
+    texto text   not null,
+    unique (kc_id, clave)
+);
+
 -- preguntas: cada ítem del banco calibrado.
 create table public.preguntas (
     id         bigint generated always as identity primary key,
@@ -62,15 +86,23 @@ create table public.preguntas (
     enunciado  text    not null
 );
 
+-- pregunta_kc: qué knowledge components mide cada pregunta (uno o dos).
+create table public.pregunta_kc (
+    pregunta_id bigint not null references public.preguntas (id) on delete cascade,
+    kc_id       bigint not null references public.knowledge_components (id) on delete cascade,
+    primary key (pregunta_id, kc_id)
+);
+
 -- opciones: las respuestas de cada pregunta; error_texto delata el error
--- conceptual de las incorrectas.
+-- conceptual de las incorrectas y misconcepcion_id lo enlaza con el catálogo.
 create table public.opciones (
-    id          bigint  generated always as identity primary key,
-    pregunta_id bigint  not null references public.preguntas (id) on delete cascade,
-    letra       text    not null,
-    texto       text    not null,
-    es_correcta boolean not null default false,
-    error_texto text,
+    id               bigint  generated always as identity primary key,
+    pregunta_id      bigint  not null references public.preguntas (id) on delete cascade,
+    letra            text    not null,
+    texto            text    not null,
+    es_correcta      boolean not null default false,
+    error_texto      text,
+    misconcepcion_id bigint  references public.misconcepciones (id) on delete set null,
     unique (pregunta_id, letra)
 );
 
@@ -99,6 +131,9 @@ create table public.resultados_diagnostico (
     subtema_debil_id      bigint      references public.subtemas (id) on delete set null,
     error_detectado_texto text,
     respuestas            jsonb,
+    -- detalle por knowledge component: [{kc, estado, aciertos, total}] y
+    -- misconcepciones confirmadas o posibles. Null en materias sin kc.
+    kcs                   jsonb,
     creado_en             timestamptz not null default now()
 );
 
@@ -121,6 +156,9 @@ alter table public.materias               enable row level security;
 alter table public.subtemas               enable row level security;
 alter table public.preguntas              enable row level security;
 alter table public.opciones               enable row level security;
+alter table public.knowledge_components   enable row level security;
+alter table public.misconcepciones        enable row level security;
+alter table public.pregunta_kc            enable row level security;
 alter table public.monitores              enable row level security;
 alter table public.resultados_diagnostico enable row level security;
 alter table public.leads                  enable row level security;
@@ -136,6 +174,15 @@ create policy "preguntas_select_publico" on public.preguntas
     for select to anon, authenticated using (true);
 
 create policy "opciones_select_publico" on public.opciones
+    for select to anon, authenticated using (true);
+
+create policy "knowledge_components_select_publico" on public.knowledge_components
+    for select to anon, authenticated using (true);
+
+create policy "misconcepciones_select_publico" on public.misconcepciones
+    for select to anon, authenticated using (true);
+
+create policy "pregunta_kc_select_publico" on public.pregunta_kc
     for select to anon, authenticated using (true);
 
 -- monitores: SELECT público (para listarlos) + INSERT público (crear perfil).
@@ -174,15 +221,21 @@ revoke all on public.materias               from anon, authenticated;
 revoke all on public.subtemas               from anon, authenticated;
 revoke all on public.preguntas              from anon, authenticated;
 revoke all on public.opciones               from anon, authenticated;
+revoke all on public.knowledge_components   from anon, authenticated;
+revoke all on public.misconcepciones        from anon, authenticated;
+revoke all on public.pregunta_kc            from anon, authenticated;
 revoke all on public.monitores              from anon, authenticated;
 revoke all on public.resultados_diagnostico from anon, authenticated;
 revoke all on public.leads                  from anon, authenticated;
 
--- Lectura pública: las 4 tablas de contenido y monitores.
-grant select on public.materias  to anon, authenticated;
-grant select on public.subtemas  to anon, authenticated;
-grant select on public.preguntas to anon, authenticated;
-grant select on public.opciones  to anon, authenticated;
+-- Lectura pública: las 7 tablas de contenido y monitores.
+grant select on public.materias             to anon, authenticated;
+grant select on public.subtemas             to anon, authenticated;
+grant select on public.preguntas            to anon, authenticated;
+grant select on public.opciones             to anon, authenticated;
+grant select on public.knowledge_components to anon, authenticated;
+grant select on public.misconcepciones      to anon, authenticated;
+grant select on public.pregunta_kc          to anon, authenticated;
 grant select on public.monitores to anon, authenticated;
 
 -- Escritura pública: solo las 3 tablas que la aceptan.
