@@ -6,8 +6,8 @@
  * ejecuta schema.sql y comprueba el contrato de esquema.md:
  *
  *   1. el DDL corre sin errores y es idempotente
- *   2. las 7 tablas tienen exactamente las columnas del contrato
- *   3. RLS está activo en las 7
+ *   2. las 10 tablas tienen exactamente las columnas del contrato
+ *   3. RLS está activo en las 10
  *   4. las políticas son exactamente las esperadas, y ninguna es UPDATE/DELETE
  *   5. el comportamiento efectivo del rol anon (select/insert/update/delete)
  *   6. service_role conserva el acceso total que necesita convertir.js
@@ -37,11 +37,14 @@ const esperado = {
   materias: ['id', 'nombre', 'codigo', 'activa'],
   subtemas: ['id', 'materia_id', 'clave', 'nombre'],
   preguntas: ['id', 'subtema_id', 'numero', 'dificultad', 'enunciado'],
-  opciones: ['id', 'pregunta_id', 'letra', 'texto', 'es_correcta', 'error_texto'],
+  opciones: ['id', 'pregunta_id', 'letra', 'texto', 'es_correcta', 'error_texto', 'misconcepcion_id'],
+  knowledge_components: ['id', 'subtema_id', 'clave', 'nombre'],
+  misconcepciones: ['id', 'kc_id', 'clave', 'texto'],
+  pregunta_kc: ['pregunta_id', 'kc_id'],
   monitores: ['id', 'nombre', 'carrera', 'semestre', 'nivel', 'calificacion',
     'precio_hora', 'materia_certificada_id', 'encaje_texto', 'creado_en'],
   resultados_diagnostico: ['id', 'materia_id', 'subtema_debil_id',
-    'error_detectado_texto', 'respuestas', 'creado_en'],
+    'error_detectado_texto', 'respuestas', 'kcs', 'creado_en'],
   leads: ['id', 'correo', 'rol', 'materia_interes', 'creado_en'],
 };
 
@@ -49,6 +52,7 @@ const esperado = {
 // `generated always as identity` y fallaría por motivos ajenos a los permisos.
 const colEditable = {
   materias: 'nombre', subtemas: 'nombre', preguntas: 'enunciado', opciones: 'texto',
+  knowledge_components: 'nombre', misconcepciones: 'texto', pregunta_kc: 'kc_id',
   monitores: 'nombre', resultados_diagnostico: 'error_detectado_texto', leads: 'correo',
 };
 
@@ -99,6 +103,7 @@ for (const tabla of Object.keys(esperado)) {
 // --- 4. Políticas exactas ----------------------------------------------------
 const contrato = {
   materias: ['SELECT'], subtemas: ['SELECT'], preguntas: ['SELECT'], opciones: ['SELECT'],
+  knowledge_components: ['SELECT'], misconcepciones: ['SELECT'], pregunta_kc: ['SELECT'],
   monitores: ['SELECT', 'INSERT'], resultados_diagnostico: ['INSERT'], leads: ['INSERT'],
 };
 for (const [tabla, cmds] of Object.entries(contrato)) {
@@ -129,8 +134,13 @@ await db.exec(`
     values (1, 'partes', 'Integración por partes');
   insert into public.preguntas (subtema_id, numero, dificultad, enunciado)
     values (1, 1, 'media', 'En ∫ x·ln(x) dx, ¿qué eliges como u?');
-  insert into public.opciones (pregunta_id, letra, texto, es_correcta, error_texto)
-    values (1, 'A', 'x', false, 'eliges u por orden de aparición, no por prioridad ILATE');
+  insert into public.knowledge_components (subtema_id, clave, nombre)
+    values (1, 'partes-eleccion-u', 'Elegir u y dv con la prioridad ILATE');
+  insert into public.misconcepciones (kc_id, clave, texto)
+    values (1, 'u-orden-aparicion', 'eliges u por orden de aparición, no por la prioridad ILATE');
+  insert into public.pregunta_kc (pregunta_id, kc_id) values (1, 1);
+  insert into public.opciones (pregunta_id, letra, texto, es_correcta, error_texto, misconcepcion_id)
+    values (1, 'A', 'x', false, 'eliges u por orden de aparición, no por prioridad ILATE', 1);
   insert into public.leads (correo, rol) values ('semilla@uniandes.edu.co', 'estudiante');
 `);
 
@@ -142,7 +152,8 @@ const comoAnon = async (consulta) => {
 };
 
 // Lectura pública permitida.
-for (const t of ['materias', 'subtemas', 'preguntas', 'opciones', 'monitores']) {
+for (const t of ['materias', 'subtemas', 'preguntas', 'opciones',
+  'knowledge_components', 'misconcepciones', 'pregunta_kc', 'monitores']) {
   const { err } = await comoAnon(`select * from public.${t}`);
   err ? fail(`anon debería poder leer ${t}: ${err}`) : ok(`anon puede leer ${t}`);
 }
@@ -176,6 +187,9 @@ for (const [t, q] of [
   ['subtemas', `insert into public.subtemas (materia_id, clave, nombre) values (1, 'x', 'X')`],
   ['preguntas', `insert into public.preguntas (subtema_id, numero, enunciado) values (1, 99, 'X')`],
   ['opciones', `insert into public.opciones (pregunta_id, letra, texto) values (1, 'Z', 'X')`],
+  ['knowledge_components', `insert into public.knowledge_components (subtema_id, clave, nombre) values (1, 'x', 'X')`],
+  ['misconcepciones', `insert into public.misconcepciones (kc_id, clave, texto) values (1, 'x', 'X')`],
+  ['pregunta_kc', `insert into public.pregunta_kc (pregunta_id, kc_id) values (1, 1)`],
 ]) {
   const { err } = await comoAnon(q);
   err ? ok(`anon bloqueado al insertar en ${t}`) : fail(`anon insertó en ${t} y no debería`);

@@ -54,12 +54,25 @@ Lo que puede hacer el público (rol `anon`, la llave que va en el frontend):
 | `subtemas` | sí | no | no |
 | `preguntas` | sí | no | no |
 | `opciones` | sí | no | no |
+| `knowledge_components` | sí | no | no |
+| `misconcepciones` | sí | no | no |
+| `pregunta_kc` | sí | no | no |
 | `monitores` | sí | sí | no |
 | `resultados_diagnostico` | no | sí | no |
 | `leads` | no | sí | no |
 
-El contenido (las 4 primeras tablas) lo escribe `convertir.js` con la
-`service_role key`. La lectura de `leads` y `resultados_diagnostico` también
+El contenido (las 7 primeras tablas) lo escribe `convertir.js` con la
+`service_role key`.
+
+### Diagnóstico por knowledge components (rama `prueba-cuestionario`)
+
+`knowledge_components`, `misconcepciones` y `pregunta_kc`, más las columnas
+`opciones.misconcepcion_id` y `resultados_diagnostico.kcs`, soportan el
+diagnóstico por habilidad (ver `contenido/README.md`). Solo tienen filas las
+materias cuyo `.md` declara `kc:`; hoy, el piloto de Cálculo Integral. Son
+cambios aditivos, pero un proyecto creado con el `schema.sql` anterior **no**
+las tiene: antes de correr `convertir.js --supabase` desde esta rama hay que
+volver a ejecutar `schema.sql` (borra los datos) o agregarlas a mano. La lectura de `leads` y `resultados_diagnostico` también
 requiere `service_role`, porque esa llave omite RLS.
 
 ### Dos capas, no una
