@@ -3439,7 +3439,7 @@ async function bloqueSupabase(navegador, base) {
     const estado = await esperarEstadoSupabase(page);
     await esperarPantalla(page, 's-inicio', 'E1 con Supabase caido');
     const mats = await leerMaterias(page);
-    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length === PREGUNTAS_POR_MATERIA);
+    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length >= PREGUNTAS_POR_MATERIA);
     registrar('degradado · Supabase caido: arranca con los datos del archivo', estado === 'sin-conexion' && conArchivo,
       'estado=' + estado + ' materias=' + mats.length);
     const oculto = !(await page.locator('#cargando').first().isVisible().catch(() => false));
@@ -3473,7 +3473,7 @@ async function bloqueSupabase(navegador, base) {
     const estado = await esperarEstadoSupabase(page);
     await esperarPantalla(page, 's-inicio', 'E1 sin CDN');
     const mats = await leerMaterias(page);
-    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length === PREGUNTAS_POR_MATERIA);
+    const conArchivo = mats.some((m) => m.id === MATERIA_DEMO && (m.preguntas || []).length >= PREGUNTAS_POR_MATERIA);
     registrar('degradado · CDN bloqueado: arranca con los datos del archivo', estado === 'sin-conexion' && conArchivo,
       'estado=' + estado + ' materias=' + mats.length);
     registrar('degradado · CDN bloqueado: sin errores de JavaScript', b.registro.errores.length === 0,
@@ -3641,7 +3641,14 @@ async function main() {
         problemas.slice(0, 5).join(' | ')
       );
 
-      const cfgOk = materia.preguntas.length === PREGUNTAS_POR_MATERIA
+      // Una materia con knowledge components (kcs) usa un banco mayor a 12 para
+      // poder sondear y confirmar sospechas; la prueba sigue mostrando 12. Las
+      // materias sin kc mantienen banco == prueba == 12.
+      const tieneKc = !!(materia.kcs && Object.keys(materia.kcs).length);
+      const bancoOk = tieneKc
+        ? materia.preguntas.length >= PREGUNTAS_POR_MATERIA
+        : materia.preguntas.length === PREGUNTAS_POR_MATERIA;
+      const cfgOk = bancoOk
         && materia.prueba.longitud === PREGUNTAS_POR_MATERIA
         && materia.certificacion.longitud === 3 && materia.certificacion.minimoAciertos === 2;
       registrar(
@@ -3651,7 +3658,13 @@ async function main() {
       );
 
       const activas = materias.filter((m) => m.activa);
-      const sinBanco = activas.filter((m) => (m.preguntas || []).length !== PREGUNTAS_POR_MATERIA);
+      // El banco debe ser exactamente 12, salvo en materias con knowledge
+      // components, donde puede ser mayor (la prueba mostrada sigue en 12).
+      const sinBanco = activas.filter((m) => {
+        var n = (m.preguntas || []).length;
+        var conKc = !!(m.kcs && Object.keys(m.kcs).length);
+        return conKc ? n < PREGUNTAS_POR_MATERIA : n !== PREGUNTAS_POR_MATERIA;
+      });
       registrar(
         'cada materia activa tiene ' + PREGUNTAS_POR_MATERIA + ' preguntas (' + activas.length + ' activas)',
         sinBanco.length === 0,
