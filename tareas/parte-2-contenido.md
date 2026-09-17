@@ -33,7 +33,16 @@ No necesitas esperar a que exista el proyecto "oficial" de Supabase del equipo (
 
 ## Definición de hecho
 
-- [ ] `node contenido/convertir.js --supabase` (o el flag que elijas) llena correctamente `materias`, `subtemas`, `preguntas` y `opciones` a partir de los 6 archivos `.md` de `contenido/`.
-- [ ] Correr el script dos veces no duplica filas.
-- [ ] Las credenciales se leen de variables de entorno, no están hardcodeadas ni comiteadas.
-- [ ] El flag `--escribir` original sigue funcionando igual que antes.
+### Hecho en el repo
+
+- [x] **`--supabase` en `contenido/convertir.js`** — llena `materias`, `subtemas`, `preguntas` y `opciones` desde los 7 `.md` de `contenido/` (7 materias, 31 subtemas, 84 preguntas, 336 opciones). `--supabase --dry-run` muestra las filas sin conectarse. Uso documentado en `contenido/README.md`.
+- [x] **Idempotente** — cada fila se reconoce por su llave natural (`codigo`; `materia_id`+`clave`; `subtema_id`+`numero`; `pregunta_id`+`letra`): lo igual no se toca, lo cambiado se actualiza y lo nuevo se inserta. Se hace en el script y no con `upsert` nativo porque `preguntas` no tiene `unique` en `supabase/schema.sql`, y así no hubo que tocar el esquema de la Parte 1. Probado contra un cliente simulado con las mismas restricciones `unique` y FK: 1.ª corrida 458 filas nuevas, 2.ª corrida 0 escrituras.
+- [x] **Credenciales por variable de entorno** — `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`, leídas con `node --env-file=.env`. `.env` está en `.gitignore`; solo se comitea `.env.example` vacío.
+- [x] **`--escribir` intacto** — el camino hacia `index.html` es el mismo código; sin flags, el modo revisión da la misma salida que antes.
+
+### Pendiente (requiere el proyecto Supabase real de la Parte 1)
+
+- [ ] Recibir `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` por canal privado y ponerlas en `.env`.
+- [ ] Correr `node --env-file=.env contenido/convertir.js --supabase` dos veces contra la base real y confirmar que la segunda dice 0 nuevas / 0 actualizadas.
+
+**Limitación conocida:** el script no borra filas cuyo contenido se quitó de los `.md`.

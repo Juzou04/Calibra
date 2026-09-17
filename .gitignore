@@ -4,3 +4,6 @@ node_modules/
 Thumbs.db
 *.bak.*
 new.txt
+.env
+.env.*
+!.env.example
