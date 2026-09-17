@@ -1,0 +1,14 @@
+{
+  "name": "calibra-contenido",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Conversor de contenido/*.md hacia index.html o Supabase. No forma parte del frontend: index.html sigue sin build ni dependencias.",
+  "scripts": {
+    "revisar": "node convertir.js",
+    "supabase": "node --env-file=../.env convertir.js --supabase",
+    "supabase:dry-run": "node convertir.js --supabase --dry-run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0"
+  }
+}

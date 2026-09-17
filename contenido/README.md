@@ -81,3 +81,29 @@ node contenido/convertir.js --escribir
 ```
 
 Aplica el cambio al `index.html` y deja una copia previa en `index.html.bak.convertir`. Después corre `verificar.cmd` para comprobar que nada se rompió.
+
+## Subir a Supabase
+
+El mismo script llena las tablas `materias`, `subtemas`, `preguntas` y `opciones` del proyecto Supabase (esquema en [`../supabase/schema.sql`](../supabase/schema.sql)). Solo la primera vez, instala el cliente:
+
+```bash
+cd contenido && npm install && cd ..
+```
+
+Para ver qué filas subiría, sin conectarse a nada:
+
+```bash
+node contenido/convertir.js --supabase --dry-run
+```
+
+Para subirlas de verdad, copia `.env.example` a `.env` en la raíz del repo y llena `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`. La `service_role key` se pide por un canal privado del equipo: **nunca** va al repo ni al chat, y `.env` ya está en `.gitignore`. Luego:
+
+```bash
+node --env-file=.env contenido/convertir.js --supabase
+```
+
+- `--supabase` solo escribe en Supabase y no toca `index.html`. Con `--supabase --escribir` hace las dos cosas.
+- Se puede correr las veces que quieras: cada fila se reconoce por su llave natural (código de la materia, clave del subtema, número de la pregunta, letra de la opción), así que lo que ya está igual no se toca, lo que cambió se actualiza y lo nuevo se inserta. Nunca duplica.
+- Toda materia necesita `codigo` en el frontmatter: en Supabase es obligatorio y es lo que la identifica.
+- **Limitación:** no borra. Si quitas una pregunta o un subtema de un `.md`, su fila sigue en Supabase y hay que borrarla a mano desde el dashboard.
+- Corre esto cada vez que cambien las preguntas, antes de cada entrega: nada lo hace automáticamente.

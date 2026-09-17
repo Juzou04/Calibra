@@ -1,14 +1,21 @@
 /* =========================================================================
    Conversor de contenido: los .md de esta carpeta -> el arreglo MATERIAS
-   que vive dentro de index.html.
+   que vive dentro de index.html, y/o las tablas de contenido en Supabase.
 
    Uso:
      node contenido/convertir.js              revisa y muestra que haria
      node contenido/convertir.js --escribir   aplica el cambio a index.html
+     node contenido/convertir.js --supabase --dry-run
+                                              muestra que filas subiria
+     node --env-file=.env contenido/convertir.js --supabase
+                                              sube a Supabase (requiere
+                                              SUPABASE_URL y
+                                              SUPABASE_SERVICE_ROLE_KEY)
 
    Por defecto NO escribe nada. Cuando escribe, deja antes una copia en
    index.html.bak.convertir. Si algun archivo tiene un error de formato,
    aborta sin tocar nada y dice exactamente que linea revisar.
+   --supabase solo no toca index.html; con --escribir hace las dos cosas.
    ========================================================================= */
 
 'use strict';
@@ -276,31 +283,221 @@ if (errores.length) {
   process.exit(1);
 }
 
-const bloque = serializar(materias);
+const ESCRIBIR = process.argv.indexOf('--escribir') !== -1;
+const SUPABASE = process.argv.indexOf('--supabase') !== -1;
+const DRY_RUN = process.argv.indexOf('--dry-run') !== -1;
 
-const html = fs.readFileSync(INDEX, 'utf8');
-const lineas = html.split(/\r?\n/);
-const ini = lineas.findIndex((l) => /^const MATERIAS = \[/.test(l));
-if (ini < 0) {
-  console.log('\nNo encontre "const MATERIAS = [" en index.html.');
-  process.exit(1);
+if (!SUPABASE || ESCRIBIR) {
+  procesarIndex();
 }
-let fin = ini;
-while (fin < lineas.length && !/^\];/.test(lineas[fin])) fin += 1;
-if (fin >= lineas.length) {
-  console.log('\nNo encontre el cierre "];" del arreglo MATERIAS en index.html.');
-  process.exit(1);
-}
-
-if (process.argv.indexOf('--escribir') === -1) {
-  console.log('\nModo revision. Reemplazaria las lineas ' + (ini + 1) + ' a ' + (fin + 1) +
-    ' de index.html (' + (fin - ini + 1) + ' lineas) por ' + bloque.split('\n').length + ' lineas.');
-  console.log('Para aplicarlo:  node contenido/convertir.js --escribir');
-  process.exit(0);
+if (SUPABASE) {
+  subirASupabase(materias).catch(function (e) {
+    console.log('\nERROR al escribir en Supabase: ' + e.message);
+    console.log('Lo que alcanzo a escribirse queda en la base; volver a correr el script es seguro.');
+    process.exit(1);
+  });
 }
 
-fs.copyFileSync(INDEX, INDEX + '.bak.convertir');
-const nuevo = lineas.slice(0, ini).concat(bloque.split('\n')).concat(lineas.slice(fin + 1));
-fs.writeFileSync(INDEX, nuevo.join('\n'));
-console.log('\nindex.html actualizado. Copia previa en index.html.bak.convertir');
-console.log('Ahora corre verificar.cmd para comprobar que nada se rompio.');
+function procesarIndex() {
+  const bloque = serializar(materias);
+
+  const html = fs.readFileSync(INDEX, 'utf8');
+  const lineas = html.split(/\r?\n/);
+  const ini = lineas.findIndex((l) => /^const MATERIAS = \[/.test(l));
+  if (ini < 0) {
+    console.log('\nNo encontre "const MATERIAS = [" en index.html.');
+    process.exit(1);
+  }
+  let fin = ini;
+  while (fin < lineas.length && !/^\];/.test(lineas[fin])) fin += 1;
+  if (fin >= lineas.length) {
+    console.log('\nNo encontre el cierre "];" del arreglo MATERIAS en index.html.');
+    process.exit(1);
+  }
+
+  if (!ESCRIBIR) {
+    console.log('\nModo revision. Reemplazaria las lineas ' + (ini + 1) + ' a ' + (fin + 1) +
+      ' de index.html (' + (fin - ini + 1) + ' lineas) por ' + bloque.split('\n').length + ' lineas.');
+    console.log('Para aplicarlo:  node contenido/convertir.js --escribir');
+    console.log('Para subir a Supabase:  node --env-file=.env contenido/convertir.js --supabase');
+    process.exit(0);
+  }
+
+  fs.copyFileSync(INDEX, INDEX + '.bak.convertir');
+  const nuevo = lineas.slice(0, ini).concat(bloque.split('\n')).concat(lineas.slice(fin + 1));
+  fs.writeFileSync(INDEX, nuevo.join('\n'));
+  console.log('\nindex.html actualizado. Copia previa en index.html.bak.convertir');
+  console.log('Ahora corre verificar.cmd para comprobar que nada se rompio.');
+}
+
+/* =========================================================================
+   Supabase: materias -> subtemas -> preguntas -> opciones
+   -------------------------------------------------------------------------
+   Las tablas usan ids numericos autogenerados (supabase/schema.sql), asi que
+   cada fila se reconoce por su llave natural, no por el id:
+     materias   codigo
+     subtemas   (materia_id, clave)
+     preguntas  (subtema_id, numero)   <- sin unique en la base
+     opciones   (pregunta_id, letra)
+   Por cada padre se leen sus hijos existentes en una sola consulta; lo que
+   ya existe igual no se toca, lo que cambio se actualiza y lo nuevo se
+   inserta. Asi correrlo dos veces no duplica filas.
+   Limitacion: no borra filas cuyo contenido se quito de los .md.
+   ========================================================================= */
+
+function filasDeMateria(m) {
+  const subtemas = Object.keys(m.subtemas).map(function (clave) {
+    return {
+      fila: { clave: clave, nombre: m.subtemas[clave] },
+      preguntas: m.preguntas.filter((p) => p.subtema === clave).map(function (p) {
+        return {
+          fila: {
+            numero: parseInt(p.id.replace(/[^0-9]/g, ''), 10),
+            dificultad: String(p.dificultad),
+            enunciado: p.enunciado,
+          },
+          opciones: p.opciones.map((o) => ({
+            letra: o.letra,
+            texto: o.texto,
+            es_correcta: o.correcta,
+            error_texto: o.correcta ? null : o.error,
+          })),
+        };
+      }),
+    };
+  });
+  return { fila: { codigo: m.codigo, nombre: m.nombre, activa: m.activa }, subtemas: subtemas };
+}
+
+async function subirASupabase(lista) {
+  const arbol = lista.map(filasDeMateria);
+
+  const sinCodigo = lista.filter((m) => !m.codigo).map((m) => m.nombre);
+  if (sinCodigo.length) {
+    console.log('\nERROR: materias sin "codigo" en el frontmatter: ' + sinCodigo.join(', ') + '.');
+    console.log('En Supabase codigo es obligatorio y unico, y es lo que identifica la materia. No se toco la base.');
+    process.exit(1);
+  }
+  for (const m of arbol) {
+    for (const s of m.subtemas) {
+      const vistos = {};
+      for (const p of s.preguntas) {
+        if (isNaN(p.fila.numero) || vistos[p.fila.numero]) {
+          console.log('\nERROR: en ' + m.fila.nombre + ', subtema ' + s.fila.clave +
+            ', hay ids de pregunta sin numero o con el mismo numero. No se toco la base.');
+          process.exit(1);
+        }
+        vistos[p.fila.numero] = true;
+      }
+    }
+  }
+
+  if (DRY_RUN) {
+    const t = { materias: 0, subtemas: 0, preguntas: 0, opciones: 0 };
+    console.log('\nModo revision de Supabase (--dry-run). No se conecta a la base.');
+    for (const m of arbol) {
+      const nP = m.subtemas.reduce((a, s) => a + s.preguntas.length, 0);
+      const nO = m.subtemas.reduce((a, s) => a + s.preguntas.reduce((b, p) => b + p.opciones.length, 0), 0);
+      console.log('  ' + m.fila.codigo + '  ' + m.fila.nombre + ': ' + m.subtemas.length + ' subtemas, ' + nP + ' preguntas, ' + nO + ' opciones');
+      t.materias += 1; t.subtemas += m.subtemas.length; t.preguntas += nP; t.opciones += nO;
+    }
+    console.log('Total: ' + t.materias + ' materias, ' + t.subtemas + ' subtemas, ' + t.preguntas + ' preguntas, ' + t.opciones + ' opciones');
+    const muestra = arbol.find((m) => m.subtemas.some((s) => s.preguntas.length));
+    if (muestra) {
+      const s = muestra.subtemas.find((x) => x.preguntas.length);
+      console.log('\nMuestra de filas (' + muestra.fila.nombre + '):');
+      console.log('  materias  ' + JSON.stringify(muestra.fila));
+      console.log('  subtemas  ' + JSON.stringify(s.fila));
+      console.log('  preguntas ' + JSON.stringify(s.preguntas[0].fila));
+      console.log('  opciones  ' + JSON.stringify(s.preguntas[0].opciones[0]));
+    }
+    console.log('\nPara escribir de verdad:  node --env-file=.env contenido/convertir.js --supabase');
+    return;
+  }
+
+  const url = process.env.SUPABASE_URL;
+  const llave = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !llave) {
+    console.log('\nFaltan variables de entorno: ' +
+      [!url && 'SUPABASE_URL', !llave && 'SUPABASE_SERVICE_ROLE_KEY'].filter(Boolean).join(', ') + '.');
+    console.log('Copia .env.example a .env en la raiz del repo, llenalo y corre:');
+    console.log('  node --env-file=.env contenido/convertir.js --supabase');
+    console.log('No se toco la base.');
+    process.exit(1);
+  }
+
+  const { createClient } = require('@supabase/supabase-js');
+  const db = createClient(url, llave, { auth: { persistSession: false, autoRefreshToken: false } });
+  const stats = {};
+  for (const tabla of ['materias', 'subtemas', 'preguntas', 'opciones']) {
+    stats[tabla] = { nuevas: 0, actualizadas: 0, iguales: 0 };
+  }
+
+  console.log('\nEscribiendo en Supabase (' + url + ')...');
+  const idsMaterias = await sincronizar(db, stats, 'materias', null, ['codigo'], arbol.map((m) => m.fila));
+  for (const m of arbol) {
+    const materiaId = idsMaterias.get(clave(m.fila, ['codigo']));
+    const idsSub = await sincronizar(db, stats, 'subtemas', { materia_id: materiaId }, ['clave'], m.subtemas.map((s) => s.fila));
+    for (const s of m.subtemas) {
+      const subtemaId = idsSub.get(clave(s.fila, ['clave']));
+      const idsPre = await sincronizar(db, stats, 'preguntas', { subtema_id: subtemaId }, ['numero'], s.preguntas.map((p) => p.fila));
+      for (const p of s.preguntas) {
+        const preguntaId = idsPre.get(clave(p.fila, ['numero']));
+        await sincronizar(db, stats, 'opciones', { pregunta_id: preguntaId }, ['letra'], p.opciones);
+      }
+    }
+    console.log('  listo: ' + m.fila.nombre);
+  }
+
+  console.log('\nResumen:');
+  for (const tabla of Object.keys(stats)) {
+    const s = stats[tabla];
+    console.log('  ' + (tabla + ':').padEnd(11) + s.nuevas + ' nuevas, ' + s.actualizadas + ' actualizadas, ' + s.iguales + ' sin cambios');
+  }
+}
+
+function clave(fila, llaves) {
+  return llaves.map((k) => String(fila[k])).join('|');
+}
+
+// Deja en la tabla las filas dadas bajo un padre. Devuelve Map llave natural -> id.
+async function sincronizar(db, stats, tabla, padre, llaves, filas) {
+  let consulta = db.from(tabla).select('*');
+  if (padre) consulta = consulta.match(padre);
+  const { data: existentes, error } = await consulta;
+  if (error) throw new Error(tabla + ' (leer): ' + error.message);
+
+  const ids = new Map();
+  const porClave = new Map();
+  for (const e of existentes) {
+    const k = clave(e, llaves);
+    if (!porClave.has(k)) porClave.set(k, e);
+  }
+
+  const nuevas = [];
+  for (const f of filas) {
+    const completa = padre ? Object.assign({}, padre, f) : f;
+    const actual = porClave.get(clave(f, llaves));
+    if (!actual) {
+      nuevas.push(completa);
+      continue;
+    }
+    ids.set(clave(f, llaves), actual.id);
+    const cambio = Object.keys(completa).some((c) => (actual[c] === undefined ? null : actual[c]) !== completa[c]);
+    if (!cambio) {
+      stats[tabla].iguales += 1;
+      continue;
+    }
+    const { error: errUpd } = await db.from(tabla).update(completa).eq('id', actual.id);
+    if (errUpd) throw new Error(tabla + ' (actualizar ' + clave(f, llaves) + '): ' + errUpd.message);
+    stats[tabla].actualizadas += 1;
+  }
+
+  if (nuevas.length) {
+    const { data: insertadas, error: errIns } = await db.from(tabla).insert(nuevas).select('*');
+    if (errIns) throw new Error(tabla + ' (insertar): ' + errIns.message);
+    for (const fila of insertadas) ids.set(clave(fila, llaves), fila.id);
+    stats[tabla].nuevas += insertadas.length;
+  }
+  return ids;
+}
