@@ -15,7 +15,9 @@ Prototipo de validación de Calibra: 14 pantallas, sin backend, sin cuentas y si
 
 El MVP mueve la persistencia a Supabase: materias, subtemas, preguntas, monitores, resultados de diagnóstico y los correos capturados. El esquema completo y las instrucciones están en **[`supabase/README.md`](supabase/README.md)**; el contrato de datos, en [`esquema.md`](esquema.md).
 
-**Credenciales.** La `Project URL` y la `anon public key` las tiene quien creó el proyecto en la Parte 1. Hoy `supabase/README.md` tiene marcadores, no las claves: pídeselas por el chat del equipo y péguelas ahí, que son públicas por diseño y van al repo a propósito. La `service_role key` (solo la necesita `contenido/convertir.js`) se reparte por chat privado y no va al repositorio.
+**Para desplegar no hace falta ninguna clave.** El proyecto de Supabase todavía no se ha creado, así que no hay claves que pedirle a nadie. Con `SUPABASE_URL` y `SUPABASE_ANON_KEY` vacías en `index.html` la app arranca en modo demo y funciona completa con las 7 materias y 84 preguntas del propio archivo. Vercel sirve un archivo estático: sin build, sin variables de entorno, sin base de datos. **Se puede desplegar hoy.**
+
+**Conectar la base es opcional y lo puede hacer cualquiera.** Son ~5 minutos y no depende de una persona en particular: el esquema, la verificación y los tres flujos de escritura ya están hechos y probados. Los pasos están en [`supabase/README.md`](supabase/README.md) → *Crear el proyecto de cero*. Quien lo cree pega la `Project URL` y la `anon public key` en `index.html` y en `supabase/README.md` y las comitea: son públicas por diseño, las protege RLS, y así nadie más tiene que volver a preguntar. La única que no va al repo es la `service_role key`, que sirve para un solo comando (`convertir.js --supabase`) y vive en un `.env` local.
 
 ## Tres cosas que se apartan del brief
 

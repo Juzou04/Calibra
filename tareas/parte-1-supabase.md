@@ -48,12 +48,12 @@ Todo lo que necesitas ya está escrito en `esquema.md`, que ya vive en el repo. 
 - [x] **`supabase/README.md`** — espacios para la Project URL y la anon key, la
       advertencia sobre la `service_role key`, el modelo de acceso tabla por tabla
       y el paso a paso para recrear y verificar la base.
-- [x] **Traspaso de credenciales documentado** — `supabase/README.md` dice de forma
-      explícita que hoy tiene marcadores y no las claves, y que la `Project URL` y
-      la `anon public key` las tiene quien creó el proyecto en esta parte, con una
-      tabla de qué necesita cada parte y dónde sacarlo del dashboard. El
-      `README.md` de la raíz apunta ahí, para que quien trabaje las Partes 2 y 3
-      lo encuentre sin buscar.
+- [x] **Traspaso de credenciales documentado** — `supabase/README.md` aclara que el
+      proyecto de Supabase todavía no existe, así que no hay claves que pedirle a
+      nadie, e incluye una guía paso a paso para que **cualquiera** del equipo lo
+      cree en ~5 minutos (incluido el registro), con dónde sacar cada clave y en
+      qué dos archivos pegarlas. El `README.md` de la raíz apunta ahí y deja claro
+      que el despliegue no está bloqueado: sin claves, la app corre en modo demo.
 - [x] **`supabase/verificar.sql`** — reporte de 38 comprobaciones para correr en el
       editor SQL de Supabase y confirmar que la base quedó igual al contrato.
       No modifica nada.
