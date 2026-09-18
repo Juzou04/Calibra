@@ -42,10 +42,11 @@ const esperado = {
   misconcepciones: ['id', 'kc_id', 'clave', 'texto'],
   pregunta_kc: ['pregunta_id', 'kc_id'],
   monitores: ['id', 'nombre', 'carrera', 'semestre', 'nivel', 'calificacion',
-    'precio_hora', 'materia_certificada_id', 'encaje_texto', 'creado_en'],
+    'precio_hora', 'materia_certificada_id', 'encaje_texto', 'clave', 'creado_en'],
   resultados_diagnostico: ['id', 'materia_id', 'subtema_debil_id',
-    'error_detectado_texto', 'respuestas', 'kcs', 'creado_en'],
-  leads: ['id', 'correo', 'rol', 'materia_interes', 'creado_en'],
+    'error_detectado_texto', 'respuestas', 'kcs', 'sesion_id', 'creado_en'],
+  leads: ['id', 'correo', 'rol', 'materia_interes', 'telefono', 'monitor_id',
+    'sesion_id', 'correo_enviado_en', 'creado_en'],
 };
 
 // Columna no-identidad por tabla: `set id = id` es inválido en columnas

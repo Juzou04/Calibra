@@ -15,15 +15,17 @@ y lo verifica.
 
 ## Credenciales del proyecto
 
-> ### ⚠️ Estado actual: aquí abajo hay marcadores, no las claves reales
+> ### Estado actual: las claves públicas están abajo, ya pegadas
 >
-> **La `Project URL` y la `anon public key` las tiene quien creó el proyecto de
-> Supabase en la Parte 1.** Si estás trabajando la Parte 2 o la Parte 3 y
-> necesitas conectarte, pídeselas directamente por el chat del equipo.
+> El proyecto en uso es `uotlhaitdkfroavqkvee`, creado el 17 de septiembre. Usa
+> el sistema **nuevo** de llaves de Supabase: la que va en el frontend se llama
+> `publishable key` y empieza por `sb_publishable_` en vez de ser un JWT
+> `eyJ…`. Cumple el mismo papel que la vieja `anon public key` y se manda en la
+> misma cabecera `apikey`; donde este archivo diga "anon key", vale la
+> publishable.
 >
-> En cuanto alguien las tenga a mano, **péguelas en el bloque de abajo y comitee
-> el cambio**: son públicas por diseño y van al repo a propósito, así nadie más
-> del equipo tiene que volver a pedirlas.
+> La secreta (`sb_secret_…`, el equivalente de la `service_role`) **no está
+> aquí y no va al repo**. Se reparte por el chat privado del equipo.
 
 Estas dos son **seguras de comitear y de compartir**. La `anon key` no es un
 secreto: va incrustada en el frontend, cualquiera puede leerla desde el navegador,
@@ -32,8 +34,8 @@ no el hecho de estar oculta. Las consumen la Parte 2 (`convertir.js`) y la
 Parte 3 (`index.html`).
 
 ```
-Project URL:      <PEGAR_AQUI_LA_PROJECT_URL>      (ej. https://xxxxxxxx.supabase.co)
-anon public key:  <PEGAR_AQUI_LA_ANON_PUBLIC_KEY>
+Project URL:      https://uotlhaitdkfroavqkvee.supabase.co
+publishable key:  sb_publishable_83zQndnakd4fp5w3NR5zMg_9vwwHobu
 ```
 
 Dónde sacarlas en el dashboard: **Project Settings → API**. La `Project URL` está
@@ -66,10 +68,16 @@ API → Reset service_role key** y reparte la nueva.
 1. Crea un proyecto nuevo en [supabase.com](https://supabase.com) (plan gratuito).
 2. En el dashboard, abre **SQL Editor → New query**.
 3. Pega el contenido completo de [`schema.sql`](./schema.sql) y ejecútalo (**Run**).
-4. Pega [`verificar.sql`](./verificar.sql) en una consulta nueva y ejecútalo:
-   deben salir 38 filas y **todas** con `estado = OK`.
-5. En **Project Settings → API** copia la `Project URL` y la `anon public key` a
-   la sección de arriba de este archivo, y guarda la `service_role key` por fuera
+4. Si la base es nueva no hace falta nada más; si ya existía antes del 17 de
+   septiembre, corre además
+   [`migraciones/001-telefonos-y-correo.sql`](./migraciones/001-telefonos-y-correo.sql),
+   que agrega los teléfonos y lo que necesita el correo de confirmación **sin
+   borrar nada**.
+5. Pega [`verificar.sql`](./verificar.sql) en una consulta nueva y ejecútalo:
+   deben salir 53 filas y **todas** con `estado = OK`. (Decía 38: ese número era
+   de cuando el esquema tenía 7 tablas; hoy tiene 10.)
+6. En **Project Settings → API** copia la `Project URL` y la `publishable key` a
+   la sección de arriba de este archivo, y guarda la llave secreta por fuera
    del repo.
 
 `schema.sql` es idempotente (hace `drop table ... cascade` antes de crear), así que

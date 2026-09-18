@@ -121,6 +121,11 @@ create table public.monitores (
     precio_hora            integer,
     materia_certificada_id bigint      references public.materias (id) on delete set null,
     encaje_texto           text,
+    -- Clave pública del perfil, generada en el navegador. No identifica a
+    -- nadie: es la que ata esta fila con el teléfono que el monitor dejó en
+    -- leads, tabla sin SELECT público. Así el número no queda descargable con
+    -- la llave publicable que viaja en el HTML.
+    clave                  text,
     creado_en              timestamptz not null default now()
 );
 
@@ -134,17 +139,40 @@ create table public.resultados_diagnostico (
     -- detalle por knowledge component: [{kc, estado, aciertos, total}] y
     -- misconcepciones confirmadas o posibles. Null en materias sin kc.
     kcs                   jsonb,
+    -- Sesión del navegador que hizo la prueba. Lo único que ata este
+    -- diagnóstico con el correo que la misma persona deja después en leads.
+    sesion_id             text,
     creado_en             timestamptz not null default now()
 );
 
 -- leads: correos capturados (reemplaza el FORM_ENDPOINT vacío). Sin SELECT público.
 create table public.leads (
-    id              bigint generated always as identity primary key,
-    correo          text        not null,
-    rol             text        not null check (rol in ('estudiante', 'monitor')),
-    materia_interes text,
-    creado_en       timestamptz not null default now()
+    id                bigint generated always as identity primary key,
+    correo            text        not null,
+    rol               text        not null check (rol in ('estudiante', 'monitor')),
+    materia_interes   text,
+    -- Teléfono opcional, sin check de formato: el formato se valida en el
+    -- front. Un check que rechace "300" haría fallar el insert entero y se
+    -- perdería el correo, que es justo lo que se quiere dejar de perder.
+    telefono          text,
+    -- Monitor que eligió el estudiante. Nulo si eligió uno de los de ejemplo
+    -- del archivo, que no tienen fila aquí.
+    monitor_id        bigint      references public.monitores (id) on delete set null,
+    -- Sesión del navegador: ata este correo con su diagnóstico y, cuando el rol
+    -- es monitor, con la fila de monitores que publicó ese mismo navegador.
+    sesion_id         text,
+    -- Lo escribe la Edge Function del correo de confirmación para no mandarlo
+    -- dos veces. El frontend nunca lo toca (anon no tiene UPDATE).
+    correo_enviado_en timestamptz,
+    creado_en         timestamptz not null default now()
 );
+
+-- Índices de apoyo. Una llave foránea no crea el suyo, y el correo automático
+-- busca por sesión.
+create index leads_monitor_id_idx      on public.leads (monitor_id);
+create index leads_sesion_id_idx       on public.leads (sesion_id);
+create index resultados_sesion_id_idx  on public.resultados_diagnostico (sesion_id);
+create index monitores_clave_idx       on public.monitores (clave);
 
 -- ----------------------------------------------------------------------------
 -- Row Level Security

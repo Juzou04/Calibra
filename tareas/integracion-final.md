@@ -2,14 +2,15 @@
 
 Pasos para juntar las cuatro partes en `main`, conectar Supabase y publicar en Vercel. Cada paso termina con una comprobación; si no pasa, no se sigue.
 
-## Estado al 16 de septiembre
+## Estado al 17 de septiembre
 
 | Parte | Dónde está | Estado |
 | --- | --- | --- |
-| 1 · Supabase | `main` (PR #1) | Fusionada. El esquema oficial es `supabase/schema.sql`, con 7 tablas. |
-| 2 · Contenido a Supabase | rama `dvarela5101` | Lista, sin fusionar. `convertir.js --supabase`. |
-| 3 · `index.html` con Supabase | rama `juzouy` | Lista, sin fusionar. Verificada contra un proyecto simulado. |
-| 4 · Arnés y Vercel | rama `juzouy` | Arnés y `.vercelignore` listos. Faltan la rama por defecto y el proyecto en Vercel. |
+| 1 · Supabase | `main` (PR #1) | Fusionada. El esquema oficial es `supabase/schema.sql`. |
+| 2 · Contenido a Supabase | `main` (PR #6) | Fusionada. `convertir.js --supabase`. |
+| 3 · `index.html` con Supabase | `main` (PR #6) | Fusionada. Verificada contra un proyecto simulado. |
+| 4 · Arnés y Vercel | `main` (PR #6 y #7) | Arnés y `.vercelignore` listos. La rama por defecto ya es `main`; falta el proyecto en Vercel. |
+| 5 · Teléfonos y correo de confirmación | `main` | Código y migración listos. Falta correr la migración y desplegar la Edge Function. |
 
 La rama `prueba-cuestionario` es un experimento aparte: cambia `index.html`, `verificar.js` y lleva el esquema a 10 tablas. Git la fusiona con `juzouy` sin conflictos de texto, pero las dos tocan el motor de la prueba y ella además cambia la base. No se fusiona en esta entrega sin decidirlo en equipo y sin correr el arnés sobre el resultado.
 
@@ -23,13 +24,47 @@ Comprobación: `git log --oneline origin/main` muestra los dos merges.
 
 ## 2. Proyecto de Supabase
 
-Si todavía no existe, se crea siguiendo `supabase/README.md`. Si ya existe, basta con verificarlo.
+El proyecto existe: `uotlhaitdkfroavqkvee`, creado el 17 de septiembre. Al 17 de
+septiembre a las 22:00 **no tiene ni una tabla**: un `GET /rest/v1/materias`
+responde `PGRST205`, o sea que la llave autentica bien pero el esquema no está.
 
-1. En el editor SQL, ejecutar `supabase/verificar.sql`. Tienen que salir 38 filas, todas en `OK`.
-2. Copiar la `Project URL` y la `anon public key` en dos sitios: la sección de credenciales de `supabase/README.md` y las constantes `SUPABASE_URL` y `SUPABASE_ANON_KEY` de `index.html` (bloque "1b. Supabase", al inicio del `<script>`). Las dos son públicas por diseño.
-3. La `service_role key` va solo en el `.env` local de quien corre `convertir.js`. Nunca en el repo ni en `index.html`.
+1. En el editor SQL, ejecutar `supabase/schema.sql` completo (crea las 10 tablas,
+   RLS y privilegios). Después, `supabase/migraciones/001-telefonos-y-correo.sql`.
+   Al final, `supabase/verificar.sql`: tienen que salir 53 filas, todas en `OK`.
+2. Hecho: la `Project URL` y la `publishable key` ya están en `supabase/README.md`
+   y en las constantes `SUPABASE_URL` y `SUPABASE_ANON_KEY` de `index.html`
+   (bloque "1b. Supabase"). Este proyecto usa el sistema nuevo de llaves, así que
+   la que va en el frontend se llama `publishable` (`sb_publishable_…`) y no
+   `anon`; se manda en la misma cabecera y hace lo mismo.
+3. La llave secreta (`sb_secret_…`, equivalente de la `service_role`) va solo en
+   el `.env` local de quien corre `convertir.js` y en los secretos de la Edge
+   Function. Nunca en el repo ni en `index.html`.
 
 Comprobación: abrir `index.html` con doble clic y escribir en la consola del navegador `window.__calibraSupabaseEstado`. Debe decir `"conectado"`. Si dice `"sin-conexion"`, la URL o la llave están mal; la app sigue funcionando con los datos del archivo.
+
+## 2b. Teléfonos y correo de confirmación
+
+El código ya está en `main`. Lo que falta es la base y la función:
+
+1. Correr `supabase/migraciones/001-telefonos-y-correo.sql` (paso 1 de arriba).
+   **Antes de publicar el sitio con el `index.html` de este commit**: si el front
+   manda `telefono` y la columna no existe, PostgREST responde `PGRST204` y el
+   insert de `leads` se cae entero, o sea que se pierde el correo, no solo el
+   teléfono. La app solo hace `console.warn` y agradece igual, así que el fallo
+   es invisible.
+2. Desplegar la Edge Function y crear el webhook siguiendo
+   `supabase/functions/enviar-correo/README.md`.
+
+Comprobación: en el sitio publicado, hacer la prueba, elegir un monitor y dejar
+correo y celular. En el Table Editor tiene que aparecer una fila en `leads` con
+`telefono`, `monitor_id` y `sesion_id` llenos, y una en
+`resultados_diagnostico` con el mismo `sesion_id`. Si la función ya está
+desplegada, el correo llega en menos de un minuto y `correo_enviado_en` queda
+con fecha.
+
+Lo que este correo **no** hace: no agenda una hora (la app no tiene agenda; el
+correo pide acordarla con el monitor y le pasa su número), y el diagnóstico
+detallado por knowledge components solo existe en Cálculo Integral.
 
 ## 3. Contenido a la base
 
@@ -64,6 +99,8 @@ Prueba de humo en el sitio publicado, después de la del paso 4: en el Table Edi
 
 - Sin autenticación, cualquiera puede insertar monitores, correos y diagnósticos falsos. Está aceptado en `esquema.md`.
 - `leads.rol` solo admite `estudiante` y `monitor`. Los correos del canal profesor se agradecen pero no se guardan. Para guardarlos hay que ampliar ese `check` en `supabase/schema.sql`.
-- El teléfono opcional que pide la pantalla de correo del monitor no se guarda, porque `leads` no tiene esa columna.
+- El teléfono ya se guarda en `leads.telefono`: lo pide E6 (estudiante), M2.5 y R1 (monitor). Sigue siendo opcional, así que puede llegar vacío.
+- El teléfono del monitor vive en `leads`, no en `monitores`, porque `monitores` tiene lectura pública: ahí quedaría descargable con la llave que va en el HTML. El lazo entre los dos es `monitores.clave` = `leads.sesion_id`.
+- La app no agenda una hora concreta: no hay tabla de citas ni selección de fecha. El correo de confirmación pide acordarla con el monitor.
 - `monitores` no guarda subtemas fuertes, horarios ni número de reseñas. Los perfiles creados desde la app aparecen sin eso.
 - El plan gratuito de Supabase pausa el proyecto tras una semana sin actividad.
