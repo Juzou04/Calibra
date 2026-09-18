@@ -78,7 +78,9 @@ Corrido el 17 de septiembre sobre `main`, con las credenciales reales ya puestas
 - Pasan los chequeos que el cambio del teléfono podía romper: `escritura · solo envia columnas que existen en supabase/schema.sql`, los cinco de payload de inserts, `el formulario en modo demo agradece y no llama a la red` y `demo · sin credenciales no muestra carga ni llama a Supabase ni al CDN`.
 - El arnés retuvo 21 escrituras: ni un correo de prueba llegó a la base real.
 
-Lo que NO está verificado: el correo de la Edge Function (hace falta un proyecto con tablas y una cuenta de Resend) y la migración 001, que no se ha ejecutado contra ningún Postgres.
+La migración 001, sobre PGlite con el `schema.sql` anterior como base de partida: aplica sin error, no borra datos, deja las 6 columnas nuevas nullable con su llave foránea, `verificar.sql` da 53 filas en OK, `anon` sigue sin poder leer `leads.telefono`, un `monitor_id` inexistente sí tumba el insert (por eso la app manda `null` con los monitores de ejemplo) y repetirla no rompe nada.
+
+Lo que NO está verificado: el correo de la Edge Function. Hace falta el proyecto con tablas y una cuenta de Resend con dominio verificado.
 
 ## Si se va a fusionar `prueba-cuestionario`
 
