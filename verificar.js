@@ -67,6 +67,13 @@ const DIR_MON = path.join(DIR_CAPTURAS, 'monitor');
 const RUTA_REPORTE = path.join(DIR_CAPTURAS, 'reporte.json');
 const RUTA_SHEET = path.join(DIR_CAPTURAS, 'contact-sheet.html');
 
+// index.html con credenciales reales pegadas. Cambia lo que se puede esperar de
+// la red: el arnes deja pasar las lecturas al proyecto real y retiene las
+// escrituras, asi que el insert de un correo SI viaja y eso es correcto.
+const CREDENCIALES_REALES = /const SUPABASE_URL = "https:\/\//.test(
+  fs.readFileSync(path.join(RAIZ, 'index.html'), 'utf8')
+);
+
 const ARGS = process.argv.slice(2);
 const HEADED = ARGS.includes('--headed');
 const SOLO = (() => {
@@ -3025,7 +3032,13 @@ async function bloqueRobustez(page, base, red, materia) {
     await form.locator('button[type="submit"], button').first().click();
     await page.waitForTimeout(800);
     const graciasValido = await form.locator('.gracias').first().isVisible().catch(() => false);
-    const nuevas = red.peticiones.slice(antes).filter((p) => !esFuente(p.url));
+    // Con credenciales reales, guardar el correo en Supabase es lo que debe
+    // pasar: lo que este chequeo vigila es que no aparezca un tercero y que el
+    // agradecimiento no dependa de la red.
+    const nuevas = red.peticiones
+      .slice(antes)
+      .filter((p) => !esFuente(p.url))
+      .filter((p) => !(CREDENCIALES_REALES && /(\.supabase\.co|cdn\.jsdelivr\.net)/.test(p.url)));
     const problemas = [];
     if (!graciasValido) problemas.push('no aparecio .gracias tras enviar un correo valido');
     if (nuevas.length) problemas.push('hizo ' + nuevas.length + ' peticion(es) de red: ' + nuevas.slice(0, 3).map((p) => p.url).join(', '));
@@ -3154,9 +3167,9 @@ const SB_CDN = 'cdn.jsdelivr.net';
 // Columnas que acepta cada tabla con insert publico, segun supabase/schema.sql
 // (rama main). Una columna de mas hace que PostgREST rechace el insert.
 const COLUMNAS_SUPABASE = {
-  leads: ['correo', 'rol', 'materia_interes'],
-  monitores: ['nombre', 'carrera', 'semestre', 'nivel', 'calificacion', 'precio_hora', 'materia_certificada_id', 'encaje_texto'],
-  resultados_diagnostico: ['materia_id', 'subtema_debil_id', 'error_detectado_texto', 'respuestas'],
+  leads: ['correo', 'rol', 'materia_interes', 'telefono', 'monitor_id', 'sesion_id'],
+  monitores: ['nombre', 'carrera', 'semestre', 'nivel', 'calificacion', 'precio_hora', 'materia_certificada_id', 'encaje_texto', 'clave'],
+  resultados_diagnostico: ['materia_id', 'subtema_debil_id', 'error_detectado_texto', 'respuestas', 'kcs', 'sesion_id'],
 };
 
 function datosSupabasePrueba() {
@@ -3216,6 +3229,19 @@ async function abrirPaginaSupabase(navegador, base, opciones) {
 
   if (!o.sinConfig) {
     await page.addInitScript((cfg) => { window.__calibraSupabase = cfg; }, { url: SB_URL, anonKey: SB_KEY });
+  }
+  if (o.sinConfig && CREDENCIALES_REALES) {
+    // Este recorrido comprueba el modo demo, y el archivo ya tiene credenciales
+    // reales pegadas. Se sirve una copia con las dos constantes vacias; el
+    // archivo del repo no se toca.
+    const sinLlaves = fs.readFileSync(INDEX, 'utf8')
+      .replace(/const SUPABASE_URL = "[^"]*";/, 'const SUPABASE_URL = "";')
+      .replace(/const SUPABASE_ANON_KEY = "[^"]*";/, 'const SUPABASE_ANON_KEY = "";');
+    await page.route(base, (route) => route.fulfill({
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+      body: sinLlaves,
+    }));
   }
   if (o.sinCdn) {
     await page.route('**/' + SB_CDN + '/**', (route) => route.abort('failed'));

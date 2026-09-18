@@ -1394,15 +1394,21 @@ textarea.visualmente-oculto,button.visualmente-oculto{
     <!-- El motor rellena aqu&iacute; el resumen de lo agendado -->
     <div id="confirmacion-resumen"></div>
 
-    <p class="subtitle">Calibra todav&iacute;a no est&aacute; abierta. D&eacute;janos tu correo y eres de los primeros.</p>
+    <p class="subtitle">D&eacute;janos tu correo y tu celular: te confirmamos la hora, el pago y el contacto de tu monitor.</p>
 
+    <!-- El celular va DENTRO del mismo .campo que el correo: al enviar, el
+         motor oculta solo el primer .campo del formulario, asi que un .campo
+         aparte se quedaria visible al lado del agradecimiento. -->
     <form class="captura" data-rol="estudiante">
       <div class="campo">
         <label for="correo-estudiante">Tu correo</label>
         <input id="correo-estudiante" name="correo" type="email" inputmode="email" autocomplete="email" required placeholder="nombre@uniandes.edu.co">
+        <label for="telefono-estudiante">Tu celular (opcional)</label>
+        <input id="telefono-estudiante" name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="3001234567">
+        <p class="note">Lo usamos solo para coordinar tu sesi&oacute;n y confirmar el pago.</p>
       </div>
-      <button class="btn" type="submit">Av&iacute;senme</button>
-      <p class="gracias" hidden>Gracias. Te avisamos apenas Calibra abra.</p>
+      <button class="btn" type="submit">Confirmar mi sesi&oacute;n</button>
+      <p class="gracias" hidden>Gracias. Te escribimos con la hora, el pago y el contacto de tu monitor.</p>
     </form>
   </div>
 
@@ -1738,6 +1744,16 @@ textarea.visualmente-oculto,button.visualmente-oculto{
       </div>
 
       <div class="campo">
+        <label for="perfil-telefono">Tu celular (opcional)</label>
+        <input id="perfil-telefono" name="telefono" type="tel"
+               inputmode="tel" autocomplete="tel"
+               aria-describedby="error-perfil-telefono"
+               placeholder="3001234567">
+        <p class="note">Se lo damos solo al estudiante que reserve contigo, para que acuerden la hora. No sale en tu perfil p&uacute;blico.</p>
+        <p class="error-campo" id="error-perfil-telefono" hidden></p>
+      </div>
+
+      <div class="campo">
         <label for="perfil-tarifa">Tu tarifa por hora, en pesos</label>
         <!-- El simbolo va FUERA del input: dentro obliga a limpiar el valor
              antes de leerlo y estorba al teclado numerico del celular. -->
@@ -1827,8 +1843,8 @@ const FORM_ENDPOINT = ""; // pegar aquí la URL de Formspree o Google Forms
   monitor y los resultados de diagnostico. Si Supabase no responde, la demo
   sigue con los datos de este archivo y nunca se bloquea.
 */
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
+const SUPABASE_URL = "https://uotlhaitdkfroavqkvee.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_83zQndnakd4fp5w3NR5zMg_9vwwHobu";
 
 /*
   true: en las listas de monitores se ven los de la base y, despues, los de
@@ -3907,6 +3923,36 @@ function horariosNormalizados(monitor) {
   });
 }
 
+/*
+  Identificador opaco de la sesion. Ata el diagnostico que se guarda al
+  terminar la prueba con el correo que el estudiante deja despues, que son dos
+  filas en dos tablas distintas y hasta hoy no tenian nada en comun.
+
+  Sin Math.random (el arnes lo prohibe) y sin tocar el PRNG sembrado, que tiene
+  que seguir dando la misma baraja para la misma semilla.
+*/
+function nuevaSesionId() {
+  try {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return window.crypto.randomUUID();
+    }
+  } catch (e) { /* navegador sin crypto: sigue el respaldo de abajo */ }
+  return 's-' + new Date().getTime().toString(36);
+}
+
+/*
+  Telefono opcional: de 7 a 15 digitos, con los separadores que la gente
+  escribe de verdad. No valida operador ni pais: rechazar un numero bueno es
+  peor que guardarlo tal cual.
+*/
+function telefonoValido(valor) {
+  var v = String(valor || '').trim();
+  if (!v) return false;
+  if (!/^[0-9+()\s.\-]+$/.test(v)) return false;
+  var digitos = v.replace(/[^0-9]/g, '');
+  return digitos.length >= 7 && digitos.length <= 15;
+}
+
 /* ---------------------------------------------------------------------------
    3. Estado (vive solo en memoria; el boton de reinicio lo limpia)
    --------------------------------------------------------------------------- */
@@ -3938,7 +3984,20 @@ const estado = {
   filtros: { materia: null, subtema: null, precioMax: null, nivelMin: null },
 
   /* Perfil creado por el monitor */
-  monitorNuevo: null
+  monitorNuevo: null,
+
+  /* Contacto del aspirante a monitor: lo escribe en M2.5 y se reusa en R1 */
+  correoMonitor: '',
+  telefonoMonitor: '',
+
+  /* Clave publica del perfil que publica el monitor (R1). Es la misma sesionId
+     y viaja en monitores.clave: con ella, quien arma el correo encuentra en
+     leads el telefono de ese monitor, sin que el numero tenga que vivir en una
+     tabla de lectura publica. */
+  claveMonitor: '',
+
+  /* Identificador de esta sesion; se renueva al empezar de nuevo. */
+  sesionId: nuevaSesionId()
 };
 
 /* ---------------------------------------------------------------------------
@@ -4658,6 +4717,12 @@ function reiniciar() {
 
   // El perfil que se creo durante la demo desaparece de la lista publica.
   estado.monitorNuevo = null;
+  estado.correoMonitor = '';
+  estado.telefonoMonitor = '';
+  estado.claveMonitor = '';
+  // Sesion nueva: el diagnostico y el correo del recorrido anterior no se
+  // mezclan con los del siguiente.
+  estado.sesionId = nuevaSesionId();
   if (Array.isArray(CONTENIDO.monitores)) {
     for (var n = CONTENIDO.monitores.length - 1; n >= 0; n--) {
       if (CONTENIDO.monitores[n] && CONTENIDO.monitores[n].recienCreado) {
@@ -4683,10 +4748,18 @@ function reiniciar() {
     if (envio) { envio.hidden = false; envio.disabled = false; }
     var email = form.querySelector('input[type="email"]');
     if (email) email.disabled = false;
+    var tel = form.querySelector('input[type="tel"]');
+    if (tel) tel.disabled = false;
     var gracias = graciasDe(form);
     if (gracias) gracias.hidden = true;
     limpiarErrorCorreo(form);
   }
+
+  // M2.5 no es un .captura: su formulario se limpia aparte. Sin esto, el
+  // segundo recorrido de una demo arranca con el correo y el telefono del
+  // primero ya escritos en pantalla.
+  var formMonitorCorreo = $('#form-monitor-correo');
+  if (formMonitorCorreo) formMonitorCorreo.reset();
 
   // Hash limpio, sin dejar basura en el historial.
   history.replaceState(null, '', location.pathname + location.search);
@@ -5707,6 +5780,12 @@ function pintarCrearPerfil() {
   if (tarifa && !tarifa.value) {
     tarifa.value = String(campoDe(CONTENIDO.perfilNuevo, ['tarifa', 'tarifaSugerida'], 25000));
   }
+  // El celular que ya escribio en M2.5 entra precargado: nadie quiere escribir
+  // su numero dos veces.
+  var telPerfil = $('#perfil-telefono');
+  if (telPerfil && !telPerfil.value && estado.telefonoMonitor) {
+    telPerfil.value = estado.telefonoMonitor;
+  }
   var horario1 = $('#perfil-horario-1');
   var horarios = horariosNormalizados(null);
   if (horario1 && !horario1.value && horarios[0]) horario1.value = horarios[0].texto;
@@ -5727,11 +5806,14 @@ function recogerPerfilMonitor() {
   var elCarrera = $('#perfil-carrera');
   var elSemestre = $('#perfil-semestre');
   var elTarifa = $('#perfil-tarifa');
+  var elTelefono = $('#perfil-telefono');
 
   var nombre = elNombre ? String(elNombre.value || '').trim() : '';
   var carrera = elCarrera ? String(elCarrera.value || '').trim() : '';
   var semestre = elSemestre ? Number(String(elSemestre.value || '').trim()) : NaN;
   var tarifa = elTarifa ? Number(String(elTarifa.value || '').replace(/[^\d]/g, '')) : NaN;
+  var telefono = elTelefono ? String(elTelefono.value || '').trim() : '';
+  if (!telefono) telefono = estado.telefonoMonitor || '';
   var fuertes = subtemasElegidos();
 
   var problemas = [];
@@ -5756,6 +5838,11 @@ function recogerPerfilMonitor() {
   if (!fuertes.length) {
     var msgF = txt('r1ErrorSubtemas', 'Elige al menos un subtema.');
     errorDeCampo($('#perfil-subtemas'), msgF); problemas.push(msgF);
+  }
+  // El celular es opcional, pero si escribio algo tiene que poder marcarse.
+  if (telefono && !telefonoValido(telefono)) {
+    var msgTel = txt('r1ErrorTelefono', 'Escribe un celular de 7 a 15 digitos, o dejalo vacio.');
+    errorDeCampo(elTelefono, msgTel); problemas.push(msgTel);
   }
 
   var resumen = $('#perfil-errores');
@@ -5800,6 +5887,11 @@ function recogerPerfilMonitor() {
   estado.monitorNuevo = monitor;
   if (Array.isArray(CONTENIDO.monitores)) CONTENIDO.monitores.push(monitor);
 
+  // La clave publica del perfil es la sesion: con ella, quien arma el correo
+  // encuentra en leads el telefono que dejo este monitor.
+  var claveMonitor = estado.sesionId || nuevaSesionId();
+  estado.claveMonitor = claveMonitor;
+
   guardarMonitorSupabase({
     nombre: nombre,
     carrera: carrera,
@@ -5807,8 +5899,17 @@ function recogerPerfilMonitor() {
     nivel: monitor.nivel,
     tarifa: tarifa,
     encaje: monitor.encaje,
-    materia: materia
+    materia: materia,
+    clave: claveMonitor
   });
+
+  // Si el celular se escribio aqui, o cambio respecto al de M2.5, queda una
+  // fila nueva en leads con el contacto al dia. Sin correo no hay donde
+  // guardarlo: leads.correo es obligatorio.
+  if (telefono && telefono !== estado.telefonoMonitor && correoValido(estado.correoMonitor || '')) {
+    guardarLeadSupabase(estado.correoMonitor, 'monitor', { telefono: telefono });
+  }
+  if (telefono) estado.telefonoMonitor = telefono;
 
   ir('panel');
   return monitor;
@@ -6013,12 +6114,14 @@ function limpiarErrorCorreo(form) {
   Envia el correo. En modo demo (FORM_ENDPOINT vacio) no envia nada.
   Un error de red nunca bloquea la demo: el agradecimiento se muestra igual.
 */
-function enviarCorreo(correo, rol) {
-  guardarLeadSupabase(correo, rol);   // no se espera: la demo nunca se bloquea
+function enviarCorreo(correo, rol, extra) {
+  extra = extra || {};
+  guardarLeadSupabase(correo, rol, extra);   // no se espera: la demo nunca se bloquea
   var endpoint = CONTENIDO.endpoint;
   if (!endpoint) return Promise.resolve(false);   // modo demo
 
   var cuerpo = { correo: correo, rol: rol, fecha: new Date().toISOString() };
+  if (extra.telefono) cuerpo.telefono = extra.telefono;
   try {
     return fetch(endpoint, {
       method: 'POST',
@@ -6040,13 +6143,16 @@ function engancharCapturas() {
       evento.preventDefault();
       var form = evento.currentTarget;
       var input = form.querySelector('input[type="email"]');
+      var inputTel = form.querySelector('input[type="tel"]');
       var correo = input ? input.value.trim() : '';
+      var telefono = inputTel ? inputTel.value.trim() : '';
       var rol = form.getAttribute('data-rol') || 'estudiante';
 
       if (!correoValido(correo)) { mostrarErrorCorreo(form, input); return; }
       limpiarErrorCorreo(form);
 
-      enviarCorreo(correo, rol);   // nunca esperamos a la red para agradecer
+      // nunca esperamos a la red para agradecer
+      enviarCorreo(correo, rol, { telefono: telefono });
 
       var gracias = graciasDe(form);
       // El .gracias vive DENTRO del form, asi que NO se puede ocultar el form
@@ -6059,6 +6165,8 @@ function engancharCapturas() {
       if (envio) { envio.hidden = true; envio.disabled = true; }
       var email = form.querySelector('input[type="email"]');
       if (email) email.disabled = true;
+      var tel = form.querySelector('input[type="tel"]');
+      if (tel) tel.disabled = true;
       if (gracias) {
         gracias.hidden = false;
         if (!gracias.hasAttribute('tabindex')) gracias.setAttribute('tabindex', '-1');
@@ -6092,8 +6200,9 @@ function engancharCorreoMonitor() {
     estado.correoMonitor = correo;
     if (telefono) estado.telefonoMonitor = telefono;
 
-    // Enviar datos
-    enviarCorreo(correo, 'monitor-evaluacion');
+    // Enviar datos. El telefono viaja con el lead: leads no tiene lectura
+    // publica, asi que es el sitio privado donde queda el contacto.
+    enviarCorreo(correo, 'monitor-evaluacion', { telefono: telefono });
 
     // Navegar a la certificación
     ir('certificacion');
@@ -6302,7 +6411,11 @@ function monitorDesdeSupabase(fila, materiaPorIdBase) {
     encaje: fila.encaje_texto || '',
     mismoProfesor: false,
     recomendado: false,
-    desdeSupabase: true
+    desdeSupabase: true,
+    // Id real de la fila: sin esto el lead del estudiante no puede apuntar al
+    // monitor que eligio. Los monitores de ejemplo de este archivo no lo tienen.
+    idBase: fila.id || null,
+    clave: fila.clave || ''
   };
 }
 
@@ -6351,7 +6464,7 @@ function cargarDesdeSupabase() {
       leerTablaSupabase(cliente, 'preguntas', 'id,subtema_id,numero,dificultad,enunciado'),
       leerTablaSupabase(cliente, 'opciones', 'id,pregunta_id,letra,texto,es_correcta,error_texto'),
       leerTablaSupabase(cliente, 'monitores',
-        'id,nombre,carrera,semestre,nivel,calificacion,precio_hora,materia_certificada_id,encaje_texto,creado_en')
+        'id,nombre,carrera,semestre,nivel,calificacion,precio_hora,materia_certificada_id,encaje_texto,creado_en,clave')
     ]).then(function (t) {
       // Si ya se vencio el tiempo, la demo arranco con el archivo: no se
       // cambian los datos a mitad de una sesion.
@@ -6392,14 +6505,28 @@ function insertarEnSupabase(tabla, fila) {
   });
 }
 
-function guardarLeadSupabase(correo, rol) {
+function guardarLeadSupabase(correo, rol, extra) {
   var rolBase = ROL_LEAD_SUPABASE[rol];
   if (!rolBase) return Promise.resolve(false);   // p. ej. 'profesor': la base no lo admite
   var materia = materiaActual();
+  extra = extra || {};
+  var telefono = extra.telefono ? String(extra.telefono).trim() : '';
+
+  // El monitor elegido solo se manda si viene de la base: los de ejemplo no
+  // tienen fila, y una llave foranea invalida tumbaria el insert entero, con lo
+  // que se perderia el correo, no solo la relacion.
+  var elegido = estado.monitorElegido;
+  var monitorId = rolBase === 'estudiante' && elegido && elegido.desdeSupabase && elegido.idBase
+    ? elegido.idBase
+    : null;
+
   return insertarEnSupabase('leads', {
     correo: correo,
     rol: rolBase,
-    materia_interes: materia && materia.codigo ? materia.codigo : null
+    materia_interes: materia && materia.codigo ? materia.codigo : null,
+    telefono: telefono || null,
+    monitor_id: monitorId,
+    sesion_id: estado.sesionId || null
   });
 }
 
@@ -6413,7 +6540,10 @@ function guardarMonitorSupabase(datos) {
     calificacion: null,
     precio_hora: isFinite(datos.tarifa) ? Number(datos.tarifa) : null,
     materia_certificada_id: idsSupabase.materias[materia.id] || null,
-    encaje_texto: datos.encaje || null
+    encaje_texto: datos.encaje || null,
+    // Clave publica del perfil. No dice nada de nadie: es la que ata esta fila
+    // con el telefono guardado en leads, que no tiene lectura publica.
+    clave: datos.clave || null
   });
 }
 
@@ -6434,7 +6564,18 @@ function guardarDiagnosticoSupabase() {
       respuestas: copiaSimple(estado.respuestasEstudiante),
       porcentajes: porcentajes,
       subtema_debil: clave
-    }
+    },
+    // Detalle por knowledge component. calcularDiagnostico devuelve los kc y
+    // las misconcepciones por separado; la columna kcs guarda los dos juntos,
+    // que es la forma que documenta schema.sql. Hoy solo Calculo Integral los
+    // tiene: en las otras seis materias va null y el correo sale con el subtema
+    // debil y el error detectado.
+    kcs: (diag.kcs && Object.keys(diag.kcs).length) ||
+         (diag.misconcepciones && Object.keys(diag.misconcepciones).length)
+      ? copiaSimple({ kcs: diag.kcs || [], misconcepciones: diag.misconcepciones || [] })
+      : null,
+    // Lo unico que ata esta fila con el correo que el estudiante deja en E6.
+    sesion_id: estado.sesionId || null
   });
 }
 

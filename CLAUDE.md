@@ -14,9 +14,9 @@ Lee, en este orden: `esquema.md` (arquitectura y decisiones, rama `main`), `tare
 
 | Rama | Qué tiene |
 | --- | --- |
-| `juzouy` | Consolidada y al día: la app con 7 materias y 84 preguntas, la Parte 3 (Supabase en `index.html`), la Parte 4 (arnés, `.vercelignore`, checklist), más `main` y `dvarela5101` fusionadas dentro. Es la rama con todo. Hoy también es la rama por defecto en GitHub. |
-| `main` | Va por detrás de `juzouy`. Tiene la Parte 1 (`supabase/`), `esquema.md` y `tareas/parte-*.md`. Va a ser la rama de producción, así que falta subirle `juzouy` por pull request. |
-| `dvarela5101` | La Parte 2: `contenido/convertir.js --supabase`. Ya está dentro de `juzouy`. |
+| `main` | La rama de producción y la rama por defecto en GitHub. Al 17 de septiembre tiene todo: Partes 1 a 4, el arreglo responsive y los teléfonos con el correo de confirmación (PR #6 y #7). |
+| `juzou` | La rama de trabajo de Juan David Chávez, al día con `main`. Antes se llamaba `juzouy`; al renombrarla, `origin/juzouy` quedó borrada y `origin/juzou` apuntando a una foto vieja de `main`, lo que se arregló el 17 de septiembre. Todo lo suyo ya está en `main`. |
+| `dvarela5101` | La Parte 2: `contenido/convertir.js --supabase`. Ya está dentro de `main`. |
 | `prueba-cuestionario` | Experimento de diagnóstico por knowledge components. Evaluado el 16 de septiembre, ver más abajo. Sin fusionar. |
 
 ## Cómo está armado
@@ -38,10 +38,12 @@ node contenido/convertir.js       # revisa el contenido sin escribir nada
 
 ## Supabase en `index.html`
 
-- Credenciales en `SUPABASE_URL` y `SUPABASE_ANON_KEY`, bloque "1b. Supabase" al inicio del `<script>`. Vacías, la app no toca la red y usa los datos del archivo. La anon key es pública por diseño. La `service_role key` nunca va en el repo.
+- Credenciales en `SUPABASE_URL` y `SUPABASE_ANON_KEY`, bloque "1b. Supabase" al inicio del `<script>`. Desde el 17 de septiembre están puestas: proyecto `uotlhaitdkfroavqkvee` y una `publishable key` (`sb_publishable_…`, el reemplazo de la anon key en el sistema nuevo de llaves). Son públicas por diseño. Vacías, la app no toca la red y usa los datos del archivo. La llave secreta (`sb_secret_…`) nunca va en el repo.
 - Estado en `window.__calibraSupabaseEstado`: `demo`, `cargando`, `conectado` o `sin-conexion`.
 - Al arrancar lee las 5 tablas legibles con un tope de 8 s. Si falla, sigue con el archivo. Las materias se emparejan por `codigo`.
 - Escribe en `leads` (cada correo), `monitores` (publicar perfil) y `resultados_diagnostico` (fin de la prueba). Los inserts van sin `.select()`: RLS no deja leer `leads` ni `resultados_diagnostico`, y pedir la fila de vuelta haría fallar el insert.
+- Teléfonos y correo de confirmación (17 de septiembre): `leads` lleva `telefono`, `monitor_id`, `sesion_id` y `correo_enviado_en`; `resultados_diagnostico` lleva `sesion_id`; `monitores` lleva `clave`. `estado.sesionId` es un uuid de `crypto.randomUUID()` que ata el diagnóstico con el correo que la misma persona deja después. El teléfono del monitor NO va en `monitores` (tiene lectura pública y quedaría descargable con la llave del HTML): va en `leads`, y se llega a él por `monitores.clave` = `leads.sesion_id` con `rol = 'monitor'`.
+- El correo de confirmación lo manda la Edge Function `supabase/functions/enviar-correo`, disparada por un Database Webhook en `insert` sobre `leads`. Tiene que vivir fuera de `index.html`: la llave del navegador es anónima y no puede leer `leads` ni `resultados_diagnostico`. Es la única pieza con backend del proyecto.
 - `leads.rol` solo admite `estudiante` y `monitor`. La app manda `monitor-evaluacion` como `monitor`, y no guarda los correos del canal profesor.
 - Las pruebas simulan un proyecto con `window.__calibraSupabase = { url, anonKey }` e interceptan la API REST. Con credenciales reales, el arnés deja pasar las lecturas pero retiene las escrituras, para no llenar la base de datos de prueba.
 
@@ -70,7 +72,15 @@ Corrido el 16 de septiembre sobre `juzouy` consolidada:
 - `convertir.js --supabase --dry-run`: 7 materias, 31 subtemas, 84 preguntas y 336 opciones, con los códigos que `index.html` empareja.
 - Abrir `index.html` con doble clic (`file://`): sin errores, en modo demo y conectado.
 
-Nada de esto toca un proyecto Supabase real: no hay credenciales todavía.
+Corrido el 17 de septiembre sobre `main`, con las credenciales reales ya puestas y los bloques `fuente,capturas,monitor,perfil,buscar,robustez,supabase`:
+
+- 362 comprobaciones, 359 OK, 3 fallas. Las tres son el mismo síntoma: el proyecto `uotlhaitdkfroavqkvee` existe pero todavía no tiene tablas, así que las cinco lecturas responden 404. Los 105 errores de consola son todos `Failed to load resource … 404`; ninguno es de JavaScript. Vuelven a verde en cuanto se corra `schema.sql`.
+- Pasan los chequeos que el cambio del teléfono podía romper: `escritura · solo envia columnas que existen en supabase/schema.sql`, los cinco de payload de inserts, `el formulario en modo demo agradece y no llama a la red` y `demo · sin credenciales no muestra carga ni llama a Supabase ni al CDN`.
+- El arnés retuvo 21 escrituras: ni un correo de prueba llegó a la base real.
+
+La migración 001, sobre PGlite con el `schema.sql` anterior como base de partida: aplica sin error, no borra datos, deja las 6 columnas nuevas nullable con su llave foránea, `verificar.sql` da 53 filas en OK, `anon` sigue sin poder leer `leads.telefono`, un `monitor_id` inexistente sí tumba el insert (por eso la app manda `null` con los monitores de ejemplo) y repetirla no rompe nada.
+
+Lo que NO está verificado: el correo de la Edge Function. Hace falta el proyecto con tablas y una cuenta de Resend con dominio verificado.
 
 ## Si se va a fusionar `prueba-cuestionario`
 
@@ -81,12 +91,13 @@ Se probó la fusión en un worktree aislado. Entra sin conflictos y el JS queda 
 
 Además, el `schema.sql` de esa rama empieza con `drop table ... cascade`. Re-ejecutarlo sobre un proyecto con datos borra los correos y los diagnósticos ya registrados. Para un proyecto vivo hace falta un archivo de migración aditivo, no ese.
 
-## Pendientes al 16 de septiembre
+## Pendientes al 17 de septiembre
 
-- Subir `juzouy` a `main` por pull request y cambiar la rama por defecto de GitHub a `main`.
-- Poner las credenciales reales de Supabase y subir el contenido con `convertir.js --supabase`.
-- Crear el proyecto en Vercel (preset "Other", sin build, rama `main`).
-- `contenido/calculo-vectorial.md` no tiene `longitud: 12` y su prueba queda en 4 preguntas. El arnés lo avisa.
+- Correr `supabase/schema.sql` en el proyecto `uotlhaitdkfroavqkvee`, que todavía no tiene ni una tabla, y después `supabase/migraciones/001-telefonos-y-correo.sql`.
+- Subir el contenido con `convertir.js --supabase`: necesita la llave secreta en un `.env` local.
+- Desplegar la Edge Function `enviar-correo` y crear el webhook (`supabase/functions/enviar-correo/README.md`). Resend solo manda a terceros desde un dominio verificado; sin dominio, el correo solo llega a la cuenta dueña de la llave.
+- Publicar en Vercel (preset "Other", sin build, rama `main`), o `npx vercel --prod` si no hay permisos de admin sobre el repo para la integración con GitHub.
 - M2 todavía dice "Por ahora solo está abierta Cálculo Integral", pero hay 7 materias activas.
 - Los códigos FISI-1018, FISI-1019 y MATE-1203 no están confirmados contra un programa oficial del curso.
-- El teléfono que pide M2.5 no se guarda porque `leads` no tiene esa columna.
+- La app no agenda una hora concreta: no hay tabla de citas. El correo pide acordarla con el monitor.
+- No hay ni una línea de privacidad ni de autorización de tratamiento de datos, y ahora se guardan teléfonos. Para un piloto con estudiantes de verdad conviene ponerla.

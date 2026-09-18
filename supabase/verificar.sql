@@ -19,11 +19,12 @@ esperado_columnas (tabla, columnas) as (
         ('knowledge_components',   array['clave','id','nombre','subtema_id']),
         ('misconcepciones',        array['clave','id','kc_id','texto']),
         ('pregunta_kc',            array['kc_id','pregunta_id']),
-        ('monitores',              array['calificacion','carrera','creado_en','encaje_texto','id',
+        ('monitores',              array['calificacion','carrera','clave','creado_en','encaje_texto','id',
                                          'materia_certificada_id','nivel','nombre','precio_hora','semestre']),
         ('resultados_diagnostico', array['creado_en','error_detectado_texto','id','kcs','materia_id',
-                                         'respuestas','subtema_debil_id']),
-        ('leads',                  array['correo','creado_en','id','materia_interes','rol'])
+                                         'respuestas','sesion_id','subtema_debil_id']),
+        ('leads',                  array['correo','correo_enviado_en','creado_en','id','materia_interes',
+                                         'monitor_id','rol','sesion_id','telefono'])
 ),
 -- Comandos con política pública esperada por tabla.
 esperado_politicas (tabla, comandos) as (
