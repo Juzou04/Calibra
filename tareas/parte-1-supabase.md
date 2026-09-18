@@ -37,7 +37,7 @@ Todo lo que necesitas ya está escrito en `esquema.md`, que ya vive en el repo. 
 
 ### Hecho en el repo
 
-- [x] **`supabase/schema.sql`** — DDL completo de las 7 tablas con los nombres de
+- [x] **`supabase/schema.sql`** — DDL completo de las tablas con los nombres de
       tabla y columna exactos de `esquema.md`, más `enable row level security`, las
       políticas del contrato y los privilegios explícitos del rol `anon`. Es
       idempotente: se puede re-ejecutar para dejar la base limpia.
@@ -66,8 +66,8 @@ Todo lo que necesitas ya está escrito en `esquema.md`, que ya vive en el repo. 
 ### Pendiente en el dashboard de Supabase (requiere tu cuenta)
 
 - [ ] Crear el proyecto en Supabase (plan gratuito).
-- [ ] Ejecutar `supabase/schema.sql` en el editor SQL → crea las 7 tablas y activa RLS.
-- [ ] Ejecutar `supabase/verificar.sql` y confirmar que las 38 filas dicen `OK`.
+- [ ] Ejecutar `supabase/schema.sql` en el editor SQL → crea las 10 tablas y activa RLS.
+- [ ] Ejecutar `supabase/verificar.sql` y confirmar que las 53 filas dicen `OK`.
 - [ ] Pegar la `Project URL` y la `anon public key` reales en `supabase/README.md` y comitear.
 - [ ] Compartir la `service_role key` por un canal privado con quien haga la Parte 2. Nunca al repo.
 

@@ -8,8 +8,8 @@ y lo verifica.
 
 | Archivo | Para qué |
 | --- | --- |
-| [`schema.sql`](./schema.sql) | DDL completo: las 7 tablas, RLS, políticas y privilegios. Es lo único que hay que ejecutar para crear la base. |
-| [`verificar.sql`](./verificar.sql) | Reporte de 38 comprobaciones del esquema. Se ejecuta en el editor SQL de Supabase, no modifica nada. |
+| [`schema.sql`](./schema.sql) | DDL completo: las 10 tablas, RLS, políticas y privilegios. Es lo único que hay que ejecutar para crear la base. |
+| [`verificar.sql`](./verificar.sql) | Reporte de 53 comprobaciones del esquema. Se ejecuta en el editor SQL de Supabase, no modifica nada. |
 | [`validar-esquema.mjs`](./validar-esquema.mjs) | Valida el DDL en local, sin proyecto Supabase, sobre un Postgres real en memoria. Opcional. |
 | `package.json` | Solo para el validador local. **No afecta al frontend:** `index.html` sigue sin build ni dependencias. |
 
@@ -47,8 +47,38 @@ Project URL:      <PEGAR_AQUI_LA_PROJECT_URL>      (ej. https://xxxxxxxx.supabas
 anon public key:  <PEGAR_AQUI_LA_ANON_PUBLIC_KEY>
 ```
 
-Dónde sacarlas en el dashboard: **Project Settings → API**. La `Project URL` está
-en *Project URL* y la `anon public key` en *Project API keys → `anon` `public`*.
+Dónde sacarlas en el dashboard: **Settings → API Keys**. Ahí están todas las
+llaves del proyecto; *ya no existe una página `Settings → API` aparte*. La forma
+más rápida es el botón **Connect** del proyecto, que muestra la URL y la llave
+pública listas para copiar.
+
+### Formato de llaves: publishable vs anon
+
+Supabase cambió el formato y está **retirando las llaves `anon` y `service_role`
+a finales de 2026**. Equivalencias:
+
+| Antigua (legado) | Nueva | Para qué |
+| --- | --- | --- |
+| `anon` (JWT, empieza por `eyJ`) | **publishable** (`sb_publishable_...`) | La que va en `index.html` |
+| `service_role` (JWT, empieza por `eyJ`) | **secret** (`sb_secret_...`) | La del `.env` para `convertir.js` |
+
+**Usa las nuevas.** Un proyecto creado hoy trae las dos, y las viejas siguen
+funcionando mientras no se desactiven, así que cualquiera de las dos sirve por
+ahora. Dos cosas a favor de las nuevas: se pueden rotar (las de legado no), y la
+`secret` no funciona desde un navegador — Supabase responde 401 —, así que un
+descuido pesa menos.
+
+Nuestro esquema es compatible con las dos sin cambiar nada: la publishable key
+resuelve al rol `anon` de Postgres cuando no hay sesión, y las políticas de
+`schema.sql` están escritas justo para `anon` y `authenticated`. El nombre de la
+constante en `index.html` sigue siendo `SUPABASE_ANON_KEY`; lo que cambia es el
+valor que se pega. Igual con `SUPABASE_SERVICE_ROLE_KEY` en el `.env`, que acepta
+una `sb_secret_...`, porque `convertir.js` corre en Node y pasa la llave por
+`createClient`.
+
+Fuente: [API keys de Supabase](https://supabase.com/docs/guides/getting-started/api-keys)
+y [Migrating to new API keys](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys).
+Contenido reformulado por restricciones de licencia.
 
 ### Quién necesita qué
 
@@ -103,12 +133,17 @@ no pide tarjeta.
    (no se vuelve a necesitar para esto), región la más cercana, plan **Free**
    → **Create new project**. Espera 1–2 minutos.
 3. **SQL Editor → New query**. Pega el contenido completo de
-   [`schema.sql`](./schema.sql) y dale **Run**. Crea las 7 tablas, activa RLS y
+   [`schema.sql`](./schema.sql) y dale **Run**. Crea las 10 tablas, activa RLS y
    aplica las políticas y privilegios.
 4. **New query** otra vez. Pega [`verificar.sql`](./verificar.sql) y **Run**: deben
-   salir 38 filas y **todas** con `estado = OK`. Si alguna dice `FALLA`, el paso 3
+   salir 53 filas y **todas** con `estado = OK`. Si alguna dice `FALLA`, el paso 3
    no terminó bien; vuelve a correr `schema.sql`.
-5. **Project Settings → API**. Copia la `Project URL` y la `anon public key`.
+5. **Settings → API Keys** (en el engranaje de la barra lateral). Copia la
+   **Project URL** y la **publishable key** (`sb_publishable_...`). Ojo: ya no
+   existe una página *Settings → API* aparte; todas las llaves viven en
+   *API Keys*. Si el proyecto es viejo y muestra una `anon public` que empieza por
+   `eyJ`, también sirve, pero Supabase la está retirando (ver
+   [Formato de llaves](#formato-de-llaves-publishable-vs-anon)).
 6. Pega esas dos en **dos sitios**, y comitea:
    - la sección [Credenciales del proyecto](#credenciales-del-proyecto) de este archivo;
    - las constantes `SUPABASE_URL` y `SUPABASE_ANON_KEY` de `index.html`
