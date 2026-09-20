@@ -1,7 +1,7 @@
 {
-  "generado": "2026-09-20T14:22:57.742Z",
+  "generado": "2026-09-20T15:10:46.332Z",
   "version": "v2",
-  "base": "http://127.0.0.1:60022/index.html",
+  "base": "http://127.0.0.1:65175/index.html",
   "bloques": [
     {
       "nombre": "Codigo fuente",
@@ -8264,7 +8264,7 @@
           "detalle": "{\"prueba\":{\"longitud\":12,\"adaptativa\":true,\"barajarOpciones\":true},\"certificacion\":{\"longitud\":3,\"minimoAciertos\":2,\"adaptativa\":false,\"barajarOpciones\":false}}"
         },
         {
-          "nombre": "lectura · #buscar muestra el monitor de la base junto a los de ejemplo",
+          "nombre": "lectura · #buscar muestra el monitor de la base y ya no los de ejemplo",
           "ok": true,
           "detalle": ""
         },
@@ -8367,26 +8367,61 @@
         {
           "nombre": "red sin peticiones fallidas (fuera de Google Fonts)",
           "ok": false,
-          "detalle": "6 fallida(s): https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js (net::ERR_ABORTED) | https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/monitores?select=id%2Cnombre%2Ccarrera%2Csemestre%2Cnivel%2Ccalificacion%2Cprecio_hora%2Cmateria_certificada_id%2Cencaje_texto%2Ccreado_en%2Cclave&order=id.asc (net::ERR_ABORTED) | https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc (net::ERR_ABORTED)",
+          "detalle": "15 fallida(s): https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc (net::ERR_ABORTED) | https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/materias?select=id%2Cnombre%2Ccodigo%2Cactiva&order=id.asc (net::ERR_ABORTED) | https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc (net::ERR_ABORTED)",
           "datos": [
             {
               "pantalla": "E1 inicio",
-              "url": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
               "motivo": "net::ERR_ABORTED"
             },
             {
-              "pantalla": "robustez #panel directo",
+              "pantalla": "E1 inicio",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/materias?select=id%2Cnombre%2Ccodigo%2Cactiva&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "E1 inicio",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "E1 inicio",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "E1 inicio",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/monitores?select=id%2Cnombre%2Ccarrera%2Csemestre%2Cnivel%2Ccalificacion%2Cprecio_hora%2Cmateria_certificada_id%2Cencaje_texto%2Ccreado_en%2Cclave&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "crear-perfil tras certificar",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "crear-perfil tras certificar",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "crear-perfil tras certificar",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/materias?select=id%2Cnombre%2Ccodigo%2Cactiva&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "crear-perfil tras certificar",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "crear-perfil tras certificar",
               "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/monitores?select=id%2Cnombre%2Ccarrera%2Csemestre%2Cnivel%2Ccalificacion%2Cprecio_hora%2Cmateria_certificada_id%2Cencaje_texto%2Ccreado_en%2Cclave&order=id.asc",
               "motivo": "net::ERR_ABORTED"
             },
             {
               "pantalla": "robustez #panel directo",
-              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
-              "motivo": "net::ERR_ABORTED"
-            },
-            {
-              "pantalla": "robustez #panel directo",
-              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
               "motivo": "net::ERR_ABORTED"
             },
             {
@@ -8396,7 +8431,17 @@
             },
             {
               "pantalla": "robustez #panel directo",
-              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/monitores?select=id%2Cnombre%2Ccarrera%2Csemestre%2Cnivel%2Ccalificacion%2Cprecio_hora%2Cmateria_certificada_id%2Cencaje_texto%2Ccreado_en%2Cclave&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "robustez #panel directo",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+              "motivo": "net::ERR_ABORTED"
+            },
+            {
+              "pantalla": "robustez #panel directo",
+              "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
               "motivo": "net::ERR_ABORTED"
             }
           ]
@@ -8408,22 +8453,57 @@
   "red": [
     {
       "pantalla": "E1 inicio",
-      "url": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
       "motivo": "net::ERR_ABORTED"
     },
     {
-      "pantalla": "robustez #panel directo",
+      "pantalla": "E1 inicio",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/materias?select=id%2Cnombre%2Ccodigo%2Cactiva&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "E1 inicio",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "E1 inicio",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "E1 inicio",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/monitores?select=id%2Cnombre%2Ccarrera%2Csemestre%2Cnivel%2Ccalificacion%2Cprecio_hora%2Cmateria_certificada_id%2Cencaje_texto%2Ccreado_en%2Cclave&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "crear-perfil tras certificar",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "crear-perfil tras certificar",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "crear-perfil tras certificar",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/materias?select=id%2Cnombre%2Ccodigo%2Cactiva&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "crear-perfil tras certificar",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "crear-perfil tras certificar",
       "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/monitores?select=id%2Cnombre%2Ccarrera%2Csemestre%2Cnivel%2Ccalificacion%2Cprecio_hora%2Cmateria_certificada_id%2Cencaje_texto%2Ccreado_en%2Cclave&order=id.asc",
       "motivo": "net::ERR_ABORTED"
     },
     {
       "pantalla": "robustez #panel directo",
-      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
-      "motivo": "net::ERR_ABORTED"
-    },
-    {
-      "pantalla": "robustez #panel directo",
-      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
       "motivo": "net::ERR_ABORTED"
     },
     {
@@ -8433,7 +8513,17 @@
     },
     {
       "pantalla": "robustez #panel directo",
-      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/subtemas?select=id%2Cmateria_id%2Cclave%2Cnombre&order=id.asc",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/monitores?select=id%2Cnombre%2Ccarrera%2Csemestre%2Cnivel%2Ccalificacion%2Cprecio_hora%2Cmateria_certificada_id%2Cencaje_texto%2Ccreado_en%2Cclave&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "robustez #panel directo",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/opciones?select=id%2Cpregunta_id%2Cletra%2Ctexto%2Ces_correcta%2Cerror_texto&order=id.asc",
+      "motivo": "net::ERR_ABORTED"
+    },
+    {
+      "pantalla": "robustez #panel directo",
+      "url": "https://uotlhaitdkfroavqkvee.supabase.co/rest/v1/preguntas?select=id%2Csubtema_id%2Cnumero%2Cdificultad%2Cenunciado&order=id.asc",
       "motivo": "net::ERR_ABORTED"
     }
   ],

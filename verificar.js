@@ -929,6 +929,27 @@ async function fijarSemilla(page, semilla) {
   await page.evaluate((s) => { window.__calibraSemilla = s; }, semilla);
 }
 
+// Sirve una copia de index.html con las dos constantes de Supabase vacias. Sin
+// credenciales la app entra en modo demo y usa los monitores del archivo, que son
+// los mismos en cada corrida: asi un recorrido de interfaz no depende de lo que
+// haya hoy en la base real. El archivo del repo no se toca. Devuelve la funcion
+// que quita la intercepcion, porque la pagina se comparte entre bloques.
+async function servirSinCredenciales(page, base) {
+  if (!CREDENCIALES_REALES) return async () => {};
+  const sinLlaves = fs.readFileSync(INDEX, 'utf8')
+    .replace(/const SUPABASE_URL = "[^"]*";/, 'const SUPABASE_URL = "";')
+    .replace(/const SUPABASE_ANON_KEY = "[^"]*";/, 'const SUPABASE_ANON_KEY = "";');
+  const sinFragmento = base.split('#')[0];
+  const coincide = (url) => url.href.split('#')[0] === sinFragmento;
+  const responder = (route) => route.fulfill({
+    status: 200,
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+    body: sinLlaves,
+  });
+  await page.route(coincide, responder);
+  return async () => { await page.unroute(coincide, responder).catch(() => {}); };
+}
+
 // Prepara la pagina desde cero con configuracion y semilla.
 async function preparar(page, base, opciones) {
   const o = opciones || {};
@@ -2345,6 +2366,9 @@ function coherenciaTarjeta(clave, tarjeta, opcion) {
   if (clave === 'materia' || clave === 'subtema') {
     const attr = clave === 'materia' ? tarjeta.materia : tarjeta.subtemas;
     if (attr != null) {
+      // Atributo presente pero vacio: el monitor no declara materia ni subtemas,
+      // asi que esta disponible en todas y el filtro lo deja pasar a proposito.
+      if (!plano(attr)) return null;
       if (plano(attr).indexOf(plano(opcion.valor)) === -1 && plano(attr).indexOf(plano(etiqueta)) === -1) {
         return 'filtro ' + clave + ' "' + etiqueta + '" deja pasar una tarjeta con data-' + clave + '="' + attr + '"';
       }
@@ -2360,6 +2384,12 @@ function coherenciaTarjeta(clave, tarjeta, opcion) {
 
 async function bloqueBuscar(page, base, materia) {
   abrirBloque('B1 · Buscar monitores sin examen');
+
+  // Este bloque se corre en modo demo a proposito. Leyendo la base real, la
+  // lista dependeria de a quien haya vinculado el equipo ese dia, y con un solo
+  // monitor disponible en todas las materias ningun filtro puede reducirla: el
+  // arnes concluiria "el filtro no filtra" sin que nada este roto.
+  const dejarDeServirDemo = await servirSinCredenciales(page, base);
 
   // 1. Entrada libre en frio.
   contexto = 'buscar en frio';
@@ -2619,6 +2649,8 @@ async function bloqueBuscar(page, base, materia) {
   } catch (e) {
     registrar('B1 · se puede agendar sin haber hecho la prueba', false, e.message);
   }
+
+  await dejarDeServirDemo();
 }
 
 // ---------------------------------------------------------------------------
@@ -3352,8 +3384,10 @@ async function bloqueSupabase(navegador, base) {
     await page.evaluate(() => { location.hash = '#buscar'; });
     await esperarPantalla(page, 's-buscar', 'B1 con Supabase');
     const textoBuscar = normalizarEspacios(await page.locator('#buscar-lista').first().textContent());
-    const okMon = textoBuscar.indexOf('Monitora Supabase') !== -1 && textoBuscar.indexOf('Daniela R.') !== -1;
-    registrar('lectura · #buscar muestra el monitor de la base junto a los de ejemplo', okMon,
+    // Con MOSTRAR_MONITORES_DE_EJEMPLO en false, en cuanto la base tiene un
+    // monitor los de ejemplo del archivo salen de la lista.
+    const okMon = textoBuscar.indexOf('Monitora Supabase') !== -1 && textoBuscar.indexOf('Daniela R.') === -1;
+    registrar('lectura · #buscar muestra el monitor de la base y ya no los de ejemplo', okMon,
       okMon ? '' : 'texto: ' + textoBuscar.slice(0, 140));
 
     // Prueba del estudiante -> resultados_diagnostico

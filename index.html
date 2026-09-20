@@ -224,6 +224,9 @@ legend{display:block;inline-size:100%;padding:0}
 }
 .chip.is-destacado{border-color:var(--primary);color:var(--primary);font-weight:600}
 .specialty{margin-block-start:14px;font-size:15px;font-weight:500;color:var(--muted)}
+.presentacion{margin-block-start:18px}
+.presentacion p{font-size:15px;line-height:1.5}
+.presentacion p+p{margin-block-start:10px}
 .price{
   margin-block-start:22px;
   font-size:24px;font-weight:700;letter-spacing:-.02em;
@@ -1853,7 +1856,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_83zQndnakd4fp5w3NR5zMg_9vwwHobu";
   ningun monitor se muestran los de ejemplo igual, para que la lista nunca
   quede vacia.
 */
-const MOSTRAR_MONITORES_DE_EJEMPLO = true;
+const MOSTRAR_MONITORES_DE_EJEMPLO = false;
 
 
 /* ---------- 2. Semilla del azar ---------- */
@@ -5216,12 +5219,14 @@ function tarjetaMonitor(m) {
   // antes porque burbujea desde la tarjeta hasta document.
   card.setAttribute('data-ir', 'perfil');
   // Datos de la tarjeta expuestos como atributos: los usa el arnes para
-  // comprobar que los filtros filtran de verdad, sin depender del texto.
-  if (m.materia) card.setAttribute('data-materia', m.materia);
-  if (m.subtemas && m.subtemas.length) {
-    card.setAttribute('data-subtema', m.subtemas.join(' '));
-    card.setAttribute('data-subtemas', m.subtemas.join(' '));
-  }
+  // comprobar que los filtros filtran de verdad, sin depender del texto. Se
+  // ponen incluso vacios, porque vacio significa "no declara materia ni
+  // subtemas, luego esta disponible en todas" y eso es distinto de no exponer
+  // el dato: sin el atributo, quien comprueba tiene que adivinar por el texto.
+  card.setAttribute('data-materia', m.materia || '');
+  var susSubtemas = m.subtemas && m.subtemas.length ? m.subtemas.join(' ') : '';
+  card.setAttribute('data-subtema', susSubtemas);
+  card.setAttribute('data-subtemas', susSubtemas);
   if (m.nivel != null) card.setAttribute('data-nivel', String(m.nivel));
   if (m.precio != null) card.setAttribute('data-precio', String(m.precio));
 
@@ -5284,6 +5289,17 @@ function precioElemento(valor) {
   var p = crear('p', 'price', precioTexto(valor) + ' ');
   p.appendChild(crear('span', null, '/ hora'));
   return p;
+}
+
+/* La presentacion que el propio monitor escribe: un parrafo por linea. Va con
+   textContent, como todo el contenido de la base, no con innerHTML. */
+function presentacionElemento(texto) {
+  var caja = crear('div', 'presentacion');
+  String(texto).split(/\n+/).forEach(function (parrafo) {
+    var limpio = parrafo.trim();
+    if (limpio) caja.appendChild(crear('p', null, limpio));
+  });
+  return caja;
 }
 
 /* ---------------------------------------------------------------------------
@@ -5401,7 +5417,10 @@ function pasaFiltros(m) {
   if (f.materia && m.materia && m.materia !== f.materia) return false;
   if (f.subtema) {
     var suyos = Array.isArray(m.subtemas) ? m.subtemas : [];
-    if (suyos.indexOf(f.subtema) === -1) return false;
+    // Sin subtemas declarados no se filtra, igual que con la materia arriba: la
+    // tabla monitores no guarda subtemas, asi que todo monitor que viene de la
+    // base llega con la lista vacia y el filtro lo hacia desaparecer.
+    if (suyos.length && suyos.indexOf(f.subtema) === -1) return false;
   }
   if (f.precioMax !== null && Number(m.precio) > f.precioMax) return false;
   if (f.nivelMin !== null && Number(m.nivel) < f.nivelMin) return false;
@@ -5519,6 +5538,8 @@ function pintarPerfil() {
   tutor.appendChild(chipsDe(m));
   tutor.appendChild(crear('p', 'specialty', m.encaje));
   cont.appendChild(tutor);
+
+  if (m.presentacion) cont.appendChild(presentacionElemento(m.presentacion));
 
   if (hayDiagnostico()) {
     // Tarjeta destacada, texto literal del brief
@@ -6425,6 +6446,7 @@ function monitorDesdeSupabase(fila, materiaPorIdBase) {
     precio: Number(fila.precio_hora) || 0,
     horarios: [],
     encaje: fila.encaje_texto || '',
+    presentacion: fila.presentacion || '',
     mismoProfesor: false,
     recomendado: false,
     desdeSupabase: true,
