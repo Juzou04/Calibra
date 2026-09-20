@@ -40,10 +40,10 @@ En un curso, el 60% de los estudiantes presentó el parcial 1, y de los que lo p
 ### P3 · dificultad 3
 En un experimento con dos eventos A y B, se sabe que P(A) = 0,6, P(B) = 0,5 y P(A∪B) = 0,8. ¿Son A y B independientes?
 
-- A) No son independientes porque P(A∩B) = 0,3 y P(A)·P(B) = 0,3 pero P(A|B) ≠ P(A) · CORRECTA
-- B) Sí son independientes porque P(A∪B) < 1 · confundes independencia con exclusión mutua
-- C) No se puede determinar con la información dada · no reconoces que puedes calcular P(A∩B) usando P(A∪B)
-- D) Sí son independientes porque P(A)·P(B) = 0,3 · calculas el producto pero no verificas la definición completa
+- A) Sí, porque P(A∩B) = 0,3 y P(A)·P(B) = 0,3 · CORRECTA
+- B) No, porque P(A∩B) = 0,3 no es cero · confundes independencia con exclusión mutua: les exiges que no puedan ocurrir juntos
+- C) No se puede determinar con la información dada · no reconoces que P(A∩B) sale de P(A) + P(B) − P(A∪B)
+- D) No, porque P(A|B) = 0,6 y P(B|A) = 0,5 son distintas · comparas las dos condicionales entre sí en vez de comparar P(A|B) con P(A)
 
 ## discretas · Variables aleatorias discretas
 

@@ -3448,10 +3448,10 @@ const MATERIAS = [
       { id: 'p3', subtema: 'condicional', dificultad: 3,
         enunciado: 'En un experimento con dos eventos A y B, se sabe que P(A) = 0,6, P(B) = 0,5 y P(A∪B) = 0,8. ¿Son A y B independientes?',
         opciones: [
-          { letra: 'A', texto: 'No son independientes porque P(A∩B) = 0,3 y P(A)·P(B) = 0,3 pero P(A|B) ≠ P(A)', correcta: true },
-          { letra: 'B', texto: 'Sí son independientes porque P(A∪B) < 1', correcta: false, error: 'confundes independencia con exclusión mutua' },
-          { letra: 'C', texto: 'No se puede determinar con la información dada', correcta: false, error: 'no reconoces que puedes calcular P(A∩B) usando P(A∪B)' },
-          { letra: 'D', texto: 'Sí son independientes porque P(A)·P(B) = 0,3', correcta: false, error: 'calculas el producto pero no verificas la definición completa' },
+          { letra: 'A', texto: 'Sí, porque P(A∩B) = 0,3 y P(A)·P(B) = 0,3', correcta: true },
+          { letra: 'B', texto: 'No, porque P(A∩B) = 0,3 no es cero', correcta: false, error: 'confundes independencia con exclusión mutua: les exiges que no puedan ocurrir juntos' },
+          { letra: 'C', texto: 'No se puede determinar con la información dada', correcta: false, error: 'no reconoces que P(A∩B) sale de P(A) + P(B) − P(A∪B)' },
+          { letra: 'D', texto: 'No, porque P(A|B) = 0,6 y P(B|A) = 0,5 son distintas', correcta: false, error: 'comparas las dos condicionales entre sí en vez de comparar P(A|B) con P(A)' },
         ] },
       { id: 'p4', subtema: 'discretas', dificultad: 2,
         enunciado: 'Una variable aleatoria X sigue distribución binomial con n = 10 y p = 0,3. ¿Cuál es E(X)?',
@@ -5607,10 +5607,22 @@ function pintarDetalleKc(diag) {
 }
 
 /* Monitores de una materia (los que no declaran materia valen para todas). */
+/* Un monitor sin materia declarada esta disponible en TODAS las materias. No es
+   un dato que falte: es lo que el equipo deja escrito al vincular a alguien que
+   da todas las clases abiertas. El riesgo que motivo el filtro estricto —que un
+   perfil recien publicado se quedara sin materia por accidente— se cierra en el
+   origen y no en el filtro: guardarMonitorSupabase resuelve el id contra las
+   materias de la base, y la base ya las tiene cargadas.
+   Lo usan las dos pantallas que listan monitores. Antes cada una decidia por su
+   cuenta y se contradecian: el mismo monitor salia en #monitores y no en #buscar. */
+function cubreTodasLasMaterias(m) {
+  return !m.materia;
+}
+
 function monitoresDe(idMateria) {
   var lista = Array.isArray(CONTENIDO.monitores) ? CONTENIDO.monitores : [];
   if (!idMateria) return lista.slice();
-  return lista.filter(function (m) { return !m.materia || m.materia === idMateria; });
+  return lista.filter(function (m) { return cubreTodasLasMaterias(m) || m.materia === idMateria; });
 }
 
 /* E4: las tarjetas de monitor del subtema debil. La recomendada va primera. */
@@ -5835,10 +5847,10 @@ function leerFiltros() {
 
 function pasaFiltros(m) {
   var f = estado.filtros;
-  // Filtro de materia estricto: si hay materia seleccionada, solo pasan los
-  // monitores cuya materia coincide. Un monitor sin materia declarada no puede
-  // afirmar que enseña esa materia, así que no pasa el filtro.
-  if (f.materia && m.materia !== f.materia) return false;
+  // Quien no declara materia esta en todas (ver cubreTodasLasMaterias). Quien si
+  // la declara solo pasa con la suya: un perfil certificado en una materia no
+  // puede colarse en las demas.
+  if (f.materia && !cubreTodasLasMaterias(m) && m.materia !== f.materia) return false;
   if (f.subtema) {
     var suyos = Array.isArray(m.subtemas) ? m.subtemas : [];
     // Sin subtemas declarados no se filtra, igual que con la materia arriba: la
