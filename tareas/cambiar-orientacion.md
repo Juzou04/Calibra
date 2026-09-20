@@ -176,3 +176,65 @@ tus cambios, porque siguen corriendo a ese mismo ancho.
 - [ ] Si se tocó alguna pantalla fuera del alcance recomendado, está
       anotado en este mismo archivo, en una sección "Pantallas adicionales
       cubiertas".
+
+---
+
+## Pantallas adicionales cubiertas (20 de septiembre de 2026)
+
+Rama `juzou-prueba-diseno`, commit `3638e5e`. Se cubrieron las 15 y no solo las
+tres del alcance recomendado, porque el patrón resultó ser uno y se aplica con
+CSS sin tocar el DOM ni el motor.
+
+Los puntos 1 y 2 de esta tarea (materias en rejilla, `.lista-monitores` en
+rejilla) ya estaban hechos en el bloque 38 de `index.html`. Lo que faltaba era
+decidir qué poner en el espacio sobrante. Tres bloques nuevos, todos dentro de
+`@media (min-width:1200px) and (min-height:561px)`:
+
+- Bloque 39, el escritorio y la hoja. `body` toma un tono propio
+  (`--escritorio`), `.screen` conserva `--bg` y gana borde y sombra. Sin eso la
+  columna no tiene canto y el margen parece un error de maquetación. Encima va
+  un carril fijo con la marca, el paso del flujo y la nota del prototipo; su
+  estado sale de `:has()` y no usa JS.
+- Bloque 40, la segunda columna, pantalla por pantalla. Solo reagrupa hermanos
+  que ya existían en el DOM.
+- Bloque 41, los remates que salieron al mirar las capturas.
+
+El punto 3 del alcance pedía evaluar si valía el riesgo tocar `s-prueba` y
+`s-certificacion`. Sí valía: el riesgo era el oráculo del arnés, y el arnés
+corre a 390×844, donde estos bloques no existen. Las 428 comprobaciones dan lo
+mismo que antes de empezar.
+
+El punto 4, `s-crear-perfil` a dos columnas, no se hizo. Partir en dos un
+formulario de 8 campos cambia el orden en que se llena, y eso lo decide el
+equipo. Queda a una columna, como estaba.
+
+### Verificación hecha
+
+- `verificar.cmd` completo antes y después: 428 comprobaciones, 419 OK, 9
+  fallas en las dos corridas. Las 9 vienen de antes (8 de knowledge components
+  y 1 de red por los 404 de Supabase). Se confirmó corriendo `--solo=kc` sobre
+  `juzou` en un worktree aparte antes de tocar nada.
+- Las 15 pantallas recorridas por el flujo real, no por hash, que
+  `hashPermitido()` bloquea. A 390×844, 844×390, 1024, 1199, 1200, 1280, 1366,
+  1440, 1536, 1600, 1920 y 2560: ningún elemento fuera del viewport ni de la
+  hoja, `scrollWidth == clientWidth`, cero errores de consola.
+- A 390×844, 24 de las 30 capturas salen idénticas byte a byte. Las otras 6 son
+  ruido del arnés: dos corridas seguidas sobre el mismo archivo sin tocar dan
+  también 6 distintas, y no son las mismas seis.
+- Peso: 15.276 bytes crudos más (+4,6 %) y 5.223 con brotli (+7,5 %), de 69.330
+  a 74.553. Cero peticiones nuevas, cero imágenes, cero JS.
+
+### Trampas que conviene no olvidar
+
+1. El guardián `min-height:561px` de los tres bloques no es opcional. El bloque
+   `(max-height:560px) and (min-width:600px)` de la línea ~1222 pisa `--col`
+   para el teléfono en horizontal y está más arriba en el mismo archivo.
+2. Convertir un `.body` en `grid` convierte sus `::before`/`::after` en celdas
+   de la rejilla. Hay que apagarlos y centrar con `align-content`.
+3. `display:grid` con selector de id sobre una `.screen` no la resucita, porque
+   `[hidden]{display:none !important}` de la línea 66 gana por `!important`. Si
+   alguien quita ese `!important`, las 15 pantallas se ven a la vez en
+   escritorio y el arnés no lo atrapa, porque solo mide a 390.
+4. El carril se apaga con `display:none`. Aparcarlo con
+   `transform:translateX(-100%)` rompería el chequeo `desbordes` en las 29
+   pantallas auditadas.
