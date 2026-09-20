@@ -19,7 +19,7 @@ calcular la magnitud de un vector, encontrar un vector unitario en una direcció
 Errores que vale la pena cazar: proyectar sobre el vector equivocado (proy de a sobre b no es proy de b sobre a), usar producto punto donde se pide producto cruz, olvidar normalizar al buscar un unitario, y confundir rectas que se cruzan con rectas paralelas.
 
 ### P1 · dificultad 2
-Dado el vector **v** = (3, -4), ¿cuál es el vector unitario en la dirección de **v**?
+Dado el vector v = (3, -4), ¿cuál es el vector unitario en la dirección de v?
 
 - A) (3/5, -4/5) · CORRECTA
 - B) (3, -4) · olvidas normalizar el vector dividiendo por su magnitud
@@ -27,15 +27,15 @@ Dado el vector **v** = (3, -4), ¿cuál es el vector unitario en la dirección d
 - D) (1, 1) · crees que un vector unitario siempre tiene componentes iguales
 
 ### P2 · dificultad 2
-Sean **a** = (2, 1, -1) y **b** = (1, 3, 2). Calcula la proyección de **a** sobre **b**.
+Sean a = (2, 1, -1) y b = (1, 3, 2). Calcula la proyección de a sobre b.
 
 - A) (5/14, 15/14, 10/14) · CORRECTA
-- B) (2/6, 6/6, -2/6) · proyectas **b** sobre **a** en lugar de **a** sobre **b**
+- B) (2/6, 6/6, -2/6) · proyectas b sobre a en lugar de a sobre b
 - C) 5 · confundes la proyección vectorial con la proyección escalar
 - D) (-1, 2, 3) · usas producto cruz en lugar de la fórmula de proyección
 
 ### P3 · dificultad 2
-Encuentra un vector perpendicular a **u** = (1, 2, 3) y **v** = (4, 5, 6).
+Encuentra un vector perpendicular a u = (1, 2, 3) y v = (4, 5, 6).
 
 - A) (-3, 6, -3) · CORRECTA
 - B) 32 · calculas el producto punto en lugar del producto cruz

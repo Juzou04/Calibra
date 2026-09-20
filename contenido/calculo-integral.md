@@ -285,15 +285,15 @@ Para la ecuación diferencial dy/dx + P(x)y = Q(x), el factor integrante es:
 - A) e^(∫P(x)dx) · CORRECTA
 - B) e^(∫Q(x)dx) · [factor-con-q] confundes P(x) con Q(x) en la fórmula del factor integrante
 - C) ∫P(x)dx · [factor-sin-exponencial] olvidas aplicar la exponencial al integrar P(x)
-- D) P(x)·e^x · [factor-mezclado] mezclas la fórmula con la solución de homogéneas
+- D) P(x)·eˣ · [factor-mezclado] mezclas la fórmula con la solución de homogéneas
 
 ### P7 · dificultad 2 · kc: edo-exponencial
 Si dy/dx = ky donde k es constante, la solución general es:
 
-- A) y = Ce^(kx) · CORRECTA
+- A) y = Ceᵏˣ · CORRECTA
 - B) y = C + kx · [integra-directo-ky] resuelves como si fuera integración directa sin reconocer la exponencial
 - C) y = kx² + C · [integra-directo-ky] integras k dos veces ignorando que y está en la ecuación
-- D) y = e^x + k · [pierde-k-exponente] olvidas la constante k en el exponente
+- D) y = eˣ + k · [pierde-k-exponente] olvidas la constante k en el exponente
 
 ### P33 · dificultad 2 · kc: edo-separables · borrador
 Resuelves dy/dx = x·y² separando variables. ¿Qué queda para integrar?
@@ -408,11 +408,11 @@ La serie ∑ (x − 3)ⁿ/2ⁿ tiene radio de convergencia R = 2. ¿Dónde conve
 - D) Diverge en los dos, porque R = 1 quiere decir que solo converge en x = 0 · [radio-como-puntos] confundes el radio con puntos aislados
 
 ### P10 · dificultad 2 · kc: serie-taylor
-Para encontrar la serie de Taylor de f(x) = e^x centrada en x = 0, necesitas:
+Para encontrar la serie de Taylor de f(x) = eˣ centrada en x = 0, necesitas:
 
 - A) Calcular f⁽ⁿ⁾(0) para todo n y usar ∑(f⁽ⁿ⁾(0)/n!)xⁿ · CORRECTA
-- B) Integrar e^x repetidamente · [taylor-integra] confundes derivadas con integrales en la construcción de la serie
-- C) Usar la serie de ln(x) · [taylor-funcion-equivocada] confundes e^x con su función inversa
+- B) Integrar eˣ repetidamente · [taylor-integra] confundes derivadas con integrales en la construcción de la serie
+- C) Usar la serie de ln(x) · [taylor-funcion-equivocada] confundes eˣ con su función inversa
 - D) Solo calcular f'(0) y f''(0) · [taylor-trunca] crees que la serie termina después de dos términos
 
 ### P43 · dificultad 2 · kc: serie-taylor · borrador

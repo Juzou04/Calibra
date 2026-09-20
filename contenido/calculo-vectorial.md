@@ -23,7 +23,7 @@ Dada f(x,y) = x²y + y³, calcula ∂f/∂x en el punto (2,1).
 - D) 2x + 3y² · calculas el gradiente completo en lugar de la derivada parcial pedida
 
 ### P2 · dificultad 2
-Para f(x,y) = e^(xy), el gradiente ∇f en (1,0) es:
+Para f(x,y) = eˣʸ, el gradiente ∇f en (1,0) es:
 
 - A) (0, 1) · CORRECTA
 - B) (1, 0) · confundes las componentes del gradiente
