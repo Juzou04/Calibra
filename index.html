@@ -1256,9 +1256,395 @@ textarea.visualmente-oculto,button.visualmente-oculto{
     padding-inline-end:calc(var(--pad-x) + 168px);
   }
 }
+/* El carril no existe fuera del escritorio. Apagado con display:none, que es
+   la unica forma que no rompe el chequeo "desbordes" del arnes: un carril
+   aparcado con transform:translateX(-100%) deja rect.left en negativo y falla
+   en las 29 pantallas auditadas. Va AQUI, en la regla base, y no dentro del
+   @media: encenderlo dentro y no apagarlo fuera lo dejaba visible a 390,
+   colgando debajo de la pantalla. Medido antes de arreglarlo. */
+#carril{display:none}
+
+/* ---------- 39. Escritorio de verdad: el escritorio, la hoja y el carril ----
+   Sintoma medido con Playwright sobre este mismo archivo, recorriendo el flujo
+   del estudiante a 1440x900: la columna mide 780 px y quedan 330 px de crema
+   vacia a cada lado en las seis pantallas; a 1920 son 440. Dentro de .body
+   sobran ademas entre 149 y 550 px en vertical, y scrollHeight - clientHeight
+   da 0: no hay nada cortado, el hueco esta vacio de verdad.
+   Son dos causas, no una. La primera es que la columna no tiene canto: body y
+   .screen comparten --bg y .screen (74) no declara fondo, ni borde, ni sombra,
+   asi que el margen no se lee como margen sino como sobra. El unico elemento
+   del prototipo que hoy reconoce que la ventana es ancha es el borde de 1 px
+   de .pie-prototipo (466). La segunda es que cada pantalla es una sola pila.
+   Este bloque arregla la primera y monta el carril; el 40 arregla la segunda.
+
+   El guardian min-height:561px NO es opcional: el bloque de la linea 1222
+   (max-height:560px) and (min-width:600px) pisa --col a min(94vw,860px) para
+   el telefono en horizontal y esta mas arriba en este mismo fuente, asi que
+   sin el guardian este bloque se lo llevaria por delante. */
+@media (min-width:1200px) and (min-height:561px){
+  :root{
+    --carril:208px;
+    --hueco:40px;
+    --banda:calc(var(--carril) + var(--hueco));
+    /* --margen-min es el aire minimo entre la hoja y el carril, y entre la
+       hoja y el borde derecho. Con 40 px la hoja rozaba el carril a 1200 y
+       parecia que reventaba; con 56 respira. */
+    --margen-min:56px;
+    --col:min(880px, calc(100vw - var(--banda) - 2 * var(--margen-min)));
+    --margen-hoja:calc((100vw - var(--banda) - var(--col)) / 2);
+    --escritorio:#F5F1E6;
+  }
+
+  body{background:var(--escritorio);padding-inline-start:var(--banda)}
+
+  /* El canto lo hace la SOMBRA, no el borde: --border sobre el escritorio da
+     1,16:1 y a 1 px no se ve en un proyector. Es una sola capa estatica sobre
+     un elemento que no se mueve ni se anima: se pinta una vez. Lleva
+     desplazamiento vertical a proposito: una sombra a offset cero es un halo
+     y no una elevacion, y el detector de Impeccable la marca como dark-glow.
+     Si hay que
+     reforzarlo se sube la opacidad de esta sombra; NUNCA se oscurece el
+     escritorio, porque por debajo de #F5F1E3 el --muted del pie baja de 4,5:1
+     y rompe AA en silencio (el arnes solo mide a 390, donde esto no existe). */
+  .screen{
+    background:var(--bg);
+    border-inline:1px solid var(--border);
+    box-shadow:0 1px 2px rgba(11,27,51,.05), 0 8px 24px -12px rgba(11,27,51,.16);
+  }
+
+  /* El pie y el pill se clavan a la columna con calc sobre 50%/50vw (466 y
+     494). La hoja ya no esta centrada en la ventana sino en el hueco que deja
+     el carril, asi que hay que volver a anclarlos o se van 104 px a la
+     izquierda. El pie ademas se lleva el color del escritorio para cerrar la
+     hoja por abajo con la regla de 1 px que ya cruzaba de lado a lado, y la
+     pantalla de carga tambien, para que los 6 s de espera de Supabase no
+     ensenen un flash de otro color. */
+  .pie-prototipo{
+    padding-inline:calc(var(--banda) + var(--margen-hoja) + var(--pad-x))
+                   calc(var(--margen-hoja) + var(--pad-x));
+  }
+  body>.btn-reiniciar{inset-inline-end:calc(var(--margen-hoja) + var(--pad-x))}
+  .pie-prototipo,.cargando{background:var(--escritorio)}
+
+  /* 39.1 · El carril. Fijo y no pegajoso: html,body llevan overflow-x:hidden
+     (52) y position:sticky no pega dentro de un contenedor de desplazamiento.
+     Marca arriba, pasos en medio, nota abajo: con space-between el hueco del
+     centro se lee como carril y no como olvido. */
+  #carril{
+    display:flex;
+    position:fixed;
+    inset-block:0;
+    inset-inline-start:0;
+    inline-size:var(--banda);
+    flex-direction:column;
+    justify-content:space-between;
+    gap:var(--e5);
+    padding:max(28px,env(safe-area-inset-top)) var(--hueco)
+            calc(var(--pie-h) + 10px) max(var(--hueco),env(safe-area-inset-left));
+    color:var(--muted);
+  }
+  #carril .marca-logo{font-size:15px}
+  #carril .marca-logo svg{inline-size:24px;block-size:24px}
+  #carril .nota-carril{font-size:14px;line-height:1.35;color:var(--muted)}
+
+  .pasos{list-style:none;display:none}
+  .pasos li{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding-inline-start:22px;
+    padding-block:10px;
+    min-block-size:44px;
+  }
+  /* La pleca de la izquierda es el hilo del flujo: gris el tramo que falta,
+     primario el recorrido. Va con box-shadow y no con border para no mover
+     el texto un pixel entre estados. */
+  .pasos li::before{
+    content:"";
+    position:absolute;
+    inset-block:0;
+    inset-inline-start:0;
+    inline-size:2px;
+    background:var(--pleca,var(--border));
+  }
+  .pasos li:first-child::before{inset-block-start:10px}
+  .pasos li:last-child::before{inset-block-end:10px}
+  /* 39.2 · El estado del carril sale de :has(), sin una sola linea de JS:
+     mostrar() pone y quita el atributo hidden y el selector se reevalua
+     solo. Son selectores anclados a id, de los baratos.
+     La matriz va COMPLETA a proposito. Probado: con reglas sueltas, al
+     llegar a s-confirmacion los tres pasos anteriores volvian a "pendiente",
+     porque ninguna regla los declaraba hechos desde esa pantalla.
+     El estado viaja por variables en el <li> y los hijos las leen. Asi la
+     lista de selectores se escribe dos veces y no cinco: son ~3,5 KB crudos
+     de diferencia y ni un pixel de cambio. */
+  .paso-nombre{font-size:15px;font-weight:600;color:var(--paso-color,var(--muted))}
+  .paso-pista{font-size:14px;line-height:1.3;color:var(--muted);opacity:var(--paso-pista,.75)}
+
+  body:has(#s-inicio:not([hidden])) .pasos[data-flujo="estudiante"],
+  body:has(#s-prueba:not([hidden])) .pasos[data-flujo="estudiante"],
+  body:has(#s-diagnostico:not([hidden])) .pasos[data-flujo="estudiante"],
+  body:has(#s-monitores:not([hidden])) .pasos[data-flujo="estudiante"],
+  body:has(#s-buscar:not([hidden])) .pasos[data-flujo="estudiante"],
+  body:has(#s-perfil:not([hidden])) .pasos[data-flujo="estudiante"],
+  body:has(#s-confirmacion:not([hidden])) .pasos[data-flujo="estudiante"],
+  body:has(#s-monitor:not([hidden])) .pasos[data-flujo="monitor"],
+  body:has(#s-monitor-materia:not([hidden])) .pasos[data-flujo="monitor"],
+  body:has(#s-monitor-correo:not([hidden])) .pasos[data-flujo="monitor"],
+  body:has(#s-certificacion:not([hidden])) .pasos[data-flujo="monitor"],
+  body:has(#s-monitor-resultado:not([hidden])) .pasos[data-flujo="monitor"],
+  body:has(#s-crear-perfil:not([hidden])) .pasos[data-flujo="monitor"],
+  body:has(#s-panel:not([hidden])) .pasos[data-flujo="monitor"]{display:block}
+
+  body:has(#s-prueba:not([hidden])) [data-paso="prueba"],
+  body:has(#s-diagnostico:not([hidden])) [data-paso="diagnostico"],
+  body:has(#s-monitores:not([hidden])) [data-paso="monitores"],
+  body:has(#s-buscar:not([hidden])) [data-paso="monitores"],
+  body:has(#s-perfil:not([hidden])) [data-paso="monitores"],
+  body:has(#s-confirmacion:not([hidden])) [data-paso="confirmacion"],
+  body:has(#s-monitor-materia:not([hidden])) [data-paso="materia"],
+  body:has(#s-monitor-correo:not([hidden])) [data-paso="materia"],
+  body:has(#s-certificacion:not([hidden])) [data-paso="certificacion"],
+  body:has(#s-monitor-resultado:not([hidden])) [data-paso="certificacion"],
+  body:has(#s-crear-perfil:not([hidden])) [data-paso="crear-perfil"],
+  body:has(#s-panel:not([hidden])) [data-paso="panel"]{--pleca:var(--primary);--paso-color:var(--primary);--paso-pista:1}
+
+  body:has(#s-diagnostico:not([hidden])) [data-paso="prueba"],
+  body:has(#s-monitores:not([hidden])) [data-paso="prueba"],
+  body:has(#s-monitores:not([hidden])) [data-paso="diagnostico"],
+  body:has(#s-buscar:not([hidden])) [data-paso="prueba"],
+  body:has(#s-buscar:not([hidden])) [data-paso="diagnostico"],
+  body:has(#s-perfil:not([hidden])) [data-paso="prueba"],
+  body:has(#s-perfil:not([hidden])) [data-paso="diagnostico"],
+  body:has(#s-confirmacion:not([hidden])) [data-paso="prueba"],
+  body:has(#s-confirmacion:not([hidden])) [data-paso="diagnostico"],
+  body:has(#s-confirmacion:not([hidden])) [data-paso="monitores"],
+  body:has(#s-certificacion:not([hidden])) [data-paso="materia"],
+  body:has(#s-monitor-resultado:not([hidden])) [data-paso="materia"],
+  body:has(#s-crear-perfil:not([hidden])) [data-paso="materia"],
+  body:has(#s-crear-perfil:not([hidden])) [data-paso="certificacion"],
+  body:has(#s-panel:not([hidden])) [data-paso="materia"],
+  body:has(#s-panel:not([hidden])) [data-paso="certificacion"],
+  body:has(#s-panel:not([hidden])) [data-paso="crear-perfil"]{--pleca:var(--primary);--paso-color:var(--text)}
+
+/* 39.3 · Tramo ancho. Medido: con la hoja topada en 880, a 1920 quedaban 396 px
+   de escritorio a cada lado, casi los mismos 440 de crema que eran el problema.
+   La hoja crece hasta 1180 y el carril un poco con ella; a 1920 los margenes
+   bajan a 230. No pasa de 1180 porque a partir de ahi la medida de lectura de
+   .question y .txt se va de madre, y el ancho que sobra lo aprovecha mejor la
+   segunda columna del bloque 40. */
+@media (min-width:1600px) and (min-height:561px){
+  :root{
+    --carril:240px;
+    --col:min(1180px, calc(100vw - var(--banda) - 2 * var(--margen-min)));
+  }
+}
+/* ---------- 40. Escritorio: la segunda columna, pantalla por pantalla ------
+   El bloque 39 le puso canto a la hoja y lleno el margen izquierdo. Faltaba lo
+   otro que se midio: dentro de .body sobraban entre 149 y 550 px en vertical
+   porque cada pantalla es una sola pila. Aqui las pantallas cuyo contenido YA
+   son dos grupos distintos en el DOM pasan a dos columnas. Cero HTML nuevo,
+   cero JS: solo se reagrupan hermanos que ya existen.
+
+   Dos trampas, las dos comprobadas en el navegador antes de escribir esto:
+
+   a) Convertir .body en grid convierte sus ::before/::after (100) en CELDAS de
+      la rejilla, y el contenido se va a la segunda fila. Hay que apagarlos y
+      pasar el centrado vertical a align-content, que es lo que ya hacen
+      .body.is-top (107) y el bloque de max-height:560px (1204).
+
+   b) Poner display:grid con un selector de id sobre una .screen NO la
+      resucita: [hidden]{display:none !important} (66) gana por !important a
+      cualquier especificidad. Se probo inyectando #s-perfil{display:grid} a
+      1440x900: siguio oculta y solo se veia s-inicio. Si alguien quita ese
+      !important algun dia, las 15 pantallas se ven a la vez en escritorio y
+      el chequeo unaSolaPantalla del arnes NO lo atrapa, porque solo mide a
+      390 px, donde este bloque no existe. */
+@media (min-width:1200px) and (min-height:561px){
+
+  /* 40.1 · Patron general: el .body reparte sus hermanos en dos columnas. */
+  #s-prueba .body,
+  #s-certificacion .body,
+  #s-diagnostico .body,
+  #s-confirmacion .body,
+  #s-monitor-resultado .body,
+  #s-panel .body{
+    display:grid;
+    column-gap:var(--e5);
+    align-content:center;
+  }
+  #s-prueba .body::before,#s-prueba .body::after,
+  #s-certificacion .body::before,#s-certificacion .body::after,
+  #s-diagnostico .body::before,#s-diagnostico .body::after,
+  #s-confirmacion .body::before,#s-confirmacion .body::after,
+  #s-monitor-resultado .body::before,#s-monitor-resultado .body::after,
+  #s-panel .body::before,#s-panel .body::after{display:none}
+
+  /* 40.2 · E2 y M3, la prueba. Es la pantalla que mas se ve: doce veces
+     seguidas. El enunciado manda y se queda solo en su columna; las opciones,
+     que son la tarea, ocupan la otra. Asi la lista deja de estar a 784 px de
+     ancho con cuatro palabras dentro. */
+  #s-prueba .body{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+  #s-prueba .topic{grid-column:1;grid-row:1;margin-block-start:0;align-self:end}
+  #s-prueba .question{grid-column:1;grid-row:2;align-self:start}
+  #s-prueba .options{grid-column:2;grid-row:1 / span 2;margin-block-start:0;align-self:center}
+
+  /* M3 mete el topic y el enunciado dentro de un <div>: ahi la celda es una. */
+  #s-certificacion .body{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+  #s-certificacion .body>div{grid-column:1;grid-row:1;align-self:center}
+  #s-certificacion .options{grid-column:2;grid-row:1;margin-block-start:0;align-self:center}
+
+  /* 40.3 · E3, el diagnostico. Las barras son la medida; el punto debil y los
+     knowledge components son la lectura de esa medida. Son dos grupos, no uno
+     largo. */
+  #s-diagnostico .body{grid-template-columns:minmax(0,1fr) minmax(0,340px)}
+  #s-diagnostico .bars{grid-column:1;grid-row:1 / span 2}
+  #s-diagnostico .callout{grid-column:2;grid-row:1;margin-block-start:0}
+  #s-diagnostico .kc-detalle{grid-column:2;grid-row:2;align-self:start}
+
+  /* 40.4 · E6 y M4: el resumen de lo hecho a un lado, el formulario al otro. */
+  #s-confirmacion .body,#s-monitor-resultado .body{grid-template-columns:minmax(0,1fr) minmax(0,360px)}
+  #s-confirmacion #confirmacion-resumen{grid-column:1;grid-row:1}
+  #s-confirmacion .body>.subtitle{grid-column:1;grid-row:2;align-self:start}
+  #s-confirmacion .captura{grid-column:2;grid-row:1 / span 2;align-self:center}
+  #s-monitor-resultado #cert-resultado{grid-column:1;grid-row:1}
+  #s-monitor-resultado .captura{grid-column:2;grid-row:1;align-self:center}
+
+  /* 40.5 · M5, el panel. El panel a la izquierda, la captura de correo al
+     lado y no colgando al final de una columna de 1.180 px. */
+  #s-panel .body{grid-template-columns:minmax(0,1fr) minmax(0,340px);align-content:start}
+  #s-panel #panel-contenido{grid-column:1}
+  #s-panel .captura{grid-column:2;align-self:start}
+
+  /* 40.6 · Listas: arriba, no flotando en el centro. Medido a 1440x900: en
+     s-monitores sobraban 550 px en vertical y la tarjeta quedaba colgada en
+     mitad de la hoja. */
+  #s-monitores .body{justify-content:flex-start}
+  #s-monitores .body::before,#s-monitores .body::after{display:none}
+  #s-monitores .lista-monitores,#s-buscar .lista-monitores{
+    grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));
+    align-items:start;
+  }
+
+  /* 40.7 · B1, explorar. Los filtros son navegacion, no contenido: se van a
+     un carril propio y la lista se queda con el ancho entero. */
+  #s-buscar .body{
+    display:grid;
+    grid-template-columns:minmax(0,240px) minmax(0,1fr);
+    column-gap:var(--e5);
+    align-content:start;
+  }
+  #s-buscar .filtros{grid-column:1;grid-row:1 / span 3;grid-template-columns:1fr;align-content:start;margin-block-start:0}
+  #s-buscar .conteo-fila{grid-column:2;grid-row:1}
+  #s-buscar .lista-monitores{grid-column:2;grid-row:2;margin-block-start:var(--e3)}
+  #s-buscar #buscar-vacio{grid-column:2;grid-row:3}
+
+  /* 40.8 · Las pantallas de una sola idea: P1, M1 y M2. El titular es el
+     contenido, asi que se queda con su columna y la accion con la otra. Aqui
+     la rejilla va en .screen y no en .body, porque el pie tambien entra.
+     display:grid por id es seguro: ver la trampa (b) de arriba. */
+  #s-profesor,#s-monitor,#s-monitor-materia{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:auto auto;
+    grid-template-areas:"cabecera cuerpo" "cabecera pie";
+    column-gap:var(--e5);
+    align-content:center;   /* las dos filas se centran como un bloque: con
+                               1fr en la primera, el titular quedaba a media
+                               altura y las vinetas pegadas abajo, a 150 px
+                               de distancia. Visto en captura a 1440x900. */
+  }
+  #s-profesor>header,#s-monitor>header,#s-monitor-materia>header{grid-area:cabecera;align-self:center}
+  #s-profesor>.body,#s-monitor>.body,#s-monitor-materia>.body{grid-area:cuerpo;align-self:center}
+  #s-profesor>.footer,#s-monitor>.footer,#s-monitor-materia>.footer{grid-area:pie;margin-block-start:var(--e4)}
+
+  /* 40.9 · E5, el perfil. El unico caso en que el motor ya dejo el trabajo
+     hecho: pintarPerfil escribe el precio, los horarios y "Agendar y pagar"
+     en #perfil-pie, que es un nodo aparte del .body desde el dia uno. Pasarlo
+     a la columna derecha da un panel de reserva sin tocar una linea de JS.
+     La raya de arriba se vuelve raya del lado. */
+  #s-perfil{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,340px);
+    grid-template-rows:auto minmax(0,1fr);
+    grid-template-areas:"cabecera cabecera" "cuerpo pie";
+    column-gap:var(--e5);
+  }
+  #s-perfil>header{grid-area:cabecera}
+  #s-perfil>.body{grid-area:cuerpo}
+  #s-perfil>#perfil-pie{
+    grid-area:pie;
+    align-self:center;
+    margin-block-start:0;
+    padding-block-start:0;
+    padding-inline-start:var(--e5);
+    border-block-start:0;
+    border-inline-start:1px solid var(--border);
+  }
+
+  /* 40.10 · M2.5. El porque a un lado, los dos campos al otro. */
+  #s-monitor-correo .body>div{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    column-gap:var(--e5);
+    align-items:start;
+  }
+  #s-monitor-correo .body>div>.callout{grid-column:1;grid-row:1 / span 2;margin-block-start:0;align-self:center}
+  #s-monitor-correo .body>div>.campo{grid-column:2;margin-block-start:0}
+
+  /* 40.11 · E1 y M2: siete materias en tres columnas desde 1200, que es
+     cuando la hoja ya da para ello. Antes esperaban a 1600. */
+  #s-inicio .materias,#s-monitor-materia .materias{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+/* ---------- 41. Escritorio: los tres remates que salieron al mirarlo -------
+   Los tres se vieron en captura a 1440x900, no en el codigo. */
+@media (min-width:1200px) and (min-height:561px){
+
+  /* 41.1 · La marca salia dos veces: en el carril y en la cabecera de la
+     pantalla, a 208 px de distancia. En s-inicio y s-buscar el eyebrow dice
+     solo "Calibra", asi que sobra entero. En s-monitor dice "Calibra para
+     monitores", que si informa: se queda el texto y se va el simbolo, que es
+     lo unico que duplica al carril. */
+  #s-inicio>header>.marca-logo,
+  #s-buscar>header>.marca-logo{display:none}
+  #s-monitor>header>.marca-logo svg{display:none}
+
+  /* 41.2 · Los botones del pie nacieron inline-size:100% para un telefono de
+     390. En una hoja de 880 eso da un boton de 784 px de ancho para la palabra
+     "Siguiente", que a esa escala se lee como banda de color, no como boton.
+     Pasan a medir lo que mide su texto, con un minimo para que no queden
+     ridiculos. Un tope fijo no servia: con max-inline-size:340px, "Presentar
+     la prueba de certificacion" se partia en dos lineas. Visto en captura. */
+  .screen>.footer .btn{
+    inline-size:fit-content;
+    min-inline-size:220px;
+    max-inline-size:100%;
+    padding-inline:32px;
+  }
+
+  /* 41.3 · .footer .enlace-sec se centra con margin-inline:auto (307), que
+     en un pie de 390 px es lo correcto. Con el pie ya alineado a la izquierda
+     por 41.2, "Soy monitor" y "Soy profesor" quedaban flotando en el medio.
+     Visto en captura a 1920x1080. */
+  .screen>.footer .enlace-sec{margin-inline:0;align-self:start}
+
+  /* 41.4 · Los dos horarios de E5 caben a dos columnas en 390 pero no en el
+     carril de reserva de 340: "Manana 4:00 p. m." se partia en dos lineas.
+     Apilados se leen mejor y el boton queda pegado a la eleccion. */
+  #s-perfil #perfil-pie .slot-grid{grid-template-columns:minmax(0,1fr)}
+}
 </style>
 </head>
 <body>
+<!-- La marca, definida UNA vez. Las cabeceras y el carril la reusan con
+     <use href="#marca-calibra">. El trazado ocupa 4,2 KB y estaba escrito tres
+     veces; el carril habria sido la cuarta. Es el mismo documento, asi que
+     <use> funciona tambien abriendo el archivo con doble clic (file://), que
+     es como lo abre el equipo. logo.svg sigue en la raiz como archivo suelto
+     para quien lo necesite fuera de la pagina. -->
+<svg hidden aria-hidden="true"><symbol id="marca-calibra" viewBox="0 0 2084 2084"><path fill="currentColor" d="M1939.9,1443.68c-2.72-9.27-21-33.86-38.97-47.68c-0.78-0.6-1.55-1.18-2.33-1.76c-22.22-16.4-49.45-24.59-77.05-23.84c-82.09,2.23-324,1.91-487.56-69.86c-35.65-15.64-64.16-43.39-82.07-64.34c-11.43-13.36-6.65-33.97,9.48-40.95c61.88-26.78,200.98-66.11,254.53-81.84c52.57-15.44,161.75-42.51,222.16-60.25c46.12-13.55,64.61-18.7,72.44-64.57c4.12-24.1,3.66-39.46,6.8-78.39c6.27-77.58,0.29-176.24-0.7-220.57c-1.14-51.05-3.21-163.46-14.26-245.03c-4.19-30.94-11.86-57.44-17.67-74.47c-4.1-12.01-16.39-19.21-28.88-16.93c-15.95,2.92-39.53,8.09-65.92,16.68c-58.01,18.89-129.65,50.8-163.9,64.51c-37.17,14.88-95.69,39.62-160.23,67.34c-3.39,1.45-6.79,2.92-10.2,4.38c-6.75,2.9-13.56,5.84-20.41,8.79c-153.6,66.23-326.82,142.71-326.82,142.71s250.86-142.2,336.48-185.26c69.73-35.08,289.94-125.3,289.94-125.3l-22.08-87.18c0,0-145.56,72.89-191.74,100.86c-86.13,52.15-322.02,202.45-387.94,244.5c-11.04,7.04-17.31,11.05-17.31,11.05l488.17-339.79l-12.43-83.03L1014.5,593.74l384.72-373.44l-20.39-62.8c0,0-213.31,205.17-281.75,279.56c-33.71,36.65-119.24,149.14-143.3,180.94c-3.16,4.17-9.57,3.69-12.05-0.92c-2.93-5.46-6.54-13.11-9.61-22.47c-6.58-20.02-10.91-47.78-21.79-70.19c-16.29-33.56-54.49-67.19-57.65-71.34c-3.63-4.77-85.69-61.62-184.11-76.46c-81.04-12.22-166.81-2.52-197.59,1.8c-8.56,1.2-17.2,1.67-25.83,1.37c-14.85-0.51-37.35-1.46-45.97-2.75c-7.95-1.19-36.53-9.21-47.21-11.85c-77.23-19.11-210.37-60.52-210.37-60.52l206.85,75.55c67.15,24.52,120.23,77.53,143.98,144.95c0.45,1.27,0.89,2.56,1.34,3.86c35.47,103.83,177.22,109.39,190.75,115.87c13.53,6.48-111.77,15.26-118.36-5.4c-3.3-10.33-40.7,120.54-48.48,247.2c-9.75,158.79,25.5,246.49,68.6,320.83c83.94,144.77,165.4,213.99,343.92,269.76c71.31,22.28,96.99,53.99,126.1,101.26c0.33,0.54,0.67,1.09,1,1.63c51.2,83.87,48.37,137.09,101.65,231.57c54.79,97.16,223.02,90.87,223.02,90.87l-154.51-295.06c0,0,191.05,319.13,241.46,313.52c0,0,32.47,14.44,64.62-3.86c0.92-0.52,2.06-1,3.24-1.73c27.27-16.81,29.33-55.72,4.55-76.03c-21.47-17.59-46.33-39.85-62.54-60.39c-31.49-39.88-155.95-237.51-155.95-237.51s157.13,198.74,210.83,256.99c18.75,20.33,64.18,66.78,94.47,91.04c16.35,13.09,48.42,6.59,67.97-0.94c16.29-6.27,36.26-19.01,44.94-29.37c9.5-11.34,29.16-41.5,42.69-73.83c8.42-20.12-1.43-43.23-21.66-51.38c-38.73-15.61-162.11-78.2-219.87-121.66c-48.81-36.73-207.83-168.6-207.83-168.6s223.27,143.66,274.36,174.88c26.14,15.97,85.91,52.92,133.15,73.87c47.24,20.95,72.87,39.99,95.94,33.91c20.38-5.37,35.82-50.1,42.09-70.47c3.14-10.19,3.98-35.04,0.26-58.41c-2.37-14.89-14.84-26.06-29.9-26.68c-36.77-1.52-109.79-9.38-193.25-44.69c-66.66-28.2-290.59-133.37-290.59-133.37s225.63,94.01,303.85,114.18c26.73,6.89,79.97,22.79,127.33,29.3c27.26,3.74,52.75,5.06,71.54,5.44c26.81,0.54,52.02-13.72,64.46-37.48c0.31-0.6,0.62-1.2,0.91-1.81C1945.13,1480.64,1942.98,1454.16,1939.9,1443.68z M1234.11,724.13c10.75-36.25,29.64-65.86,56.65-88.85c27-22.97,61.65-37.44,103.93-43.41c41.69-5.88,75.72-1.39,102.07,13.45c26.35,14.85,41.35,35.2,44.99,61.03c1.82,12.92,0.13,23.2-5.09,30.81c-5.21,7.63-13.99,12.31-26.32,14.04c-12.92,1.82-23.24-0.16-30.94-5.97c-7.71-5.79-14.33-13.39-19.84-22.81c-5.52-9.4-11.18-18.78-17-28.15c-5.81-9.36-13.16-16.86-22.04-22.5c-8.88-5.63-20.96-7.38-36.22-5.22c-35.83,5.05-62.02,22.08-78.59,51.06c-16.57,28.99-21.3,68.74-14.18,119.24c7.54,53.44,24.74,95.78,51.61,127.03c26.87,31.25,62.9,43.68,108.13,37.31c28.77-4.06,51.28-13.21,67.55-27.49c16.25-14.27,32.58-35.44,48.99-63.51l18.48,9.97c-7.85,25.07-17.6,48.3-29.25,69.71c-11.66,21.41-27.26,39.19-46.83,53.32c-19.57,14.13-45.21,23.45-76.92,27.92c-36.42,5.14-69.07,0.76-97.98-13.13c-28.91-13.89-52.63-35.55-71.16-64.98c-18.52-29.42-30.65-64.41-36.36-104.93C1221.25,801.72,1223.35,760.39,1234.11,724.13z"/></symbol></svg>
+
 
 <!-- ====================== FLUJO DEL ESTUDIANTE (E1-E6) + PROFESOR (P1) ====================== -->
 <!-- ==========================================================
@@ -1274,7 +1660,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
      siendo el boton primario y explorar monitores queda debajo, visible. -->
 <section id="s-inicio" class="screen" hidden aria-labelledby="t-inicio">
   <header>
-    <p class="eyebrow marca-logo"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><path fill="currentColor" d="M1939.9,1443.68c-2.72-9.27-21-33.86-38.97-47.68c-0.78-0.6-1.55-1.18-2.33-1.76c-22.22-16.4-49.45-24.59-77.05-23.84c-82.09,2.23-324,1.91-487.56-69.86c-35.65-15.64-64.16-43.39-82.07-64.34c-11.43-13.36-6.65-33.97,9.48-40.95c61.88-26.78,200.98-66.11,254.53-81.84c52.57-15.44,161.75-42.51,222.16-60.25c46.12-13.55,64.61-18.7,72.44-64.57c4.12-24.1,3.66-39.46,6.8-78.39c6.27-77.58,0.29-176.24-0.7-220.57c-1.14-51.05-3.21-163.46-14.26-245.03c-4.19-30.94-11.86-57.44-17.67-74.47c-4.1-12.01-16.39-19.21-28.88-16.93c-15.95,2.92-39.53,8.09-65.92,16.68c-58.01,18.89-129.65,50.8-163.9,64.51c-37.17,14.88-95.69,39.62-160.23,67.34c-3.39,1.45-6.79,2.92-10.2,4.38c-6.75,2.9-13.56,5.84-20.41,8.79c-153.6,66.23-326.82,142.71-326.82,142.71s250.86-142.2,336.48-185.26c69.73-35.08,289.94-125.3,289.94-125.3l-22.08-87.18c0,0-145.56,72.89-191.74,100.86c-86.13,52.15-322.02,202.45-387.94,244.5c-11.04,7.04-17.31,11.05-17.31,11.05l488.17-339.79l-12.43-83.03L1014.5,593.74l384.72-373.44l-20.39-62.8c0,0-213.31,205.17-281.75,279.56c-33.71,36.65-119.24,149.14-143.3,180.94c-3.16,4.17-9.57,3.69-12.05-0.92c-2.93-5.46-6.54-13.11-9.61-22.47c-6.58-20.02-10.91-47.78-21.79-70.19c-16.29-33.56-54.49-67.19-57.65-71.34c-3.63-4.77-85.69-61.62-184.11-76.46c-81.04-12.22-166.81-2.52-197.59,1.8c-8.56,1.2-17.2,1.67-25.83,1.37c-14.85-0.51-37.35-1.46-45.97-2.75c-7.95-1.19-36.53-9.21-47.21-11.85c-77.23-19.11-210.37-60.52-210.37-60.52l206.85,75.55c67.15,24.52,120.23,77.53,143.98,144.95c0.45,1.27,0.89,2.56,1.34,3.86c35.47,103.83,177.22,109.39,190.75,115.87c13.53,6.48-111.77,15.26-118.36-5.4c-3.3-10.33-40.7,120.54-48.48,247.2c-9.75,158.79,25.5,246.49,68.6,320.83c83.94,144.77,165.4,213.99,343.92,269.76c71.31,22.28,96.99,53.99,126.1,101.26c0.33,0.54,0.67,1.09,1,1.63c51.2,83.87,48.37,137.09,101.65,231.57c54.79,97.16,223.02,90.87,223.02,90.87l-154.51-295.06c0,0,191.05,319.13,241.46,313.52c0,0,32.47,14.44,64.62-3.86c0.92-0.52,2.06-1,3.24-1.73c27.27-16.81,29.33-55.72,4.55-76.03c-21.47-17.59-46.33-39.85-62.54-60.39c-31.49-39.88-155.95-237.51-155.95-237.51s157.13,198.74,210.83,256.99c18.75,20.33,64.18,66.78,94.47,91.04c16.35,13.09,48.42,6.59,67.97-0.94c16.29-6.27,36.26-19.01,44.94-29.37c9.5-11.34,29.16-41.5,42.69-73.83c8.42-20.12-1.43-43.23-21.66-51.38c-38.73-15.61-162.11-78.2-219.87-121.66c-48.81-36.73-207.83-168.6-207.83-168.6s223.27,143.66,274.36,174.88c26.14,15.97,85.91,52.92,133.15,73.87c47.24,20.95,72.87,39.99,95.94,33.91c20.38-5.37,35.82-50.1,42.09-70.47c3.14-10.19,3.98-35.04,0.26-58.41c-2.37-14.89-14.84-26.06-29.9-26.68c-36.77-1.52-109.79-9.38-193.25-44.69c-66.66-28.2-290.59-133.37-290.59-133.37s225.63,94.01,303.85,114.18c26.73,6.89,79.97,22.79,127.33,29.3c27.26,3.74,52.75,5.06,71.54,5.44c26.81,0.54,52.02-13.72,64.46-37.48c0.31-0.6,0.62-1.2,0.91-1.81C1945.13,1480.64,1942.98,1454.16,1939.9,1443.68z M1234.11,724.13c10.75-36.25,29.64-65.86,56.65-88.85c27-22.97,61.65-37.44,103.93-43.41c41.69-5.88,75.72-1.39,102.07,13.45c26.35,14.85,41.35,35.2,44.99,61.03c1.82,12.92,0.13,23.2-5.09,30.81c-5.21,7.63-13.99,12.31-26.32,14.04c-12.92,1.82-23.24-0.16-30.94-5.97c-7.71-5.79-14.33-13.39-19.84-22.81c-5.52-9.4-11.18-18.78-17-28.15c-5.81-9.36-13.16-16.86-22.04-22.5c-8.88-5.63-20.96-7.38-36.22-5.22c-35.83,5.05-62.02,22.08-78.59,51.06c-16.57,28.99-21.3,68.74-14.18,119.24c7.54,53.44,24.74,95.78,51.61,127.03c26.87,31.25,62.9,43.68,108.13,37.31c28.77-4.06,51.28-13.21,67.55-27.49c16.25-14.27,32.58-35.44,48.99-63.51l18.48,9.97c-7.85,25.07-17.6,48.3-29.25,69.71c-11.66,21.41-27.26,39.19-46.83,53.32c-19.57,14.13-45.21,23.45-76.92,27.92c-36.42,5.14-69.07,0.76-97.98-13.13c-28.91-13.89-52.63-35.55-71.16-64.98c-18.52-29.42-30.65-64.41-36.36-104.93C1221.25,801.72,1223.35,760.39,1234.11,724.13z"/></svg><span>Calibra</span></p>
+    <p class="eyebrow marca-logo"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><use href="#marca-calibra"/></svg><span>Calibra</span></p>
     <h1 class="title" id="t-inicio">Llega a la monitor&iacute;a y que el monitor ya sepa qu&eacute; explicarte</h1>
   </header>
 
@@ -1456,7 +1842,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
 <!-- M1 · Inicio monitor -->
 <section id="s-monitor" class="screen" hidden aria-labelledby="monitor-titulo">
   <header>
-    <p class="eyebrow marca-logo"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><path fill="currentColor" d="M1939.9,1443.68c-2.72-9.27-21-33.86-38.97-47.68c-0.78-0.6-1.55-1.18-2.33-1.76c-22.22-16.4-49.45-24.59-77.05-23.84c-82.09,2.23-324,1.91-487.56-69.86c-35.65-15.64-64.16-43.39-82.07-64.34c-11.43-13.36-6.65-33.97,9.48-40.95c61.88-26.78,200.98-66.11,254.53-81.84c52.57-15.44,161.75-42.51,222.16-60.25c46.12-13.55,64.61-18.7,72.44-64.57c4.12-24.1,3.66-39.46,6.8-78.39c6.27-77.58,0.29-176.24-0.7-220.57c-1.14-51.05-3.21-163.46-14.26-245.03c-4.19-30.94-11.86-57.44-17.67-74.47c-4.1-12.01-16.39-19.21-28.88-16.93c-15.95,2.92-39.53,8.09-65.92,16.68c-58.01,18.89-129.65,50.8-163.9,64.51c-37.17,14.88-95.69,39.62-160.23,67.34c-3.39,1.45-6.79,2.92-10.2,4.38c-6.75,2.9-13.56,5.84-20.41,8.79c-153.6,66.23-326.82,142.71-326.82,142.71s250.86-142.2,336.48-185.26c69.73-35.08,289.94-125.3,289.94-125.3l-22.08-87.18c0,0-145.56,72.89-191.74,100.86c-86.13,52.15-322.02,202.45-387.94,244.5c-11.04,7.04-17.31,11.05-17.31,11.05l488.17-339.79l-12.43-83.03L1014.5,593.74l384.72-373.44l-20.39-62.8c0,0-213.31,205.17-281.75,279.56c-33.71,36.65-119.24,149.14-143.3,180.94c-3.16,4.17-9.57,3.69-12.05-0.92c-2.93-5.46-6.54-13.11-9.61-22.47c-6.58-20.02-10.91-47.78-21.79-70.19c-16.29-33.56-54.49-67.19-57.65-71.34c-3.63-4.77-85.69-61.62-184.11-76.46c-81.04-12.22-166.81-2.52-197.59,1.8c-8.56,1.2-17.2,1.67-25.83,1.37c-14.85-0.51-37.35-1.46-45.97-2.75c-7.95-1.19-36.53-9.21-47.21-11.85c-77.23-19.11-210.37-60.52-210.37-60.52l206.85,75.55c67.15,24.52,120.23,77.53,143.98,144.95c0.45,1.27,0.89,2.56,1.34,3.86c35.47,103.83,177.22,109.39,190.75,115.87c13.53,6.48-111.77,15.26-118.36-5.4c-3.3-10.33-40.7,120.54-48.48,247.2c-9.75,158.79,25.5,246.49,68.6,320.83c83.94,144.77,165.4,213.99,343.92,269.76c71.31,22.28,96.99,53.99,126.1,101.26c0.33,0.54,0.67,1.09,1,1.63c51.2,83.87,48.37,137.09,101.65,231.57c54.79,97.16,223.02,90.87,223.02,90.87l-154.51-295.06c0,0,191.05,319.13,241.46,313.52c0,0,32.47,14.44,64.62-3.86c0.92-0.52,2.06-1,3.24-1.73c27.27-16.81,29.33-55.72,4.55-76.03c-21.47-17.59-46.33-39.85-62.54-60.39c-31.49-39.88-155.95-237.51-155.95-237.51s157.13,198.74,210.83,256.99c18.75,20.33,64.18,66.78,94.47,91.04c16.35,13.09,48.42,6.59,67.97-0.94c16.29-6.27,36.26-19.01,44.94-29.37c9.5-11.34,29.16-41.5,42.69-73.83c8.42-20.12-1.43-43.23-21.66-51.38c-38.73-15.61-162.11-78.2-219.87-121.66c-48.81-36.73-207.83-168.6-207.83-168.6s223.27,143.66,274.36,174.88c26.14,15.97,85.91,52.92,133.15,73.87c47.24,20.95,72.87,39.99,95.94,33.91c20.38-5.37,35.82-50.1,42.09-70.47c3.14-10.19,3.98-35.04,0.26-58.41c-2.37-14.89-14.84-26.06-29.9-26.68c-36.77-1.52-109.79-9.38-193.25-44.69c-66.66-28.2-290.59-133.37-290.59-133.37s225.63,94.01,303.85,114.18c26.73,6.89,79.97,22.79,127.33,29.3c27.26,3.74,52.75,5.06,71.54,5.44c26.81,0.54,52.02-13.72,64.46-37.48c0.31-0.6,0.62-1.2,0.91-1.81C1945.13,1480.64,1942.98,1454.16,1939.9,1443.68z M1234.11,724.13c10.75-36.25,29.64-65.86,56.65-88.85c27-22.97,61.65-37.44,103.93-43.41c41.69-5.88,75.72-1.39,102.07,13.45c26.35,14.85,41.35,35.2,44.99,61.03c1.82,12.92,0.13,23.2-5.09,30.81c-5.21,7.63-13.99,12.31-26.32,14.04c-12.92,1.82-23.24-0.16-30.94-5.97c-7.71-5.79-14.33-13.39-19.84-22.81c-5.52-9.4-11.18-18.78-17-28.15c-5.81-9.36-13.16-16.86-22.04-22.5c-8.88-5.63-20.96-7.38-36.22-5.22c-35.83,5.05-62.02,22.08-78.59,51.06c-16.57,28.99-21.3,68.74-14.18,119.24c7.54,53.44,24.74,95.78,51.61,127.03c26.87,31.25,62.9,43.68,108.13,37.31c28.77-4.06,51.28-13.21,67.55-27.49c16.25-14.27,32.58-35.44,48.99-63.51l18.48,9.97c-7.85,25.07-17.6,48.3-29.25,69.71c-11.66,21.41-27.26,39.19-46.83,53.32c-19.57,14.13-45.21,23.45-76.92,27.92c-36.42,5.14-69.07,0.76-97.98-13.13c-28.91-13.89-52.63-35.55-71.16-64.98c-18.52-29.42-30.65-64.41-36.36-104.93C1221.25,801.72,1223.35,760.39,1234.11,724.13z"/></svg><span>Calibra para monitores</span></p>
+    <p class="eyebrow marca-logo"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><use href="#marca-calibra"/></svg><span>Calibra para monitores</span></p>
     <h1 class="title" id="monitor-titulo">Gana dinero explicando lo que ya sabes.</h1>
   </header>
 
@@ -1616,7 +2002,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
      #buscar-lista y muestra #buscar-vacio cuando ningun monitor pasa. -->
 <section id="s-buscar" class="screen" hidden aria-labelledby="t-buscar">
   <header>
-    <p class="eyebrow marca-logo"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><path fill="currentColor" d="M1939.9,1443.68c-2.72-9.27-21-33.86-38.97-47.68c-0.78-0.6-1.55-1.18-2.33-1.76c-22.22-16.4-49.45-24.59-77.05-23.84c-82.09,2.23-324,1.91-487.56-69.86c-35.65-15.64-64.16-43.39-82.07-64.34c-11.43-13.36-6.65-33.97,9.48-40.95c61.88-26.78,200.98-66.11,254.53-81.84c52.57-15.44,161.75-42.51,222.16-60.25c46.12-13.55,64.61-18.7,72.44-64.57c4.12-24.1,3.66-39.46,6.8-78.39c6.27-77.58,0.29-176.24-0.7-220.57c-1.14-51.05-3.21-163.46-14.26-245.03c-4.19-30.94-11.86-57.44-17.67-74.47c-4.1-12.01-16.39-19.21-28.88-16.93c-15.95,2.92-39.53,8.09-65.92,16.68c-58.01,18.89-129.65,50.8-163.9,64.51c-37.17,14.88-95.69,39.62-160.23,67.34c-3.39,1.45-6.79,2.92-10.2,4.38c-6.75,2.9-13.56,5.84-20.41,8.79c-153.6,66.23-326.82,142.71-326.82,142.71s250.86-142.2,336.48-185.26c69.73-35.08,289.94-125.3,289.94-125.3l-22.08-87.18c0,0-145.56,72.89-191.74,100.86c-86.13,52.15-322.02,202.45-387.94,244.5c-11.04,7.04-17.31,11.05-17.31,11.05l488.17-339.79l-12.43-83.03L1014.5,593.74l384.72-373.44l-20.39-62.8c0,0-213.31,205.17-281.75,279.56c-33.71,36.65-119.24,149.14-143.3,180.94c-3.16,4.17-9.57,3.69-12.05-0.92c-2.93-5.46-6.54-13.11-9.61-22.47c-6.58-20.02-10.91-47.78-21.79-70.19c-16.29-33.56-54.49-67.19-57.65-71.34c-3.63-4.77-85.69-61.62-184.11-76.46c-81.04-12.22-166.81-2.52-197.59,1.8c-8.56,1.2-17.2,1.67-25.83,1.37c-14.85-0.51-37.35-1.46-45.97-2.75c-7.95-1.19-36.53-9.21-47.21-11.85c-77.23-19.11-210.37-60.52-210.37-60.52l206.85,75.55c67.15,24.52,120.23,77.53,143.98,144.95c0.45,1.27,0.89,2.56,1.34,3.86c35.47,103.83,177.22,109.39,190.75,115.87c13.53,6.48-111.77,15.26-118.36-5.4c-3.3-10.33-40.7,120.54-48.48,247.2c-9.75,158.79,25.5,246.49,68.6,320.83c83.94,144.77,165.4,213.99,343.92,269.76c71.31,22.28,96.99,53.99,126.1,101.26c0.33,0.54,0.67,1.09,1,1.63c51.2,83.87,48.37,137.09,101.65,231.57c54.79,97.16,223.02,90.87,223.02,90.87l-154.51-295.06c0,0,191.05,319.13,241.46,313.52c0,0,32.47,14.44,64.62-3.86c0.92-0.52,2.06-1,3.24-1.73c27.27-16.81,29.33-55.72,4.55-76.03c-21.47-17.59-46.33-39.85-62.54-60.39c-31.49-39.88-155.95-237.51-155.95-237.51s157.13,198.74,210.83,256.99c18.75,20.33,64.18,66.78,94.47,91.04c16.35,13.09,48.42,6.59,67.97-0.94c16.29-6.27,36.26-19.01,44.94-29.37c9.5-11.34,29.16-41.5,42.69-73.83c8.42-20.12-1.43-43.23-21.66-51.38c-38.73-15.61-162.11-78.2-219.87-121.66c-48.81-36.73-207.83-168.6-207.83-168.6s223.27,143.66,274.36,174.88c26.14,15.97,85.91,52.92,133.15,73.87c47.24,20.95,72.87,39.99,95.94,33.91c20.38-5.37,35.82-50.1,42.09-70.47c3.14-10.19,3.98-35.04,0.26-58.41c-2.37-14.89-14.84-26.06-29.9-26.68c-36.77-1.52-109.79-9.38-193.25-44.69c-66.66-28.2-290.59-133.37-290.59-133.37s225.63,94.01,303.85,114.18c26.73,6.89,79.97,22.79,127.33,29.3c27.26,3.74,52.75,5.06,71.54,5.44c26.81,0.54,52.02-13.72,64.46-37.48c0.31-0.6,0.62-1.2,0.91-1.81C1945.13,1480.64,1942.98,1454.16,1939.9,1443.68z M1234.11,724.13c10.75-36.25,29.64-65.86,56.65-88.85c27-22.97,61.65-37.44,103.93-43.41c41.69-5.88,75.72-1.39,102.07,13.45c26.35,14.85,41.35,35.2,44.99,61.03c1.82,12.92,0.13,23.2-5.09,30.81c-5.21,7.63-13.99,12.31-26.32,14.04c-12.92,1.82-23.24-0.16-30.94-5.97c-7.71-5.79-14.33-13.39-19.84-22.81c-5.52-9.4-11.18-18.78-17-28.15c-5.81-9.36-13.16-16.86-22.04-22.5c-8.88-5.63-20.96-7.38-36.22-5.22c-35.83,5.05-62.02,22.08-78.59,51.06c-16.57,28.99-21.3,68.74-14.18,119.24c7.54,53.44,24.74,95.78,51.61,127.03c26.87,31.25,62.9,43.68,108.13,37.31c28.77-4.06,51.28-13.21,67.55-27.49c16.25-14.27,32.58-35.44,48.99-63.51l18.48,9.97c-7.85,25.07-17.6,48.3-29.25,69.71c-11.66,21.41-27.26,39.19-46.83,53.32c-19.57,14.13-45.21,23.45-76.92,27.92c-36.42,5.14-69.07,0.76-97.98-13.13c-28.91-13.89-52.63-35.55-71.16-64.98c-18.52-29.42-30.65-64.41-36.36-104.93C1221.25,801.72,1223.35,760.39,1234.11,724.13z"/></svg><span>Calibra</span></p>
+    <p class="eyebrow marca-logo"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><use href="#marca-calibra"/></svg><span>Calibra</span></p>
     <h1 class="title" id="t-buscar">Monitores disponibles</h1>
     <p class="subtitle">Explora sin presentar la prueba. Filtra y escribe al que te sirva.</p>
   </header>
@@ -1804,6 +2190,37 @@ textarea.visualmente-oculto,button.visualmente-oculto{
 <div id="cargando" class="cargando" role="status" aria-live="polite" hidden>
   <p class="cargando-texto">Cargando materias y monitores&hellip;</p>
 </div>
+
+<!-- ====================== CARRIL DE ESCRITORIO ======================
+     Solo existe a partir de 1200 px de ancho y 561 de alto: por debajo queda
+     en display:none, que es la unica forma de apagarlo que no rompe el
+     chequeo "desbordes" del arnes (un carril aparcado con translateX(-100%)
+     si lo rompe, porque su rect.left queda en negativo).
+     Los pasos NO son enlaces ni botones a proposito: son indicadores.
+     hashPermitido() (4621) ya impide saltar a #diagnostico sin haber hecho la
+     prueba, asi que un paso pinchable mentiria. Ademas asi quedan fuera de la
+     regla de 44 px del arnes y del .first() de clic().
+     Va DETRAS de las 15 secciones: si algun dia lleva un control con data-ir,
+     clic() hace .first() y tiene que seguir pinchando el de la pantalla. -->
+<aside id="carril">
+  <p class="eyebrow marca-logo"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><use href="#marca-calibra"/></svg><span>Calibra</span></p>
+
+  <ol class="pasos" data-flujo="estudiante">
+    <li data-paso="prueba"><span class="paso-nombre">Prueba</span><span class="paso-pista">12 preguntas calibradas</span></li>
+    <li data-paso="diagnostico"><span class="paso-nombre">Diagn&oacute;stico</span><span class="paso-pista">En qu&eacute; subtema fallas</span></li>
+    <li data-paso="monitores"><span class="paso-nombre">Monitor</span><span class="paso-pista">Llega con tu brief</span></li>
+    <li data-paso="confirmacion"><span class="paso-nombre">Sesi&oacute;n</span><span class="paso-pista">Hora, pago y contacto</span></li>
+  </ol>
+
+  <ol class="pasos" data-flujo="monitor">
+    <li data-paso="materia"><span class="paso-nombre">Materia</span><span class="paso-pista">La que vas a dictar</span></li>
+    <li data-paso="certificacion"><span class="paso-nombre">Certificaci&oacute;n</span><span class="paso-pista">Prueba corta</span></li>
+    <li data-paso="crear-perfil"><span class="paso-nombre">Perfil</span><span class="paso-pista">Para que te encuentren</span></li>
+    <li data-paso="panel"><span class="paso-nombre">Panel</span><span class="paso-pista">Tus sesiones y tu nivel</span></li>
+  </ol>
+
+  <p class="nota-carril">Prototipo del curso de Dise&ntilde;o de Productos, Universidad de los Andes.</p>
+</aside>
 
 <p class="pie-prototipo">Prototipo &middot; datos de ejemplo</p>
 <button type="button" class="btn-reiniciar" id="btn-reiniciar">Empezar de nuevo</button>

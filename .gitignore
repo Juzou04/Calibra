@@ -9,3 +9,9 @@ new.txt
 !.env.example
 .vercel
 .env*
+
+
+# Impeccable: herramienta de diseno, no va al repo.
+# Se instala con: npx impeccable install --project --providers=claude
+.claude/
+.impeccable/config.local.json
