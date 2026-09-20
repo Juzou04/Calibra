@@ -120,7 +120,10 @@ create table public.monitores (
     calificacion           numeric(2, 1),
     precio_hora            integer,
     materia_certificada_id bigint      references public.materias (id) on delete set null,
+    -- encaje_texto es la línea corta de la tarjeta en la lista; presentacion son
+    -- los párrafos que el monitor escribe y que solo se ven al abrir su perfil.
     encaje_texto           text,
+    presentacion           text,
     -- Clave pública del perfil, generada en el navegador. No identifica a
     -- nadie: es la que ata esta fila con el teléfono que el monitor dejó en
     -- leads, tabla sin SELECT público. Así el número no queda descargable con

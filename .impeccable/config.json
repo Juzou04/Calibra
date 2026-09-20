@@ -1,0 +1,34 @@
+{
+  "detector": {
+    "ignoreRules": [
+      "side-tab"
+    ],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-09-20T17:17:00.660Z",
+        "reason": "Inter la fija BRIEF.md (seccion 5, sistema visual). No es una eleccion por defecto: se carga sin bloquear con el truco media=print y hay fallback a system-ui si no hay red."
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-09-20T17:17:18.023Z",
+        "reason": "El crema #FFFDF5 es la paleta del brief, medida contra WCAG AA. README.md documenta las tres desviaciones que hubo que hacer por contraste. Cambiarlo rehace el sistema visual entero."
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-09-20T17:41:03.694Z",
+        "reason": "Falso positivo: .screen declara padding-inline:max(var(--pad-x),env(safe-area-inset-left)) y el detector no resuelve max() sobre var()+env(). Medido en Chromium sobre este archivo: paddingLeft/Right computado = 48px a 1440x900 y 20px a 390x844. Solo aparece desde que .screen tiene fondo y borde propios (bloque 39)."
+      }
+    ]
+  }
+}

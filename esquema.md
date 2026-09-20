@@ -77,6 +77,27 @@ Políticas de RLS sugeridas: `select` abierto en las cuatro tablas de contenido 
 - **Límites del plan gratuito de Supabase**: 500 MB de base de datos y el proyecto se pausa tras una semana sin actividad —irrelevante para el volumen de un MVP de curso, pero vale la pena que alguien del equipo lo revise si el proyecto queda inactivo entre entregas.
 - **El pipeline `contenido/*.md` → Supabase** necesita que alguien corra `convertir.js` con la `service_role key` cada vez que cambian las preguntas; si nadie automatiza eso con GitHub Actions, hay que acordarse de hacerlo a mano antes de cada entrega.
 
+## Pendiente: pago con PSE desde la página (entrega futura)
+
+Hoy el pago se acuerda por fuera de la app: la Edge Function `enviar-correo` arma el bloque "Cómo pagar" con lo que haya en la variable `CALIBRA_PAGO` (`supabase/functions/enviar-correo/index.ts:146`), y si nadie la llena, el correo sale con el marcador tal cual.
+
+Un **link de pago** sí cabe hoy sin servidor y sin exponer ningún secreto: es una URL, y un `<a href>` dentro de `index.html` abre el checkout con PSE incluso en `file://`. Wompi y Bold los generan desde su panel, sin código. Lo que necesita servidor no es iniciar el cobro: es **verificar que se pagó**.
+
+Cobrar dentro de la página sí necesita backend. Wompi exige `signature:integrity` = SHA256(referencia + monto en centavos + moneda + secreto de integridad), y su documentación pide calcularlo en el servidor. PayU firma con el ApiKey y Mercado Pago pide el access token para crear la preferencia. Nada de eso cabe en `index.html` sin publicar una llave.
+
+Dos bloqueantes propios de este prototipo, antes que cualquier pasarela:
+
+1. **El retorno de la pasarela es una recarga de página y la app no tiene dónde guardar la sesión.** `estado.sesionId` es un uuid en memoria y `localStorage` está prohibido por una regla que el arnés verifica sobre el fuente. Al volver del banco el `sesionId` es otro y se rompe el único hilo que ata el pago con el lead y con el diagnóstico. El único canal que sobrevive es el query string, y hoy el router es solo de hash: eso es rediseño del estado, no una Edge Function más.
+2. **El arnés exige `localStorage.length === 0` en tiempo de ejecución.** Cualquier widget embebido de pasarela escribe en `localStorage` desde su propio script, así que si esto se hace, tiene que ser por redirección a checkout alojado, nunca con un SDK embebido.
+
+Si se implementa: dos Edge Functions nuevas (`crear-pago` y `webhook-pago`) siguiendo el despliegue que ya documenta el README de `enviar-correo`, más las cabeceras CORS que esa función no emite hoy. Y una tabla `pagos` (monto, referencia, estado, `lead_id`, id de transacción) con RLS cerrada: sin SELECT ni INSERT público, solo la función con la llave secreta escribe ahí.
+
+Requisitos antes de recibir plata: cuenta de comercio a nombre de alguien. Wompi acepta persona natural sin cámara de comercio, pero pide RUT activo y cuenta Bancolombia o Nequi con más de 30 días; revisa en 1 a 3 días hábiles y a persona natural le desembolsa por primera vez a los 30 días. Falta decidir quién queda como titular. Recibir plata también activa obligaciones de facturación electrónica o documento equivalente ante la DIAN.
+
+Legal, lo más duro primero: el art. 51 de la Ley 1480, reglamentado por el Decreto 587 de 2016, cubre PSE expresamente —reversión del pago, obliga a informar el procedimiento y los canales, da 15 días hábiles a los participantes del proceso de pago y exige que proveedor y emisor estén domiciliados en Colombia. El art. 47 da derecho de retracto de 5 días hábiles en venta a distancia, con el límite del servicio ya ejecutado: hay que definir la política para una monitoría prepagada. El art. 50 pide precio total y resumen del pedido antes de aceptar, más la identidad del proveedor (nombre o razón social, NIT, dirección de notificación judicial, teléfono, correo), que hoy no está en ninguna parte de `index.html`. Nada de esto obliga a revelar la comisión, que se le cobra al monitor.
+
+La política de tratamiento de datos **no** es un prerrequisito de PSE: es obligación de la Ley 1581 de 2012 y del Decreto 1377 de 2013 que ya se está incumpliendo hoy, porque la base guarda correos y teléfonos. Va en la entrega actual, no en esta.
+
 ## Próximos pasos inmediatos
 
 Sugerido para repartir entre Lorenzo, Juan David Acevedo, Juan David Chávez y David —ajusten según quién ya conoce Supabase o Vercel:
