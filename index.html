@@ -6761,8 +6761,11 @@ function obtenerClienteSupabase() {
   return promesaClienteSupabase;
 }
 
-function leerTablaSupabase(cliente, tabla, columnas) {
-  return cliente.from(tabla).select(columnas).order('id', { ascending: true }).then(function (r) {
+// orden: la columna por la que se pide. pregunta_kc no tiene id —su llave es
+// (pregunta_id, kc_id)— y pedir order=id.asc ahi devuelve 42703, que tumba la
+// lectura completa y manda la app a los datos del archivo.
+function leerTablaSupabase(cliente, tabla, columnas, orden) {
+  return cliente.from(tabla).select(columnas).order(orden || 'id', { ascending: true }).then(function (r) {
     if (r.error) throw new Error(tabla + ': ' + (r.error.message || r.error));
     return r.data || [];
   });
@@ -6798,6 +6801,19 @@ function materiasDesdeSupabase(filas, plantillas) {
   var usados = {};
   var ids = { materias: {}, subtemas: {} };
 
+  // Diccionarios de la calibracion: la base la guarda por id y la app la usa por
+  // clave. Sin estos cruces las preguntas llegan sin su catalogo de errores.
+  var claveKc = {};                       // id de kc -> clave
+  var subtemaDeKc = {};                   // id de kc -> id del subtema
+  (filas.kcs || []).forEach(function (k) { claveKc[k.id] = k.clave; subtemaDeKc[k.id] = k.subtema_id; });
+  var claveMc = {};                       // id de misconcepcion -> clave
+  (filas.misconcepciones || []).forEach(function (m) { claveMc[m.id] = m.clave; });
+  var kcsDePregunta = {};                 // id de pregunta -> [claves de kc]
+  (filas.preguntaKc || []).forEach(function (pk) {
+    if (!claveKc[pk.kc_id]) return;
+    (kcsDePregunta[pk.pregunta_id] = kcsDePregunta[pk.pregunta_id] || []).push(claveKc[pk.kc_id]);
+  });
+
   var materias = filas.materias.map(function (fm) {
     var plantilla = null;
     for (var i = 0; i < plantillas.length; i++) {
@@ -6821,6 +6837,7 @@ function materiasDesdeSupabase(filas, plantillas) {
         }).map(function (fo) {
           var o = { letra: fo.letra, texto: fo.texto, correcta: fo.es_correcta === true };
           if (!o.correcta) o.error = fo.error_texto || '';
+          if (!o.correcta && claveMc[fo.misconcepcion_id]) o.mc = claveMc[fo.misconcepcion_id];
           return o;
         });
         var correctas = opciones.filter(function (o) { return o.correcta; }).length;
@@ -6829,10 +6846,12 @@ function materiasDesdeSupabase(filas, plantillas) {
         if (numerosVistos[idPregunta]) idPregunta = idPregunta + '-' + fp.id;
         numerosVistos[idPregunta] = true;
         var dificultad = parseInt(fp.dificultad, 10);
+        var susKcs = kcsDePregunta[fp.id] || [];
         preguntas.push({
           id: idPregunta,
           numero: Number(fp.numero),
           subtema: fs.clave,
+          kcs: susKcs,
           dificultad: dificultad >= 1 && dificultad <= 3 ? dificultad : 2,
           enunciado: fp.enunciado,
           opciones: opciones
@@ -6841,6 +6860,24 @@ function materiasDesdeSupabase(filas, plantillas) {
     });
     preguntas.sort(function (a, b) { return a.numero - b.numero; });
     preguntas.forEach(function (p) { delete p.numero; });
+
+    // El catalogo de esta materia: solo los kc de sus subtemas, y solo las
+    // misconcepciones de esos kc. La app los busca por clave, no por id.
+    var claveDeSubtema = {};
+    Object.keys(ids.subtemas[id]).forEach(function (clave) { claveDeSubtema[ids.subtemas[id][clave]] = clave; });
+    var kcs = {};
+    var kcsDeEstaMateria = {};
+    (filas.kcs || []).forEach(function (k) {
+      var claveSubtema = claveDeSubtema[k.subtema_id];
+      if (!claveSubtema) return;
+      kcs[k.clave] = { subtema: claveSubtema, nombre: k.nombre };
+      kcsDeEstaMateria[k.id] = true;
+    });
+    var misconcepciones = {};
+    (filas.misconcepciones || []).forEach(function (m) {
+      if (!kcsDeEstaMateria[m.kc_id]) return;
+      misconcepciones[m.clave] = { kc: claveKc[m.kc_id], texto: m.texto };
+    });
 
     var n = preguntas.length;
     return {
@@ -6851,6 +6888,8 @@ function materiasDesdeSupabase(filas, plantillas) {
       contexto: plantilla ? plantilla.contexto : 'antes del parcial',
       libro: plantilla ? plantilla.libro : '',
       subtemas: subtemas,
+      kcs: kcs,
+      misconcepciones: misconcepciones,
       preguntas: preguntas,
       prueba: plantilla ? copiaSimple(plantilla.prueba)
         : { longitud: Math.min(12, n), adaptativa: true, barajarOpciones: true },
@@ -6936,14 +6975,23 @@ function cargarDesdeSupabase() {
       leerTablaSupabase(cliente, 'materias', 'id,nombre,codigo,activa'),
       leerTablaSupabase(cliente, 'subtemas', 'id,materia_id,clave,nombre'),
       leerTablaSupabase(cliente, 'preguntas', 'id,subtema_id,numero,dificultad,enunciado'),
-      leerTablaSupabase(cliente, 'opciones', 'id,pregunta_id,letra,texto,es_correcta,error_texto'),
+      leerTablaSupabase(cliente, 'opciones', 'id,pregunta_id,letra,texto,es_correcta,error_texto,misconcepcion_id'),
       leerTablaSupabase(cliente, 'monitores',
-        'id,nombre,carrera,semestre,nivel,calificacion,precio_hora,materia_certificada_id,encaje_texto,creado_en,clave')
+        'id,nombre,carrera,semestre,nivel,calificacion,precio_hora,materia_certificada_id,encaje_texto,creado_en,clave'),
+      // Las tres del diagnostico por knowledge components. Sin ellas la base
+      // devuelve las preguntas pero no su calibracion, y usaKc() se apaga: la
+      // prueba dejaria de confirmar misconcepciones, que es el diferenciador.
+      leerTablaSupabase(cliente, 'knowledge_components', 'id,subtema_id,clave,nombre'),
+      leerTablaSupabase(cliente, 'misconcepciones', 'id,kc_id,clave,texto'),
+      leerTablaSupabase(cliente, 'pregunta_kc', 'pregunta_id,kc_id', 'pregunta_id')
     ]).then(function (t) {
       // Si ya se vencio el tiempo, la demo arranco con el archivo: no se
       // cambian los datos a mitad de una sesion.
       if (!vigente.activo) return false;
-      aplicarDatosSupabase({ materias: t[0], subtemas: t[1], preguntas: t[2], opciones: t[3], monitores: t[4] });
+      aplicarDatosSupabase({
+        materias: t[0], subtemas: t[1], preguntas: t[2], opciones: t[3], monitores: t[4],
+        kcs: t[5], misconcepciones: t[6], preguntaKc: t[7]
+      });
       return true;
     });
   }).catch(function (e) {
