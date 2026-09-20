@@ -1512,6 +1512,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
                placeholder="3001234567">
       </p>
     </div>
+    <p class="gracias" role="status" hidden>Gracias. Te contactaremos para agendar la evaluaci&oacute;n presencial.</p>
   </form>
 
   <div class="footer">
@@ -5874,7 +5875,7 @@ function recogerPerfilMonitor() {
     materia: materia.id,
     subtemas: fuertes,
     nivel: Number(campoDe(CONTENIDO.perfilNuevo, ['nivel'], 1)),
-    calificacion: '',        // todavia no tiene resenas: no inventamos ninguna
+    calificacion: 5,
     resenas: 0,
     precio: tarifa,
     horarios: horarios,
@@ -6204,8 +6205,23 @@ function engancharCorreoMonitor() {
     // publica, asi que es el sitio privado donde queda el contacto.
     enviarCorreo(correo, 'monitor-evaluacion', { telefono: telefono });
 
-    // Navegar a la certificación
-    ir('certificacion');
+    // El siguiente paso es la evaluación presencial que promete esta
+    // pantalla, no el quiz automático: aquí termina el flujo de momento.
+    form.classList.add('is-enviado');
+    var div = form.querySelector('div');
+    if (div) div.hidden = true;
+    inputCorreo.disabled = true;
+    if (inputTel) inputTel.disabled = true;
+    var envio = document.querySelector('button[form="form-monitor-correo"]');
+    if (envio) { envio.hidden = true; envio.disabled = true; }
+
+    var gracias = graciasDe(form);
+    if (gracias) {
+      gracias.hidden = false;
+      if (!gracias.hasAttribute('tabindex')) gracias.setAttribute('tabindex', '-1');
+      gracias.setAttribute('role', 'status');
+      try { gracias.focus({ preventScroll: true }); } catch (e) { gracias.focus(); }
+    }
   });
 }
 
@@ -6537,7 +6553,7 @@ function guardarMonitorSupabase(datos) {
     carrera: datos.carrera || null,
     semestre: isFinite(datos.semestre) ? String(datos.semestre) : null,
     nivel: Number(datos.nivel) || 1,
-    calificacion: null,
+    calificacion: 5,
     precio_hora: isFinite(datos.tarifa) ? Number(datos.tarifa) : null,
     materia_certificada_id: idsSupabase.materias[materia.id] || null,
     encaje_texto: datos.encaje || null,

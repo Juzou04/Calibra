@@ -1207,7 +1207,11 @@ async function pasarDeM2aCertificacion(page, retratar) {
   }
   await page.locator('#correo-monitor-pre').first().fill('monitor.demo@uniandes.edu.co');
   await page.locator('#s-monitor-correo button[type="submit"]').first().click();
-  await esperarPantalla(page, 's-certificacion', 'M3 tras M2.5');
+  await esperarPantalla(page, 's-monitor-correo', 'M2.5 tras enviar (queda a la espera de contacto)');
+  // El envio ya no salta solo a la certificacion: el equipo contacta antes.
+  // El arnes fuerza el salto para seguir probando la logica de M3/M4.
+  await page.evaluate(function () { location.hash = '#certificacion'; });
+  await esperarPantalla(page, 's-certificacion', 'M3 tras M2.5 (salto forzado por el arnes)');
 }
 
 async function entrarACertificacion(page, base, materia, cfg) {
@@ -3409,7 +3413,9 @@ async function bloqueSupabase(navegador, base) {
     await esperarPantalla(page, 's-monitor-correo', 'M2.5');
     await page.locator('#correo-monitor-pre').first().fill('monitor.bd@uniandes.edu.co');
     await page.locator('#s-monitor-correo button[type="submit"]').first().click();
-    await esperarPantalla(page, 's-certificacion', 'M3');
+    await esperarPantalla(page, 's-monitor-correo', 'M2.5 tras enviar (queda a la espera de contacto)');
+    await page.evaluate(() => { location.hash = '#certificacion'; });
+    await esperarPantalla(page, 's-certificacion', 'M3 (salto forzado por el arnes)');
     const leadM = await esperarEscritura(registro, 'leads');
     const cmL = leadM && leadM.cuerpo;
     const okLeadM = !!cmL && cmL.rol === 'monitor' && cmL.correo === 'monitor.bd@uniandes.edu.co';
@@ -3479,7 +3485,9 @@ async function bloqueSupabase(navegador, base) {
     await esperarPantalla(page, 's-monitor-correo', 'M2.5');
     await page.locator('#correo-monitor-pre').first().fill('caido@uniandes.edu.co');
     await page.locator('#s-monitor-correo button[type="submit"]').first().click();
-    await esperarPantalla(page, 's-certificacion', 'M3 con Supabase caido');
+    await esperarPantalla(page, 's-monitor-correo', 'M2.5 tras enviar con Supabase caido');
+    await page.evaluate(() => { location.hash = '#certificacion'; });
+    await esperarPantalla(page, 's-certificacion', 'M3 con Supabase caido (salto forzado por el arnes)');
     await page.waitForTimeout(800);
     registrar('degradado · Supabase caido: guardar un correo no bloquea el flujo', true, '');
     registrar('degradado · Supabase caido: sin errores de JavaScript', c.registro.errores.length === 0,
