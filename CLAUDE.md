@@ -51,7 +51,7 @@ node contenido/convertir.js       # revisa el contenido sin escribir nada
 
 - Un solo `index.html`, sin build. La única dependencia externa además de Google Fonts es `supabase-js`, y solo se descarga si hay credenciales.
 - Nada de `localStorage` ni `sessionStorage`. El arnés busca la palabra en el fuente, incluidos los comentarios.
-- Pie "Prototipo · datos de ejemplo" visible en todas las pantallas.
+- Sin barra inferior. Desde el 21 de septiembre el logo de arriba a la izquierda (`#btn-reiniciar`) es el botón que reinicia y lleva al inicio, visible en todas las pantallas; el pie "Prototipo · datos de ejemplo" y el pill "Empezar de nuevo" se quitaron. El chequeo `logoInicio` del arnés lo exige.
 - Nunca mostrar cifras de comisión; el porcentaje está sin validar.
 - Ningún texto por debajo de 14 px, áreas táctiles de 44 px o más, sin degradados, sin emojis decorativos, sin iconos de cerebro, robot o IA.
 - La paleta tiene variantes de texto (`--alert-text`, `--success-text`, `--muted` en `#636F81`) porque los colores del brief no pasan WCAG AA como texto. Los hex originales se usan solo como relleno.
