@@ -84,12 +84,12 @@ En ∫ x·cos(x) dx, con u = x y dv = cos(x) dx, el resultado es:
 - D) x·ln(x) + C · [omite-integral-restante] olvidas restar la integral ∫v du
 
 ### P17 · dificultad 2 · kc: partes-formula · borrador
-En ∫ x·e^(2x) dx, con u = x y dv = e^(2x) dx, el resultado es:
+En $\int x\cdot e^{2x}\,dx$, con u = x y $dv = e^{2x}\,dx$, el resultado es:
 
-- A) (x/2)·e^(2x) − (1/4)·e^(2x) + C · CORRECTA
-- B) (x/2)·e^(2x) + C · [omite-integral-restante] olvidas restar la integral ∫v du
-- C) (x²/2)·(e^(2x)/2) + C · [producto-factor-a-factor] integras cada factor por separado
-- D) (x/2)·e^(2x) + (1/4)·e^(2x) + C · [signo-partes] te equivocas en el signo de la fórmula de partes
+- A) $\frac{x}{2}e^{2x} - \frac{1}{4}e^{2x} + C$ · CORRECTA
+- B) $\frac{x}{2}e^{2x} + C$ · [omite-integral-restante] olvidas restar la integral ∫v du
+- C) $\frac{x^2}{2}\cdot\frac{e^{2x}}{2} + C$ · [producto-factor-a-factor] integras cada factor por separado
+- D) $\frac{x}{2}e^{2x} + \frac{1}{4}e^{2x} + C$ · [signo-partes] te equivocas en el signo de la fórmula de partes
 
 ### P18 · dificultad 3 · kc: partes-reiterada, partes-formula · borrador
 Al resolver ∫ x²·eˣ dx con u = x² queda x²·eˣ − ∫ 2x·eˣ dx. ¿Qué sigue?
@@ -102,18 +102,18 @@ Al resolver ∫ x²·eˣ dx con u = x² queda x²·eˣ − ∫ 2x·eˣ dx. ¿Qu�
 ### P19 · dificultad 3 · kc: partes-reiterada · borrador
 Para I = ∫ eˣ·sen(x) dx, tras aplicar partes dos veces (primero u = sen(x), luego u = cos(x)) llegas a I = eˣ·sen(x) − eˣ·cos(x) − I. ¿Cuánto vale I?
 
-- A) (eˣ/2)·(sen(x) − cos(x)) + C · CORRECTA
-- B) eˣ·sen(x) − eˣ·cos(x) + C · [ciclica-no-reconocida] ignoras que la integral original reaparece y hay que despejarla
+- A) $\frac{e^x}{2}(\sen(x) - \cos(x)) + C$ · CORRECTA
+- B) $e^x\sen(x) - e^x\cos(x) + C$ · [ciclica-no-reconocida] ignoras que la integral original reaparece y hay que despejarla
 - C) Hay que aplicar partes una tercera vez, ahora con u = eˣ · [deshace-paso] al repetir partes inviertes la elección de u y deshaces el paso anterior
-- D) eˣ·(sen(x) − cos(x)) + C · [despeje-incompleto] al despejar I olvidas dividir entre 2
+- D) $e^x(\sen(x) - \cos(x)) + C$ · [despeje-incompleto] al despejar I olvidas dividir entre 2
 
 ### P20 · dificultad 3 · kc: partes-reiterada · borrador
 Para I = ∫ eˣ·cos(x) dx, tras dos aplicaciones de partes llegas a I = eˣ·cos(x) + eˣ·sen(x) − I. Entonces I es:
 
-- A) (eˣ/2)·(cos(x) + sen(x)) + C · CORRECTA
-- B) eˣ·(cos(x) + sen(x)) + C · [despeje-incompleto] al despejar I olvidas dividir entre 2
-- C) eˣ·cos(x) + eˣ·sen(x) − I · [ciclica-no-reconocida] dejas la integral original en la respuesta sin despejarla
-- D) eˣ·cos(x) + C · [partes-una-sola-vez] te quedas con el primer término de la primera aplicación de partes
+- A) $\frac{e^x}{2}(\cos(x) + \sen(x)) + C$ · CORRECTA
+- B) $e^x(\cos(x) + \sen(x)) + C$ · [despeje-incompleto] al despejar I olvidas dividir entre 2
+- C) $e^x\cos(x) + e^x\sen(x) - I$ · [ciclica-no-reconocida] dejas la integral original en la respuesta sin despejarla
+- D) $e^x\cos(x) + C$ · [partes-una-sola-vez] te quedas con el primer término de la primera aplicación de partes
 
 ## sustitucion · Sustitución
 
@@ -139,47 +139,47 @@ En ∫ 2x·cos(x²) dx, ¿qué método aplicas?
 - D) Integral directa de tabla · [ignora-cadena] ignoras la regla de la cadena
 
 ### P21 · dificultad 2 · kc: sust-reconocer, sust-dx · borrador
-∫ 2x·e^(x²) dx es:
+$\int 2x\cdot e^{x^2}\,dx$ es:
 
-- A) e^(x²) + C · CORRECTA
-- B) x²·e^(x²) + C · [no-ve-derivada-interna] no reconoces que 2x es la derivada de x² e integras los factores por separado
-- C) e^(x²)/(2x) + C · [ignora-cadena] divides por la derivada de la función interna como si fuera una constante
-- D) 2·e^(x²) + C · [olvida-constante-du] ajustas mal la constante al pasar de dx a du
+- A) $e^{x^2} + C$ · CORRECTA
+- B) $x^2 e^{x^2} + C$ · [no-ve-derivada-interna] no reconoces que 2x es la derivada de x² e integras los factores por separado
+- C) $\frac{e^{x^2}}{2x} + C$ · [ignora-cadena] divides por la derivada de la función interna como si fuera una constante
+- D) $2e^{x^2} + C$ · [olvida-constante-du] ajustas mal la constante al pasar de dx a du
 
 ### P22 · dificultad 3 · kc: sust-reconocer, sust-dx · borrador
-¿Cómo se resuelve ∫ x/(x² + 1) dx?
+¿Cómo se resuelve $\int \frac{x}{x^2 + 1}\,dx$?
 
-- A) Con u = x² + 1, y da (1/2)·ln(x² + 1) + C · CORRECTA
+- A) Con u = x² + 1, y da $\frac{1}{2}\ln(x^2 + 1) + C$ · CORRECTA
 - B) Con u = x, porque es el numerador · [no-ve-derivada-interna] eliges u por la forma y no por la derivada de la función interna
-- C) Directo: es arctan(x) + C · [metodo-equivocado] aplicas la fórmula de ∫ 1/(x² + 1) dx, que no corresponde a esta forma
-- D) Con u = x² + 1, y da ln(x² + 1) + C · [olvida-constante-du] olvidas el 1/2 al pasar de dx a du
+- C) Directo: es arctan(x) + C · [metodo-equivocado] aplicas la fórmula de $\int \frac{1}{x^2 + 1}\,dx$, que no corresponde a esta forma
+- D) Con u = x² + 1, y da $\ln(x^2 + 1) + C$ · [olvida-constante-du] olvidas el 1/2 al pasar de dx a du
 
 ### P23 · dificultad 2 · kc: sust-dx · borrador
-En ∫ x·√(x² + 4) dx, con u = x² + 4, la integral en u queda:
+En $\int x\sqrt{x^2 + 4}\,dx$, con u = x² + 4, la integral en u queda:
 
-- A) (1/2)·∫ √u du · CORRECTA
-- B) ∫ √u du · [olvida-constante-du] olvidas el 1/2 al despejar x dx
-- C) ∫ x·√u du · [deja-x-mezclada] dejas x y u mezcladas en la misma integral
-- D) ∫ √u dx · [dx-sin-convertir] cambias el integrando a u pero dejas dx sin convertir
+- A) $\frac{1}{2}\int \sqrt{u}\,du$ · CORRECTA
+- B) $\int \sqrt{u}\,du$ · [olvida-constante-du] olvidas el 1/2 al despejar x dx
+- C) $\int x\sqrt{u}\,du$ · [deja-x-mezclada] dejas x y u mezcladas en la misma integral
+- D) $\int \sqrt{u}\,dx$ · [dx-sin-convertir] cambias el integrando a u pero dejas dx sin convertir
 
 ### P24 · dificultad 2 · kc: sust-dx · borrador
-Con u = ln(x), ¿en qué se convierte ∫ (ln(x))²/x dx?
+Con u = ln(x), ¿en qué se convierte $\int \frac{(\ln(x))^2}{x}\,dx$?
 
-- A) ∫ u² du · CORRECTA
-- B) ∫ u²/x du · [deja-x-mezclada] dejas x y u mezcladas en la misma integral
-- C) ∫ u² dx · [dx-sin-convertir] cambias el integrando a u pero dejas dx sin convertir
-- D) (1/2)·∫ u² du · [olvida-constante-du] agregas una constante que no aparece al pasar de dx a du
+- A) $\int u^2\,du$ · CORRECTA
+- B) $\int \frac{u^2}{x}\,du$ · [deja-x-mezclada] dejas x y u mezcladas en la misma integral
+- C) $\int u^2\,dx$ · [dx-sin-convertir] cambias el integrando a u pero dejas dx sin convertir
+- D) $\frac{1}{2}\int u^2\,du$ · [olvida-constante-du] agregas una constante que no aparece al pasar de dx a du
 
 ### P25 · dificultad 2 · kc: sust-limites · borrador
-Para ∫ de 0 a 2 de 2x·(x² + 1)³ dx con u = x² + 1, la integral en u es:
+Para $\int_0^2 2x\cdot(x^2 + 1)^3\,dx$ con u = x² + 1, la integral en u es:
 
-- A) ∫ de 1 a 5 de u³ du · CORRECTA
-- B) ∫ de 0 a 2 de u³ du · [limites-sin-cambiar] usas los límites en x después de cambiar a u
-- C) ∫ de 1 a 3 de u³ du · [limite-mal-calculado] calculas el límite nuevo con otra expresión que no es u
-- D) Regresar a (x² + 1)⁴/4 y evaluar entre 1 y 5 · [limites-dos-veces] cambias los límites y además regresas a x
+- A) $\int_1^5 u^3\,du$ · CORRECTA
+- B) $\int_0^2 u^3\,du$ · [limites-sin-cambiar] usas los límites en x después de cambiar a u
+- C) $\int_1^3 u^3\,du$ · [limite-mal-calculado] calculas el límite nuevo con otra expresión que no es u
+- D) Regresar a $\frac{(x^2 + 1)^4}{4}$ y evaluar entre 1 y 5 · [limites-dos-veces] cambias los límites y además regresas a x
 
 ### P26 · dificultad 3 · kc: sust-limites · borrador
-En ∫ de 0 a π/2 de sen²(x)·cos(x) dx usaste u = sen(x) y llegaste a u³/3. ¿Cómo terminas?
+En $\int_0^{\pi/2} \sen^2 x \cos x\,dx$ usaste u = sen(x) y llegaste a u³/3. ¿Cómo terminas?
 
 - A) Evalúo u³/3 entre u = 0 y u = 1, y da 1/3 · CORRECTA
 - B) Evalúo u³/3 entre u = 0 y u = π/2, y da π³/24 · [limites-sin-cambiar] usas los límites en x después de cambiar a u
@@ -211,13 +211,13 @@ mc: ignora-discontinuidad · impropia-discontinuidad · no revisas si el integra
 ### P27 · dificultad 2 · kc: impropia-p · borrador
 ¿Cuál de estas integrales desde 1 hasta ∞ converge?
 
-- A) ∫ 1/x³ dx · CORRECTA
-- B) ∫ 1/x dx · [confunde-p1] crees que 1/x se comporta como las potencias con p > 1
-- C) ∫ 1/√x dx · [condicion-p-mal] inviertes la condición y crees que converge con p < 1
+- A) $\int \frac{1}{x^3}\,dx$ · CORRECTA
+- B) $\int \frac{1}{x}\,dx$ · [confunde-p1] crees que 1/x se comporta como las potencias con p > 1
+- C) $\int \frac{1}{\sqrt{x}}\,dx$ · [condicion-p-mal] inviertes la condición y crees que converge con p < 1
 - D) Ninguna, porque el intervalo es infinito · [no-reconoce-convergente] crees que un intervalo infinito siempre da un resultado infinito
 
 ### P28 · dificultad 3 · kc: impropia-p, impropia-limite · borrador
-∫ desde 1 hasta ∞ de 1/x^(3/2) dx:
+$\int_1^{\infty} \frac{1}{x^{3/2}}\,dx$:
 
 - A) Converge a 2 · CORRECTA
 - B) Diverge, igual que 1/x · [confunde-p1] la confundes con 1/x, que sí diverge
@@ -225,15 +225,15 @@ mc: ignora-discontinuidad · impropia-discontinuidad · no revisas si el integra
 - D) Diverge, porque hace falta p ≥ 2 · [condicion-p-mal] exiges una condición más fuerte que p > 1
 
 ### P29 · dificultad 2 · kc: impropia-limite · borrador
-¿Cómo se trabaja correctamente ∫ desde 0 hasta ∞ de e^(−x) dx?
+¿Cómo se trabaja correctamente $\int_0^{\infty} e^{-x}\,dx$?
 
-- A) Como el límite cuando b → ∞ de ∫ de 0 a b de e^(−x) dx · CORRECTA
-- B) Evaluando −e^(−x) directamente en x = ∞ y en x = 0 · [infinito-como-numero] reemplazas ∞ como si fuera un número
-- C) Vale 0, porque e^(−x) tiende a 0 · [integrando-vs-integral] confundes que el integrando tienda a 0 con el valor de la integral
-- D) Como el límite cuando b → ∞ de e^(−b) · [limite-mal-evaluado] evalúas solo un extremo de la antiderivada
+- A) Como $\lim_{b\to\infty} \int_0^b e^{-x}\,dx$ · CORRECTA
+- B) Evaluando $-e^{-x}$ directamente en x = ∞ y en x = 0 · [infinito-como-numero] reemplazas ∞ como si fuera un número
+- C) Vale 0, porque $e^{-x}$ tiende a 0 · [integrando-vs-integral] confundes que el integrando tienda a 0 con el valor de la integral
+- D) Como $\lim_{b\to\infty} e^{-b}$ · [limite-mal-evaluado] evalúas solo un extremo de la antiderivada
 
 ### P30 · dificultad 3 · kc: impropia-limite · borrador
-Un estudiante dice que ∫ desde 1 hasta ∞ de 1/x dx converge "porque 1/x tiende a 0". ¿Qué está mal?
+Un estudiante dice que $\int_1^{\infty} \frac{1}{x}\,dx$ converge "porque 1/x tiende a 0". ¿Qué está mal?
 
 - A) Que el integrando tienda a 0 no basta: ln(b) tiende a ∞ cuando b → ∞ · CORRECTA
 - B) Nada, y la integral vale 0 · [integrando-vs-integral] confundes que el integrando tienda a 0 con que la integral converja
@@ -241,7 +241,7 @@ Un estudiante dice que ∫ desde 1 hasta ∞ de 1/x dx converge "porque 1/x tien
 - D) Converge a 1, porque solo cuenta el límite inferior · [limite-mal-evaluado] evalúas mal la antiderivada en los límites
 
 ### P31 · dificultad 2 · kc: impropia-discontinuidad, impropia-limite · borrador
-¿Es impropia ∫ de 0 a 1 de 1/√x dx?
+¿Es impropia $\int_0^1 \frac{1}{\sqrt{x}}\,dx$?
 
 - A) Sí, porque 1/√x no está definida en x = 0 · CORRECTA
 - B) No, porque los límites de integración son finitos · [solo-limites-infinitos] crees que solo es impropia si tiene límites infinitos
@@ -249,7 +249,7 @@ Un estudiante dice que ∫ desde 1 hasta ∞ de 1/x dx converge "porque 1/x tien
 - D) No, porque x = 0 es un extremo y los extremos no cuentan · [ignora-discontinuidad] no revisas si el integrando se indefine en un extremo
 
 ### P32 · dificultad 3 · kc: impropia-discontinuidad, impropia-limite · borrador
-Un estudiante calcula ∫ de −1 a 1 de 1/x² dx como [−1/x] entre −1 y 1, y obtiene −2. ¿Qué pasa?
+Un estudiante calcula $\int_{-1}^1 \frac{1}{x^2}\,dx$ como $\left[-\frac{1}{x}\right]$ entre −1 y 1, y obtiene −2. ¿Qué pasa?
 
 - A) No vale: 1/x² se indefine en x = 0, hay que partir la integral y resulta divergente · CORRECTA
 - B) Está bien: los límites son finitos, así que no es impropia · [solo-limites-infinitos] crees que solo es impropia si tiene límites infinitos
@@ -274,7 +274,7 @@ mc: constante-sumada · edo-exponencial · sumas la constante en vez de multipli
 ### P5 · dificultad 2 · kc: edo-separables
 Una ecuación diferencial de variables separables tiene la forma dy/dx = f(x)·g(y). ¿Cuál es el primer paso para resolverla?
 
-- A) Separar variables y escribir (1/g(y))dy = f(x)dx · CORRECTA
+- A) Separar variables y escribir $\frac{1}{g(y)}\,dy = f(x)\,dx$ · CORRECTA
 - B) Integrar ambos lados directamente sin separar · [no-separa] no separas las variables antes de integrar
 - C) Derivar ambos lados para simplificar · [deriva-en-vez-de-integrar] confundes resolver con derivar
 - D) Sustituir y = 0 para encontrar la constante · [constante-antes] intentas encontrar la constante antes de integrar
@@ -282,10 +282,10 @@ Una ecuación diferencial de variables separables tiene la forma dy/dx = f(x)·g
 ### P6 · dificultad 3 · kc: edo-lineal
 Para la ecuación diferencial dy/dx + P(x)y = Q(x), el factor integrante es:
 
-- A) e^(∫P(x)dx) · CORRECTA
-- B) e^(∫Q(x)dx) · [factor-con-q] confundes P(x) con Q(x) en la fórmula del factor integrante
-- C) ∫P(x)dx · [factor-sin-exponencial] olvidas aplicar la exponencial al integrar P(x)
-- D) P(x)·eˣ · [factor-mezclado] mezclas la fórmula con la solución de homogéneas
+- A) $e^{\int P(x)\,dx}$ · CORRECTA
+- B) $e^{\int Q(x)\,dx}$ · [factor-con-q] confundes P(x) con Q(x) en la fórmula del factor integrante
+- C) $\int P(x)\,dx$ · [factor-sin-exponencial] olvidas aplicar la exponencial al integrar P(x)
+- D) $P(x)\cdot e^x$ · [factor-mezclado] mezclas la fórmula con la solución de homogéneas
 
 ### P7 · dificultad 2 · kc: edo-exponencial
 Si dy/dx = ky donde k es constante, la solución general es:
@@ -298,50 +298,50 @@ Si dy/dx = ky donde k es constante, la solución general es:
 ### P33 · dificultad 2 · kc: edo-separables · borrador
 Resuelves dy/dx = x·y² separando variables. ¿Qué queda para integrar?
 
-- A) ∫ dy/y² = ∫ x dx · CORRECTA
-- B) ∫ dy = ∫ x·y² dx · [no-separa] integras sin separar antes las variables
-- C) d²y/dx² = y² + 2xy·(dy/dx) · [deriva-en-vez-de-integrar] derivas la ecuación en vez de integrarla
+- A) $\int \frac{dy}{y^2} = \int x\,dx$ · CORRECTA
+- B) $\int dy = \int x\cdot y^2\,dx$ · [no-separa] integras sin separar antes las variables
+- C) $\frac{d^2y}{dx^2} = y^2 + 2xy\cdot\frac{dy}{dx}$ · [deriva-en-vez-de-integrar] derivas la ecuación en vez de integrarla
 - D) Primero se halla C con y(0) y después se separa · [constante-antes] buscas la constante antes de integrar
 
 ### P34 · dificultad 3 · kc: edo-separables · borrador
-La solución general de dy/dx = 2x/y es:
+La solución general de $\frac{dy}{dx} = \frac{2x}{y}$ es:
 
-- A) y² = 2x² + C · CORRECTA
-- B) y = x²/y + C · [no-separa] integras sin separar antes las variables
-- C) y² = 2x² · [constante-antes] descartas la constante antes de terminar de integrar
-- D) y' = 2/y − 2x·y'/y² · [deriva-en-vez-de-integrar] derivas la ecuación en vez de integrarla
+- A) $y^2 = 2x^2 + C$ · CORRECTA
+- B) $y = \frac{x^2}{y} + C$ · [no-separa] integras sin separar antes las variables
+- C) $y^2 = 2x^2$ · [constante-antes] descartas la constante antes de terminar de integrar
+- D) $y' = \frac{2}{y} - \frac{2x\cdot y'}{y^2}$ · [deriva-en-vez-de-integrar] derivas la ecuación en vez de integrarla
 
 ### P35 · dificultad 2 · kc: edo-lineal · borrador
 Para dy/dx + 2y = eˣ, el factor integrante es:
 
-- A) e^(2x) · CORRECTA
-- B) e^(eˣ) · [factor-con-q] usas el lado derecho en vez del coeficiente de y
+- A) $e^{2x}$ · CORRECTA
+- B) $e^{e^x}$ · [factor-con-q] usas el lado derecho en vez del coeficiente de y
 - C) 2x · [factor-sin-exponencial] olvidas la exponencial en el factor integrante
-- D) 2·eˣ · [factor-mezclado] mezclas el coeficiente de y con el lado derecho
+- D) $2\cdot e^x$ · [factor-mezclado] mezclas el coeficiente de y con el lado derecho
 
 ### P36 · dificultad 3 · kc: edo-lineal · borrador
-Para dy/dx + (1/x)·y = x, con x > 0, ¿qué factor integrante usas y qué ecuación queda?
+Para $\frac{dy}{dx} + \frac{1}{x}\cdot y = x$, con x > 0, ¿qué factor integrante usas y qué ecuación queda?
 
-- A) μ = x, y queda (x·y)' = x² · CORRECTA
-- B) μ = e^(x²/2), y queda (e^(x²/2)·y)' = x·e^(x²/2) · [factor-con-q] usas Q(x) en vez de P(x) para el factor integrante
-- C) μ = ln(x), y queda (ln(x)·y)' = x·ln(x) · [factor-sin-exponencial] olvidas la exponencial en el factor integrante
-- D) μ = x, y queda x·y = x · [factor-mezclado] multiplicas por el factor pero te saltas la integración
+- A) $\mu = x$, y queda $(x\cdot y)' = x^2$ · CORRECTA
+- B) $\mu = e^{x^2/2}$, y queda $(e^{x^2/2}\cdot y)' = x\cdot e^{x^2/2}$ · [factor-con-q] usas Q(x) en vez de P(x) para el factor integrante
+- C) $\mu = \ln(x)$, y queda $(\ln(x)\cdot y)' = x\cdot\ln(x)$ · [factor-sin-exponencial] olvidas la exponencial en el factor integrante
+- D) $\mu = x$, y queda $x\cdot y = x$ · [factor-mezclado] multiplicas por el factor pero te saltas la integración
 
 ### P37 · dificultad 2 · kc: edo-exponencial · borrador
 Una población crece según dP/dt = 0,03·P, con P(0) = 500. ¿Cuál es P(t)?
 
-- A) P(t) = 500·e^(0,03t) · CORRECTA
-- B) P(t) = 500 + 0,03t · [integra-directo-ky] resuelves como integración directa sin ver que P está en ambos lados
-- C) P(t) = 500·eᵗ + 0,03 · [pierde-k-exponente] sacas la constante del exponente
-- D) P(t) = e^(0,03t) + 500 · [constante-sumada] sumas la condición inicial en vez de multiplicar
+- A) $P(t) = 500\cdot e^{0,03t}$ · CORRECTA
+- B) $P(t) = 500 + 0,03t$ · [integra-directo-ky] resuelves como integración directa sin ver que P está en ambos lados
+- C) $P(t) = 500\cdot e^t + 0,03$ · [pierde-k-exponente] sacas la constante del exponente
+- D) $P(t) = e^{0,03t} + 500$ · [constante-sumada] sumas la condición inicial en vez de multiplicar
 
 ### P38 · dificultad 3 · kc: edo-exponencial · borrador
 Si dy/dx = −2y y y(0) = 3, ¿cuánto vale y(1)?
 
-- A) 3·e^(−2) · CORRECTA
+- A) $3\cdot e^{-2}$ · CORRECTA
 - B) 1 · [integra-directo-ky] resuelves y = 3 − 2x como si fuera integración directa
-- C) 3·e^(−1) · [pierde-k-exponente] pierdes la constante k del exponente
-- D) e^(−2) + 3 · [constante-sumada] sumas la condición inicial en vez de multiplicar
+- C) $3\cdot e^{-1}$ · [pierde-k-exponente] pierdes la constante k del exponente
+- D) $e^{-2} + 3$ · [constante-sumada] sumas la condición inicial en vez de multiplicar
 
 ## series · Series y convergencia
 
@@ -357,10 +357,10 @@ mc: radio-como-puntos · serie-potencias · confundes el radio de convergencia c
 mc: taylor-integra · serie-taylor · construyes los coeficientes integrando en vez de derivando
 mc: taylor-funcion-equivocada · serie-taylor · usas la serie de otra función conocida
 mc: taylor-trunca · serie-taylor · crees que la serie termina después de pocos términos
-mc: olvida-factorial · serie-taylor · usas f⁽ⁿ⁾(0) como coeficiente sin dividir entre n!
+mc: olvida-factorial · serie-taylor · usas $f^{(n)}(0)$ como coeficiente sin dividir entre n!
 
 ### P8 · dificultad 2 · kc: serie-criterio
-Para determinar si una serie ∑(1/n²) converge, ¿qué criterio es más directo?
+Para determinar si una serie $\sum \frac{1}{n^2}$ converge, ¿qué criterio es más directo?
 
 - A) Criterio de la integral o criterio p con p = 2 · CORRECTA
 - B) Criterio del cociente · [criterio-ineficiente] usas un criterio más complejo cuando el criterio p es suficiente
@@ -368,7 +368,7 @@ Para determinar si una serie ∑(1/n²) converge, ¿qué criterio es más direct
 - D) Comparación con 1/n · [compara-con-divergente] comparas con una serie divergente en vez de convergente
 
 ### P39 · dificultad 2 · kc: serie-criterio · borrador
-¿Qué se puede concluir de ∑ 1/√n?
+¿Qué se puede concluir de $\sum \frac{1}{\sqrt{n}}$?
 
 - A) Diverge, porque es una serie p con p = 1/2 ≤ 1 · CORRECTA
 - B) Converge, porque 1/√n tiende a 0 · [termino-a-cero] crees que si el término tiende a 0 la serie converge
@@ -376,15 +376,15 @@ Para determinar si una serie ∑(1/n²) converge, ¿qué criterio es más direct
 - D) Converge, porque cada término es menor que 1 · [compara-con-divergente] comparas con ∑ 1, que diverge y no permite concluir
 
 ### P40 · dificultad 3 · kc: serie-criterio · borrador
-¿Converge ∑ n/(n + 1)?
+¿Converge $\sum \frac{n}{n + 1}$?
 
 - A) No: el término general tiende a 1, no a 0, así que diverge · CORRECTA
-- B) Sí, porque n/(n + 1) < 1 para todo n · [compara-con-divergente] comparas con ∑ 1, que diverge y no permite concluir
+- B) Sí, porque $\frac{n}{n + 1} < 1$ para todo n · [compara-con-divergente] comparas con ∑ 1, que diverge y no permite concluir
 - C) Hay que usar el criterio de la raíz para decidir · [criterio-ineficiente] usas un criterio que aquí no decide
 - D) No se puede saber: el criterio del término solo sirve cuando el término tiende a 0 · [termino-a-cero] confundes el criterio del término general
 
 ### P9 · dificultad 3 · kc: serie-potencias
-Una serie de potencias ∑aₙ(x-c)ⁿ tiene radio de convergencia R = 4. ¿Qué puedes afirmar?
+Una serie de potencias $\sum a_n(x-c)^n$ tiene radio de convergencia R = 4. ¿Qué puedes afirmar?
 
 - A) Converge absolutamente para |x-c| < 4 · CORRECTA
 - B) Converge para todo x en (0, 4) · [radio-sin-centro] interpretas R como intervalo absoluto sin considerar el centro c
@@ -392,7 +392,7 @@ Una serie de potencias ∑aₙ(x-c)ⁿ tiene radio de convergencia R = 4. ¿Qué
 - D) R = 4 significa que converge solo en 4 puntos · [radio-como-puntos] confundes radio con número de puntos
 
 ### P41 · dificultad 2 · kc: serie-potencias · borrador
-La serie ∑ (x − 3)ⁿ/2ⁿ tiene radio de convergencia R = 2. ¿Dónde converge con seguridad?
+La serie $\sum \frac{(x - 3)^n}{2^n}$ tiene radio de convergencia R = 2. ¿Dónde converge con seguridad?
 
 - A) En (1, 5) · CORRECTA
 - B) En (−2, 2) · [radio-sin-centro] olvidas que el intervalo va centrado en 3
@@ -400,7 +400,7 @@ La serie ∑ (x − 3)ⁿ/2ⁿ tiene radio de convergencia R = 2. ¿Dónde conve
 - D) Solo en x = 1 y en x = 5 · [radio-como-puntos] confundes el radio con puntos aislados
 
 ### P42 · dificultad 3 · kc: serie-potencias, serie-criterio · borrador
-∑ xⁿ/n tiene R = 1. ¿Qué pasa en x = −1 y en x = 1?
+$\sum \frac{x^n}{n}$ tiene R = 1. ¿Qué pasa en x = −1 y en x = 1?
 
 - A) Converge en x = −1 y diverge en x = 1 · CORRECTA
 - B) Diverge en los dos, porque en el borde siempre diverge · [extremos-asumidos] decides qué pasa en los extremos sin verificarlos
@@ -410,7 +410,7 @@ La serie ∑ (x − 3)ⁿ/2ⁿ tiene radio de convergencia R = 2. ¿Dónde conve
 ### P10 · dificultad 2 · kc: serie-taylor
 Para encontrar la serie de Taylor de f(x) = eˣ centrada en x = 0, necesitas:
 
-- A) Calcular f⁽ⁿ⁾(0) para todo n y usar ∑(f⁽ⁿ⁾(0)/n!)xⁿ · CORRECTA
+- A) Calcular $f^{(n)}(0)$ para todo n y usar $\sum \frac{f^{(n)}(0)}{n!}x^n$ · CORRECTA
 - B) Integrar eˣ repetidamente · [taylor-integra] confundes derivadas con integrales en la construcción de la serie
 - C) Usar la serie de ln(x) · [taylor-funcion-equivocada] confundes eˣ con su función inversa
 - D) Solo calcular f'(0) y f''(0) · [taylor-trunca] crees que la serie termina después de dos términos
@@ -426,17 +426,17 @@ En la serie de Taylor de sen(x) centrada en 0, el coeficiente de x³ es:
 ### P44 · dificultad 3 · kc: serie-taylor · borrador
 Los primeros términos de la serie de Taylor de ln(1 + x) centrada en 0 son:
 
-- A) x − x²/2 + x³/3 − … · CORRECTA
-- B) x − x² + 2x³ − … · [olvida-factorial] usas las derivadas sin dividir entre n!
-- C) 1 + x + x²/2 + x³/6 + … · [taylor-funcion-equivocada] usas la serie de eˣ
-- D) x − x²/2, y ahí termina · [taylor-trunca] crees que la serie termina después de pocos términos
+- A) $x - \frac{x^2}{2} + \frac{x^3}{3} - …$ · CORRECTA
+- B) $x - x^2 + 2x^3 - …$ · [olvida-factorial] usas las derivadas sin dividir entre n!
+- C) $1 + x + \frac{x^2}{2} + \frac{x^3}{6} + …$ · [taylor-funcion-equivocada] usas la serie de eˣ
+- D) $x - \frac{x^2}{2}$, y ahí termina · [taylor-trunca] crees que la serie termina después de pocos términos
 
 ### P45 · dificultad 2 · kc: serie-taylor · borrador
 Para el coeficiente de x² en la serie de Taylor de f centrada en 0, calculas:
 
-- A) f''(0)/2 · CORRECTA
+- A) $\frac{f''(0)}{2}$ · CORRECTA
 - B) La segunda integral de f evaluada en 0 · [taylor-integra] construyes los coeficientes integrando en vez de derivando
-- C) f''(0) · [olvida-factorial] no divides entre 2!
+- C) $f''(0)$ · [olvida-factorial] no divides entre 2!
 - D) 1/2, igual que en la serie de eˣ · [taylor-funcion-equivocada] usas la serie de otra función conocida
 
 ## aplicaciones-integral · Aplicaciones de la integral
@@ -457,10 +457,10 @@ mc: area-integra-una · app-area · integras solo una de las curvas
 ### P11 · dificultad 2 · kc: app-volumen
 El volumen de un sólido de revolución al rotar y = f(x) alrededor del eje x entre a y b es:
 
-- A) π∫[f(x)]²dx de a a b · CORRECTA
-- B) π∫f(x)dx de a a b · [radio-sin-cuadrado] olvidas elevar al cuadrado el radio
-- C) ∫[f(x)]²dx de a a b · [omite-pi] omites el π en la fórmula del volumen
-- D) 2π∫xf(x)dx de a a b · [discos-vs-cascarones] confundes método de discos con método de cascarones
+- A) $\pi\int_a^b [f(x)]^2\,dx$ · CORRECTA
+- B) $\pi\int_a^b f(x)\,dx$ · [radio-sin-cuadrado] olvidas elevar al cuadrado el radio
+- C) $\int_a^b [f(x)]^2\,dx$ · [omite-pi] omites el π en la fórmula del volumen
+- D) $2\pi\int_a^b x f(x)\,dx$ · [discos-vs-cascarones] confundes método de discos con método de cascarones
 
 ### P46 · dificultad 2 · kc: app-volumen · borrador
 El volumen al rotar y = √x, entre x = 0 y x = 4, alrededor del eje x es:
@@ -468,30 +468,30 @@ El volumen al rotar y = √x, entre x = 0 y x = 4, alrededor del eje x es:
 - A) 8π · CORRECTA
 - B) 16π/3 · [radio-sin-cuadrado] olvidas elevar al cuadrado el radio
 - C) 8 · [omite-pi] omites el π en la fórmula del volumen
-- D) 2π·∫ de 0 a 4 de x·√x dx · [discos-vs-cascarones] usas cascarones para una rotación alrededor del eje x
+- D) $2\pi\cdot\int_0^4 x\cdot\sqrt{x}\,dx$ · [discos-vs-cascarones] usas cascarones para una rotación alrededor del eje x
 
 ### P47 · dificultad 3 · kc: app-volumen · borrador
 Rotas la región bajo y = x², entre x = 0 y x = 2, alrededor del eje y. Con cascarones, el volumen es:
 
-- A) 2π·∫ de 0 a 2 de x·x² dx = 8π · CORRECTA
-- B) π·∫ de 0 a 2 de (x²)² dx · [discos-vs-cascarones] usas discos alrededor del eje x en vez de cascarones
-- C) ∫ de 0 a 2 de x·x² dx = 4 · [omite-pi] omites el factor 2π
-- D) 2π·∫ de 0 a 2 de x²·x² dx · [discos-vs-cascarones] mezclas la altura con el radio del cascarón
+- A) $2\pi\cdot\int_0^2 x\cdot x^2\,dx = 8\pi$ · CORRECTA
+- B) $\pi\cdot\int_0^2 (x^2)^2\,dx$ · [discos-vs-cascarones] usas discos alrededor del eje x en vez de cascarones
+- C) $\int_0^2 x\cdot x^2\,dx = 4$ · [omite-pi] omites el factor 2π
+- D) $2\pi\cdot\int_0^2 x^2\cdot x^2\,dx$ · [discos-vs-cascarones] mezclas la altura con el radio del cascarón
 
 ### P12 · dificultad 3 · kc: app-arco
 Para calcular la longitud de arco de y = f(x) de a a b, usas:
 
-- A) ∫√(1 + [f'(x)]²)dx de a a b · CORRECTA
-- B) ∫f'(x)dx de a a b · [arco-solo-derivada] crees que la longitud es solo la integral de la derivada
-- C) ∫√([f(x)]²)dx de a a b · [arco-f-en-vez-de-fprima] confundes la fórmula usando f(x) en lugar de f'(x)
-- D) [f(b) - f(a)] · [arco-distancia-vertical] usas la distancia vertical en lugar de la longitud de curva
+- A) $\int_a^b \sqrt{1 + [f'(x)]^2}\,dx$ · CORRECTA
+- B) $\int_a^b f'(x)\,dx$ · [arco-solo-derivada] crees que la longitud es solo la integral de la derivada
+- C) $\int_a^b \sqrt{[f(x)]^2}\,dx$ · [arco-f-en-vez-de-fprima] confundes la fórmula usando f(x) en lugar de f'(x)
+- D) $[f(b) - f(a)]$ · [arco-distancia-vertical] usas la distancia vertical en lugar de la longitud de curva
 
 ### P48 · dificultad 2 · kc: app-arco · borrador
-La longitud de y = x^(3/2) entre x = 0 y x = 1 se plantea como:
+La longitud de $y = x^{3/2}$ entre x = 0 y x = 1 se plantea como:
 
-- A) ∫ de 0 a 1 de √(1 + (9/4)·x) dx · CORRECTA
-- B) ∫ de 0 a 1 de (3/2)·√x dx · [arco-solo-derivada] crees que la longitud es la integral de la derivada
-- C) ∫ de 0 a 1 de √(1 + x³) dx · [arco-f-en-vez-de-fprima] usas f(x) en lugar de f'(x)
+- A) $\int_0^1 \sqrt{1 + \frac{9}{4}\cdot x}\,dx$ · CORRECTA
+- B) $\int_0^1 \frac{3}{2}\cdot\sqrt{x}\,dx$ · [arco-solo-derivada] crees que la longitud es la integral de la derivada
+- C) $\int_0^1 \sqrt{1 + x^3}\,dx$ · [arco-f-en-vez-de-fprima] usas f(x) en lugar de f'(x)
 - D) f(1) − f(0) = 1 · [arco-distancia-vertical] usas la diferencia de alturas en vez de la longitud de la curva
 
 ### P49 · dificultad 3 · kc: app-arco · borrador
@@ -499,21 +499,21 @@ La longitud de la recta y = 2x entre x = 0 y x = 3 es:
 
 - A) 3√5 · CORRECTA
 - B) 6, la diferencia de alturas f(3) − f(0) · [arco-distancia-vertical] usas la diferencia de alturas en vez de la longitud de la curva
-- C) ∫ de 0 a 3 de 2 dx · [arco-solo-derivada] crees que la longitud es la integral de la derivada
-- D) ∫ de 0 a 3 de √(1 + 4x²) dx · [arco-f-en-vez-de-fprima] usas f(x) en lugar de f'(x)
+- C) $\int_0^3 2\,dx$ · [arco-solo-derivada] crees que la longitud es la integral de la derivada
+- D) $\int_0^3 \sqrt{1 + 4x^2}\,dx$ · [arco-f-en-vez-de-fprima] usas f(x) en lugar de f'(x)
 
 ### P50 · dificultad 2 · kc: app-area · borrador
 El área entre y = x y y = x², entre sus puntos de corte, es:
 
-- A) ∫ de 0 a 1 de (x − x²) dx = 1/6 · CORRECTA
-- B) ∫ de 0 a 1 de (x² − x) dx = −1/6 · [area-sin-orden] restas la curva de arriba a la de abajo
-- C) ∫ de 0 a 2 de (x − x²) dx · [area-sin-intersecciones] usas límites que no son los puntos de corte
-- D) ∫ de 0 a 1 de x dx = 1/2 · [area-integra-una] integras solo una de las curvas
+- A) $\int_0^1 (x - x^2)\,dx = \frac{1}{6}$ · CORRECTA
+- B) $\int_0^1 (x^2 - x)\,dx = -\frac{1}{6}$ · [area-sin-orden] restas la curva de arriba a la de abajo
+- C) $\int_0^2 (x - x^2)\,dx$ · [area-sin-intersecciones] usas límites que no son los puntos de corte
+- D) $\int_0^1 x\,dx = \frac{1}{2}$ · [area-integra-una] integras solo una de las curvas
 
 ### P51 · dificultad 3 · kc: app-area · borrador
 El área encerrada entre y = 4 − x² y el eje x es:
 
 - A) 32/3 · CORRECTA
 - B) −32/3 · [area-sin-orden] restas la parábola al eje en vez de al revés
-- C) ∫ de 0 a 4 de (4 − x²) dx · [area-sin-intersecciones] usas límites que no son los puntos de corte
-- D) ∫ de −2 a 2 de x² dx = 16/3 · [area-integra-una] integras solo una de las curvas
+- C) $\int_0^4 (4 - x^2)\,dx$ · [area-sin-intersecciones] usas límites que no son los puntos de corte
+- D) $\int_{-2}^2 x^2\,dx = \frac{16}{3}$ · [area-integra-una] integras solo una de las curvas

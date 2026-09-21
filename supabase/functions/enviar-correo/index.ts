@@ -26,7 +26,13 @@
                             la SUPABASE_SERVICE_ROLE_KEY que inyecta Supabase.
 
   Nunca escribe una llave en la respuesta ni en los logs.
+
+  El contenido trae matematica como $...$ (TeX). El correo es texto plano, asi
+  que subtema, error detectado y misconcepciones pasan por textoPlano antes de
+  entrar al cuerpo (ver textoPlano.ts y sus casos en textoPlano.test.ts).
 */
+
+import { textoPlano } from "./textoPlano.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY =
@@ -90,16 +96,17 @@ function lineasDiagnostico(
   }
   const lineas: string[] = [];
   if (materia) lineas.push(`Materia: ${materia}`);
-  if (subtema) lineas.push(`El subtema donde se te fue la mano: ${subtema}`);
+  if (subtema) lineas.push(`El subtema donde se te fue la mano: ${textoPlano(subtema)}`);
   if (diag.error_detectado_texto) {
-    lineas.push(`Qué pasó exactamente: ${diag.error_detectado_texto}`);
+    lineas.push(`Qué pasó exactamente: ${textoPlano(diag.error_detectado_texto)}`);
   }
   const kcs = diag.kcs;
   if (kcs && Array.isArray(kcs.misconcepciones) && kcs.misconcepciones.length) {
     const textos = kcs.misconcepciones
       .map((m: any) => (typeof m === "string" ? m : m && m.texto))
       .filter(Boolean)
-      .slice(0, 3);
+      .slice(0, 3)
+      .map((t: string) => textoPlano(String(t)));
     if (textos.length) lineas.push(`Para revisar con tu monitor: ${textos.join("; ")}`);
   }
   if (lineas.length <= 1) {

@@ -16,7 +16,7 @@ Faltan las 12 preguntas.
 Errores a cazar: aplicar L Hôpital sin indeterminación, y confundir que el límite exista con que la función esté definida.
 
 ### P1 · dificultad 2
-Calcula el límite: lim(x→2) (x² - 4)/(x - 2)
+Calcula el límite: $\lim_{x\to 2} \frac{x^2 - 4}{x - 2}$
 
 - A) 4 · CORRECTA
 - B) 0 · aplicas L'Hôpital sin verificar que hay una forma indeterminada 0/0
@@ -24,15 +24,15 @@ Calcula el límite: lim(x→2) (x² - 4)/(x - 2)
 - D) 2 · sustituyes directamente sin reconocer la indeterminación
 
 ### P2 · dificultad 2
-Sea f(x) = (x² - 1)/(x - 1) para x ≠ 1 y f(1) = 3. ¿La función es continua en x = 1?
+Sea $f(x) = \frac{x^2 - 1}{x - 1}$ para x ≠ 1 y f(1) = 3. ¿La función es continua en x = 1?
 
-- A) No, porque lim(x→1) f(x) = 2 ≠ f(1) = 3 · CORRECTA
+- A) No, porque $\lim_{x\to 1} f(x) = 2 \ne f(1) = 3$ · CORRECTA
 - B) Sí, porque el límite existe · confundes la existencia del límite con la continuidad de la función
 - C) No, porque f(1) no está definida · no reconoces que f(1) = 3 está explícitamente definida
 - D) Sí, porque se puede aplicar L'Hôpital · aplicas reglas de derivación sin verificar las condiciones de continuidad
 
 ### P3 · dificultad 2
-Evalúa lim(x→0) sen(x)/x
+Evalúa $\lim_{x\to 0} \frac{\sen(x)}{x}$
 
 - A) 1 · CORRECTA
 - B) 0 · aplicas límite directo sin reconocer que es un límite notable
@@ -108,17 +108,17 @@ Quieres cercar un terreno rectangular con 100 m de cerca. ¿Qué dimensiones max
 - D) 100 m × 0 m · obtienes un resultado matemático que no tiene sentido físico como terreno
 
 ### P11 · dificultad 2
-Un globo esférico se infla a razón de 10 cm³/s. ¿A qué velocidad crece el radio cuando r = 5 cm? (V = 4/3 πr³)
+Un globo esférico se infla a razón de 10 cm³/s. ¿A qué velocidad crece el radio cuando r = 5 cm? ($V = \frac{4}{3}\pi r^3$)
 
-- A) dr/dt = 10/(4π·25) = 1/(10π) cm/s · CORRECTA
-- B) dr/dt = 10/r² · derivas el volumen pero olvidas aplicar correctamente la regla de la cadena con respecto al tiempo
-- C) dr/dt = 10 cm/s · confundes la tasa de cambio del volumen con la del radio
-- D) dr/dt = 2 cm/s · calculas un valor que no verificas si tiene sentido físico para la situación
+- A) $\frac{dr}{dt} = \frac{10}{4\pi\cdot 25} = \frac{1}{10\pi}$ cm/s · CORRECTA
+- B) $\frac{dr}{dt} = \frac{10}{r^2}$ · derivas el volumen pero olvidas aplicar correctamente la regla de la cadena con respecto al tiempo
+- C) $\frac{dr}{dt} = 10$ cm/s · confundes la tasa de cambio del volumen con la del radio
+- D) $\frac{dr}{dt} = 2$ cm/s · calculas un valor que no verificas si tiene sentido físico para la situación
 
 ### P12 · dificultad 2
 Una escalera de 10 m resbala por una pared. Si el extremo inferior se aleja a 2 m/s, ¿a qué velocidad baja el extremo superior cuando está a 6 m del suelo?
 
-- A) dy/dt = -3/2 m/s · CORRECTA
-- B) dy/dt = -2 m/s · asumes que ambos extremos se mueven a la misma velocidad
-- C) dy/dt = 2 m/s · calculas la magnitud pero olvidas que el extremo superior baja (signo negativo)
-- D) dy/dt = -8/3 m/s · derivas la ecuación x² + y² = 100 antes de sustituir correctamente x = 8 cuando y = 6
+- A) $\frac{dy}{dt} = -\frac{3}{2}$ m/s · CORRECTA
+- B) $\frac{dy}{dt} = -2$ m/s · asumes que ambos extremos se mueven a la misma velocidad
+- C) $\frac{dy}{dt} = 2$ m/s · calculas la magnitud pero olvidas que el extremo superior baja (signo negativo)
+- D) $\frac{dy}{dt} = -\frac{8}{3}$ m/s · derivas la ecuación x² + y² = 100 antes de sustituir correctamente x = 8 cuando y = 6

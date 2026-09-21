@@ -23,7 +23,7 @@ Dos cargas puntuales q₁ = +2μC y q₂ = -3μC están separadas 10 cm. La fuer
 - D) Depende de la masa de las cargas · confundes fuerza eléctrica con gravitacional
 
 ### P2 · dificultad 3
-El campo eléctrico E a una distancia r de una carga puntual Q es E = kQ/r². Si duplicas r:
+El campo eléctrico E a una distancia r de una carga puntual Q es $E = \frac{kQ}{r^2}$. Si duplicas r:
 
 - A) E se reduce a la cuarta parte · CORRECTA
 - B) E se reduce a la mitad · aplicas proporcionalidad lineal en lugar de cuadrática
@@ -51,10 +51,10 @@ El potencial eléctrico V y la energía potencial U de una carga q en un punto s
 - D) U = V/q² · agregas una dependencia incorrecta de q
 
 ### P5 · dificultad 3
-El trabajo realizado por el campo eléctrico al mover una carga +q del punto A al B (donde V_A > V_B) es:
+El trabajo realizado por el campo eléctrico al mover una carga +q del punto A al B (donde $V_A > V_B$) es:
 
-- A) W = q(V_A - V_B) y es positivo · CORRECTA
-- B) W = q(V_B - V_A) · inviertes el orden en la diferencia de potencial
+- A) $W = q(V_A - V_B)$ y es positivo · CORRECTA
+- B) $W = q(V_B - V_A)$ · inviertes el orden en la diferencia de potencial
 - C) W = 0 porque el campo es conservativo · confundes trabajo nulo con campo conservativo
 - D) W es negativo porque la carga se mueve contra el campo · no reconoces que carga positiva pierde energía al bajar potencial
 
@@ -73,10 +73,10 @@ Talleres 3-4. Errores: confusión entre serie y paralelo, mal uso de leyes de Ki
 ### P7 · dificultad 2
 En un circuito en serie con resistencias R₁ y R₂, la resistencia equivalente es:
 
-- A) R_eq = R₁ + R₂ · CORRECTA
-- B) 1/R_eq = 1/R₁ + 1/R₂ · usas la fórmula de paralelo en serie
-- C) R_eq = R₁·R₂ · confundes suma con producto
-- D) R_eq = (R₁ + R₂)/2 · calculas promedio en vez de equivalente
+- A) $R_{\text{eq}} = R_1 + R_2$ · CORRECTA
+- B) $\frac{1}{R_{\text{eq}}} = \frac{1}{R_1} + \frac{1}{R_2}$ · usas la fórmula de paralelo en serie
+- C) $R_{\text{eq}} = R_1\cdot R_2$ · confundes suma con producto
+- D) $R_{\text{eq}} = \frac{R_1 + R_2}{2}$ · calculas promedio en vez de equivalente
 
 ### P8 · dificultad 3
 La ley de Kirchhoff de corrientes (LKC) establece que en un nodo:

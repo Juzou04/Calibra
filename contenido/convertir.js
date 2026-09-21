@@ -35,6 +35,111 @@ function error(archivo, linea, mensaje) {
   errores.push(archivo + ':' + linea + '  ' + mensaje);
 }
 
+/* ---------- Notacion matematica: $...$ con un subconjunto de TeX ----------
+   El texto sigue siendo texto plano; index.html convierte cada $...$ en
+   MathML al dibujar. Aqui solo se hace una revision ligera para atrapar
+   errores de tipeo antes de que lleguen a un estudiante: el parser completo
+   vive en index.html y el arnes (verificar.cmd --solo=matematica) lo cubre.
+   \$ es un signo de pesos literal y no abre ni cierra nada. */
+
+// Comandos que entiende el parser matematica() de index.html. Esta lista
+// TIENE QUE COINCIDIR con la de alla: si se agrega un comando en un lado,
+// hay que agregarlo en el otro.
+const COMANDOS_MATE = [
+  'frac', 'sqrt', 'int', 'iint', 'oint', 'sum', 'prod', 'lim',
+  'sen', 'sin', 'cos', 'tan', 'sec', 'csc', 'cot', 'ln', 'log', 'exp',
+  'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'varepsilon', 'theta', 'lambda',
+  'mu', 'nu', 'pi', 'rho', 'sigma', 'tau', 'phi', 'varphi', 'omega',
+  'Delta', 'Sigma', 'Omega', 'Gamma', 'Phi',
+  'le', 'leq', 'ge', 'geq', 'ne', 'neq', 'approx', 'pm', 'mp',
+  'to', 'rightarrow', 'infty', 'cdot', 'times', 'div', 'partial', 'nabla',
+  'left', 'right', 'text', 'vec', 'bar', 'hat', 'mathrm',
+  // espacios
+  ',', ';', 'quad',
+];
+
+// Parte el texto en tramos normales y tramos de matematica, respetando \$.
+// Devuelve { tramos: [{ mate, texto, desde }], abierto } donde desde es la
+// posicion del tramo en el texto original y abierto dice si quedo un $ sin
+// cerrar.
+function tramosMate(texto) {
+  const tramos = [];
+  let enMate = false;
+  let desde = 0;
+  for (let i = 0; i < texto.length; i += 1) {
+    if (texto[i] === '\\') { i += 1; continue; }
+    if (texto[i] === '$') {
+      tramos.push({ mate: enMate, texto: texto.slice(desde, i), desde: desde });
+      enMate = !enMate;
+      desde = i + 1;
+    }
+  }
+  tramos.push({ mate: enMate, texto: texto.slice(desde), desde: desde });
+  return { tramos: tramos, abierto: enMate };
+}
+
+// Revisa un campo que ve el usuario. Devuelve una lista de problemas (vacia
+// si todo esta bien), cada uno como frase para poner detras del campo.
+function revisarMate(texto) {
+  const problemas = [];
+  const t = tramosMate(String(texto || ''));
+  if (t.abierto) {
+    problemas.push('tiene un "$" sin cerrar (el numero de "$" es impar; para un signo de pesos literal escribe \\$)');
+    return problemas;
+  }
+  for (const tramo of t.tramos) {
+    const s = tramo.texto;
+    const reCmd = /\\([a-zA-Z]+|[^a-zA-Z]|$)/g;
+    let m;
+    if (!tramo.mate) {
+      while ((m = reCmd.exec(s)) !== null) {
+        if (m[1] === '$') continue;
+        problemas.push('tiene "\\' + m[1] + '" fuera de $...$. Seguramente falta un "$"');
+      }
+      continue;
+    }
+    if (!s.trim()) {
+      problemas.push('tiene un "$$" vacio');
+      continue;
+    }
+    // Un tabulador o salto dentro de la formula casi siempre es un "\t" o
+    // "\n" que se comio la barra (por ejemplo "\text" escrito desde un script).
+    if (/[\u0000-\u001f]/.test(s)) {
+      problemas.push('tiene un caracter de control (tabulador o salto) dentro de "$' + s.replace(/[\u0000-\u001f]/g, '?') + '$"');
+      continue;
+    }
+    const cita = '"$' + s + '$"';
+    let profLR = 0;
+    while ((m = reCmd.exec(s)) !== null) {
+      const cmd = m[1];
+      if (cmd === '$') continue;
+      if (COMANDOS_MATE.indexOf(cmd) === -1) {
+        problemas.push('usa "\\' + cmd + '" en ' + cita + ', que no esta soportado. Mira la lista en contenido/README.md');
+      }
+      if (cmd === 'left') profLR += 1;
+      if (cmd === 'right') {
+        profLR -= 1;
+        if (profLR < 0) { problemas.push('tiene un \\right sin su \\left en ' + cita); profLR = 0; }
+      }
+    }
+    if (profLR > 0) problemas.push('tiene un \\left sin su \\right en ' + cita);
+    // Llaves: se ignoran las escapadas (\{ \}), que de todos modos se reportan arriba.
+    const sinEscapes = s.replace(/\\[^a-zA-Z]/g, '');
+    let prof = 0;
+    let malas = false;
+    for (const c of sinEscapes) {
+      if (c === '{') prof += 1;
+      if (c === '}') { prof -= 1; if (prof < 0) { malas = true; prof = 0; } }
+    }
+    if (malas || prof !== 0) problemas.push('tiene las llaves { } desbalanceadas en ' + cita);
+  }
+  return problemas;
+}
+
+function validarMate(archivo, linea, campo, texto) {
+  for (const p of revisarMate(texto)) error(archivo, linea, campo + ' ' + p);
+}
+
 /* ---------- Lectura del frontmatter ---------- */
 function leerFrontmatter(lineas, archivo) {
   if (lineas[0].trim() !== '---') {
@@ -90,6 +195,7 @@ function leerMateria(archivo) {
     if (mSub) {
       subtemaActual = mSub[1];
       materia.subtemas[subtemaActual] = mSub[2].trim();
+      validarMate(archivo, nl, 'el nombre del subtema "' + subtemaActual + '"', materia.subtemas[subtemaActual]);
       preguntaActual = null;
       continue;
     }
@@ -110,9 +216,11 @@ function leerMateria(archivo) {
       if (mKc) {
         if (materia.kcs[mKc[1]]) error(archivo, nl, 'el kc "' + mKc[1] + '" esta repetido');
         materia.kcs[mKc[1]] = { subtema: subtemaActual, nombre: mKc[2].trim() };
+        validarMate(archivo, nl, 'el nombre del kc "' + mKc[1] + '"', materia.kcs[mKc[1]].nombre);
       } else if (mMc) {
         if (materia.misconcepciones[mMc[1]]) error(archivo, nl, 'la mc "' + mMc[1] + '" esta repetida');
         materia.misconcepciones[mMc[1]] = { kc: mMc[2], texto: mMc[3].trim() };
+        validarMate(archivo, nl, 'el texto de la mc "' + mMc[1] + '"', materia.misconcepciones[mMc[1]].texto);
         lineaMc[mMc[1]] = nl;
       } else {
         error(archivo, nl, 'linea mal formada. Debe ser "kc: clave · Nombre" o "mc: clave · kc · texto del error"');
@@ -167,21 +275,30 @@ function leerMateria(archivo) {
       // linea) a cada lado. El punto medio pegado, como en x·ln(x), es
       // multiplicacion y no separa nada. Se toma el ULTIMO que cumpla eso, para
       // que 'x · ln(x) · no separas el producto' parta donde debe.
+      // Un punto medio dentro de $...$ es parte de la formula y tampoco separa.
       const bruto = mOp[2];
+      const rangosMate = tramosMate(bruto).tramos.filter((t) => t.mate)
+        .map((t) => [t.desde, t.desde + t.texto.length]);
+      const enMate = (pos) => rangosMate.some((r) => pos >= r[0] && pos < r[1]);
       let corte = -1;
       let largo = 0;
       const reSep = /(^|\s)·(\s|$)/g;
       let mSep;
       while ((mSep = reSep.exec(bruto)) !== null) {
-        corte = mSep.index + mSep[1].length;
-        largo = 1 + mSep[2].length;
+        const pos = mSep.index + mSep[1].length;
         reSep.lastIndex = mSep.index + 1;
+        if (enMate(pos)) continue;
+        corte = pos;
+        largo = 1 + mSep[2].length;
       }
       const texto = (corte === -1 ? bruto : bruto.slice(0, corte)).trim();
       const cola = (corte === -1 ? '' : bruto.slice(corte + largo)).trim();
       const esCorrecta = /^CORRECTA$/i.test(cola);
       // - B) texto · [clave-mc] texto del error
       const mEt = esCorrecta ? null : cola.match(/^\[([a-z0-9_-]+)\]\s*(.*)$/);
+      const deP = ' de ' + preguntaActual.id;
+      validarMate(archivo, nl, 'el texto de la opcion ' + mOp[1] + deP, texto);
+      if (!esCorrecta) validarMate(archivo, nl, 'el error de la opcion ' + mOp[1] + deP, mEt ? mEt[2] : cola);
       preguntaActual.opciones.push({
         letra: mOp[1],
         texto: texto,
@@ -194,8 +311,16 @@ function leerMateria(archivo) {
 
     // Enunciado: texto suelto justo despues del encabezado de la pregunta
     if (preguntaActual && preguntaActual.opciones.length === 0 && l.trim()) {
+      if (!preguntaActual.enunciado) preguntaActual._lineaEnunciado = nl;
       preguntaActual.enunciado += (preguntaActual.enunciado ? ' ' : '') + l.trim();
     }
+  }
+
+  // El enunciado puede ocupar varias lineas: se revisa ya unido, y el error
+  // apunta a su primera linea.
+  for (const p of materia.preguntas) {
+    if (p.enunciado) validarMate(archivo, p._lineaEnunciado, 'el enunciado de ' + p.id, p.enunciado);
+    delete p._lineaEnunciado;
   }
 
   // Catalogo de knowledge components: solo se exige si la materia declara alguno.
@@ -457,7 +582,8 @@ function procesarIndex() {
 
   fs.copyFileSync(INDEX, INDEX + '.bak.convertir');
   const nuevo = lineas.slice(0, ini).concat(bloque.split('\n')).concat(lineas.slice(fin + 1));
-  fs.writeFileSync(INDEX, nuevo.join('\n'));
+  // Se respeta el final de linea que ya tenia el archivo (CRLF en Windows).
+  fs.writeFileSync(INDEX, nuevo.join(/\r\n/.test(html) ? '\r\n' : '\n'));
   console.log('\nindex.html actualizado. Copia previa en index.html.bak.convertir');
   console.log('Ahora corre verificar.cmd para comprobar que nada se rompio.');
 }

@@ -100,18 +100,18 @@ Talleres 10 a 12. Errores a cazar: usar el momento de inercia del eje equivocado
 ### P10 · dificultad 2
 Una varilla delgada de masa M y longitud L gira alrededor de su centro. ¿Cuál es su momento de inercia?
 
-- A) ML²/12 · CORRECTA
-- B) ML²/3 · usas el momento de inercia para rotación en un extremo en lugar del centro
-- C) ML² · olvidas el factor geométrico del momento de inercia
-- D) ML²/2 · confundes la fórmula con la de un disco
+- A) $\frac{ML^2}{12}$ · CORRECTA
+- B) $\frac{ML^2}{3}$ · usas el momento de inercia para rotación en un extremo en lugar del centro
+- C) $ML^2$ · olvidas el factor geométrico del momento de inercia
+- D) $\frac{ML^2}{2}$ · confundes la fórmula con la de un disco
 
 ### P11 · dificultad 2
-Una esfera sólida de radio R y masa M gira alrededor de un eje tangente a su superficie. Si I_centro = (2/5)MR², ¿cuál es el momento de inercia respecto al eje tangente?
+Una esfera sólida de radio R y masa M gira alrededor de un eje tangente a su superficie. Si $I_{\text{centro}} = \frac{2}{5}MR^2$, ¿cuál es el momento de inercia respecto al eje tangente?
 
-- A) (7/5)MR² · CORRECTA
-- B) (2/5)MR² · olvidas aplicar el teorema de ejes paralelos
-- C) MR² · usas incorrectamente la distancia entre ejes
-- D) (3/5)MR² · sumas mal los términos del teorema de ejes paralelos
+- A) $\frac{7}{5}MR^2$ · CORRECTA
+- B) $\frac{2}{5}MR^2$ · olvidas aplicar el teorema de ejes paralelos
+- C) $MR^2$ · usas incorrectamente la distancia entre ejes
+- D) $\frac{3}{5}MR^2$ · sumas mal los términos del teorema de ejes paralelos
 
 ### P12 · dificultad 2
 Un disco de radio 0.5 m tiene momento de inercia I = 2 kg·m². Si se le aplica un torque de 10 N·m, ¿cuál es su aceleración angular?
