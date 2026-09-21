@@ -4002,6 +4002,26 @@ const HORARIOS_POR_MONITOR = {
     'Jueves 11:00–18:00',
     'Viernes 14:00–18:00',
   ],
+  // David Varela. Horario dado por el monitor el 21 de septiembre de 2026.
+  'c8e25968-38e0-4a33-b2f6-f32ade33901e': [
+    'Lunes 19:00–21:00',
+    'Martes 19:00–21:00',
+    'Miércoles 19:00–21:00',
+    'Jueves 19:00–21:00',
+    'Viernes 19:00–21:00',
+    'Sábado 19:00–21:00',
+    'Domingo 19:00–21:00',
+  ],
+};
+
+/*
+  Materias en las que NO sale un monitor que no declara materia (y que por eso
+  sale en todas). Tambien por la clave publica del perfil. Las claves son los
+  id de materia de la seccion 3.
+*/
+const MATERIAS_EXCLUIDAS_POR_MONITOR = {
+  // Santiago Vargas no da Introducción a la Programación (21 de septiembre de 2026).
+  'cc1c2030-0a1a-4597-b75f-191ffb9edda2': ['introduccion-programacion'],
 };
 
 
@@ -4255,6 +4275,7 @@ var CONTENIDO = {
   monitores:   leerContenido(function () { return MONITORES; }, []),
   horarios:    leerContenido(function () { return HORARIOS; }, []),
   horariosPorMonitor: leerContenido(function () { return HORARIOS_POR_MONITOR; }, {}),
+  materiasExcluidas: leerContenido(function () { return MATERIAS_EXCLUIDAS_POR_MONITOR; }, {}),
   precios:     leerContenido(function () { return PRECIOS_FILTRO; }, [20000, 25000, 30000, 40000]),
   niveles:     leerContenido(function () { return NIVELES_FILTRO; }, [1, 2, 3]),
   mapaPct:     leerContenido(function () { return MAPA_PORCENTAJE; }, { 0: 34, 50: 61, 100: 82 }),
@@ -6289,10 +6310,19 @@ function cubreTodasLasMaterias(m) {
   return !m.materia;
 }
 
+/* Salvo las materias que el equipo le quita a mano (MATERIAS_EXCLUIDAS_POR_MONITOR). */
+function excluidoDe(m, idMateria) {
+  var mapa = CONTENIDO.materiasExcluidas || {};
+  var lista = m.clave && Object.prototype.hasOwnProperty.call(mapa, m.clave) ? mapa[m.clave] : null;
+  return Array.isArray(lista) && lista.indexOf(idMateria) !== -1;
+}
+
 function monitoresDe(idMateria) {
   var lista = Array.isArray(CONTENIDO.monitores) ? CONTENIDO.monitores : [];
   if (!idMateria) return lista.slice();
-  return lista.filter(function (m) { return cubreTodasLasMaterias(m) || m.materia === idMateria; });
+  return lista.filter(function (m) {
+    return (cubreTodasLasMaterias(m) && !excluidoDe(m, idMateria)) || m.materia === idMateria;
+  });
 }
 
 /* E4: las tarjetas de monitor del subtema debil. La recomendada va primera. */
@@ -6521,6 +6551,7 @@ function pasaFiltros(m) {
   // la declara solo pasa con la suya: un perfil certificado en una materia no
   // puede colarse en las demas.
   if (f.materia && !cubreTodasLasMaterias(m) && m.materia !== f.materia) return false;
+  if (f.materia && excluidoDe(m, f.materia)) return false;
   if (f.subtema) {
     var suyos = Array.isArray(m.subtemas) ? m.subtemas : [];
     // Sin subtemas declarados no se filtra, igual que con la materia arriba: la
