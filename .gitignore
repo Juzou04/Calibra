@@ -7,6 +7,7 @@ new.txt
 .env
 .env.*
 !.env.example
+<<<<<<< Updated upstream
 .vercel
 .env*
 
@@ -15,3 +16,7 @@ new.txt
 # Se instala con: npx impeccable install --project --providers=claude
 .claude/
 .impeccable/config.local.json
+=======
+Claude outputs/Prueba_pedagogia_enunciado.docx
+/Claude outputs
+>>>>>>> Stashed changes
