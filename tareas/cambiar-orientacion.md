@@ -1,5 +1,7 @@
 # Cambiar orientación: de app de celular a página web responsive
 
+> **Documento histórico.** Encargo de la migración a página web responsive (20 de septiembre de 2026). Las cifras de comprobaciones (428) y de la rama de partida son de esa fecha; hoy el arnés hizo 522 y `main` ya trae Supabase. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 Instrucciones para un agente de IA que arranca esta tarea desde cero, sin el
 contexto de la conversación donde se decidió. No necesitas leer el chat del
 equipo: este archivo y los que enlaza abajo tienen todo lo necesario.
@@ -153,7 +155,7 @@ tus cambios, porque siguen corriendo a ese mismo ancho.
   `index.html` (diagnóstico, knowledge components, inserts a Supabase). Esta
   tarea es solo de layout/CSS (y HTML mínimo si hace falta un contenedor).
 - Las reglas del producto listadas en `CLAUDE.md`: nada de `localStorage`,
-  el pie "Prototipo · datos de ejemplo" visible en todas las pantallas,
+  el logo de arriba a la izquierda (`#btn-reiniciar`) como botón de inicio (el pie "Prototipo · datos de ejemplo" se quitó el 21 de septiembre),
   áreas táctiles de 44px o más (no las reduzcas al meter grids), sin
   degradados ni iconos decorativos.
 - El comportamiento a 390×844: es lo único que el arnés verifica hoy, y es

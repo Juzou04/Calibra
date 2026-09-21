@@ -1,5 +1,7 @@
 # Calibra - Resumen para Presentación
 
+> **Documento histórico.** Material de la presentación del 15 de septiembre de 2026 (3 materias, 15 subtemas, 36 preguntas, 174 de 195). Hoy hay 8 materias, así que la FAQ "¿Por qué solo 3 materias?" ya no aplica, y el guion de demo no incluye la agenda, la reserva ni el correo de confirmación. Actualízalo antes de usarlo en la sustentación. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 ## 🎯 Lo que hicimos
 
 Expandimos el MVP de Calibra de **1 materia con 4 preguntas** a **3 materias activas con 36 preguntas calibradas**, usando material real de cursos de Uniandes.

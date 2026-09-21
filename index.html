@@ -330,6 +330,7 @@ math mroot>:last-child,math mfrac>*{font-size:max(14px,.8em)}
   transition:background-color 150ms ease;
 }
 .note{margin-block-start:12px;text-align:center;font-size:14px;color:var(--muted)}
+.aviso-franja{color:var(--alert-text);font-weight:600}
 .enlace-sec{
   display:inline-flex;align-items:center;justify-content:center;
   min-block-size:44px;padding:10px 8px;
@@ -2177,18 +2178,17 @@ textarea.visualmente-oculto,button.visualmente-oculto{
 
       <div class="campo">
         <label for="perfil-horario-1">Horario disponible (opcional)</label>
-        <input id="perfil-horario-1" name="horario1" type="text"
-               aria-describedby="error-perfil-horario-1"
-               placeholder="Hoy 7:00 p. m.">
+        <input id="perfil-horario-1" name="horario1" type="datetime-local"
+               aria-describedby="error-perfil-horario-1">
         <p class="error-campo" id="error-perfil-horario-1" hidden></p>
       </div>
 
       <div class="campo">
         <label for="perfil-horario-2">Otro horario (opcional)</label>
-        <input id="perfil-horario-2" name="horario2" type="text"
-               aria-describedby="error-perfil-horario-2"
-               placeholder="Ma&ntilde;ana 4:00 p. m.">
+        <input id="perfil-horario-2" name="horario2" type="datetime-local"
+               aria-describedby="error-perfil-horario-2">
         <p class="error-campo" id="error-perfil-horario-2" hidden></p>
+        <p class="note">Cada horario dura 1 hora y se bloquea cuando un estudiante lo reserva.</p>
       </div>
 
     </div>
@@ -4165,6 +4165,8 @@ const TEXTOS = {
   e5PruebaOpcionalEnlace: 'Hacer la prueba',
   e5Horarios: 'Elige un horario',
   e5Boton: 'Agendar y pagar',
+  e5FranjaOcupada: 'Esa hora ya no está disponible. Elige otra.',
+  e5SinFranjas: 'Este monitor no tiene horarios libres por ahora. Vuelve a mirar más tarde o elige a otro.',
 
   /* E6 · Confirmación y lista de espera */
   e6Titulo: 'Listo. Tu sesión quedaría agendada.',
@@ -4193,6 +4195,7 @@ const TEXTOS = {
   r1ErrorSemestre: 'El semestre va de {min} a {max}.',
   r1ErrorTarifa: 'La tarifa va de {min} a {max} por hora.',
   r1ErrorSubtemas: 'Elige al menos un subtema.',
+  r1ErrorHorario: 'Elige un horario que todavía no haya pasado.',
   r1Resumen: 'Revisa lo que falta antes de publicar.',
   r1Encaje: 'Fuerte en {subtemas}',
 
@@ -4500,13 +4503,38 @@ function preguntaPorId(id, materia) {
 
 /* Horarios: acepta textos sueltos o objetos {id, texto}. */
 function horariosNormalizados(monitor) {
-  var lista = monitor && Array.isArray(monitor.horarios) && monitor.horarios.length
+  var lista = monitor && Array.isArray(monitor.horarios) && (monitor.horarios.length || monitor.usaFranjas)
     ? monitor.horarios
     : (Array.isArray(CONTENIDO.horarios) ? CONTENIDO.horarios : []);
   return lista.map(function (h, i) {
-    if (typeof h === 'string') return { id: 'h' + i, texto: h };
-    return { id: campoDe(h, ['id'], 'h' + i), texto: campoDe(h, ['texto', 'etiqueta', 'nombre', 'label'], '') };
+    if (typeof h === 'string') return { id: 'h' + i, texto: h, franjaId: null };
+    return {
+      id: campoDe(h, ['id'], 'h' + i),
+      texto: campoDe(h, ['texto', 'etiqueta', 'nombre', 'label'], ''),
+      // Solo los horarios que vienen de una fila de franjas traen id de base;
+      // es lo que E6 manda a reservar_franja.
+      franjaId: h && h.franjaId != null ? h.franjaId : null
+    };
   });
+}
+
+/* ISO -> "mar 1 oct · 4:00 p. m." en hora de Bogota. Nunca lanza: si el
+   navegador no sabe formatear, devuelve la fecha ISO sin segundos. */
+function textoFranja(iso) {
+  try {
+    var partes = {};
+    new Intl.DateTimeFormat('es-CO', {
+      timeZone: 'America/Bogota', weekday: 'short', day: 'numeric', month: 'short',
+      hour: 'numeric', minute: '2-digit', hour12: true
+    }).formatToParts(new Date(iso)).forEach(function (p) { partes[p.type] = p.value; });
+    var dia = String(partes.weekday || '').replace(/\.$/, '');
+    var mes = String(partes.month || '').replace(/\.$/, '');
+    var hora = partes.hour + ':' + partes.minute + ' ' +
+      String(partes.dayPeriod || '').replace(/ | /g, ' ');
+    return dia + ' ' + partes.day + ' ' + mes + ' · ' + hora.trim();
+  } catch (e) {
+    return String(iso || '').replace('T', ' ').slice(0, 16);
+  }
 }
 
 /*
@@ -4562,6 +4590,9 @@ const estado = {
   /* Agenda */
   monitorElegido: null,
   horarioElegido: null,
+  /* Aviso que E5 muestra una vez cuando E6 descubre que la franja ya la tomo
+     otra persona. Se borra al pintarlo. */
+  avisoFranja: '',
   /* La prueba se abrio desde el perfil de un monitor y hay que volver alli
      al terminarla, en vez de caer en el diagnostico y perder la reserva. */
   volverAPerfil: false,
@@ -5876,6 +5907,7 @@ function reiniciar() {
 
   estado.monitorElegido = null;
   estado.horarioElegido = null;
+  estado.avisoFranja = '';
   estado.volverAPerfil = false;
   estado.filtros = { materia: null, subtema: null, precioMax: null, nivelMin: null };
   // Los <select> del buscador tambien vuelven a cero: sin esto, estado.filtros
@@ -6772,9 +6804,20 @@ function pintarPerfil() {
   // Precio, horarios y boton van al pie de la pantalla, fuera del carril que
   // se desplaza. Si el pie no existiera (HTML antiguo), caen donde caian.
   var destino = pie || cont;
+  // E6 mando de vuelta aqui porque otra persona tomo la franja primero.
+  if (estado.avisoFranja) {
+    var aviso = crear('p', 'note aviso-franja', estado.avisoFranja);
+    aviso.setAttribute('role', 'alert');
+    destino.appendChild(aviso);
+    estado.avisoFranja = '';
+  }
   destino.appendChild(precioElemento(m.precio));
 
   var horarios = horariosNormalizados(m);
+  if (m.usaFranjas && !horarios.length) {
+    var sinFranjas = crear('p', 'note aviso-franja', txt('e5SinFranjas', 'Este monitor no tiene horarios libres por ahora.'));
+    destino.appendChild(sinFranjas);
+  }
   // El primer horario viene marcado para que "Agendar y pagar" nazca vivo.
   // Un boton gris que no responde se lee como "bloqueado porque no hiciste la
   // prueba", y habilitarlo sin horario tampoco sirve: la guarda de
@@ -7011,11 +7054,21 @@ function pintarCrearPerfil() {
   if (telPerfil && !telPerfil.value && estado.telefonoMonitor) {
     telPerfil.value = estado.telefonoMonitor;
   }
-  var horario1 = $('#perfil-horario-1');
-  var horarios = horariosNormalizados(null);
-  if (horario1 && !horario1.value && horarios[0]) horario1.value = horarios[0].texto;
-  var horario2 = $('#perfil-horario-2');
-  if (horario2 && !horario2.value && horarios[1]) horario2.value = horarios[1].texto;
+  // Los horarios ya son fecha y hora reales (datetime-local): no admiten un
+  // texto de ejemplo. El minimo evita elegir una hora que ya paso.
+  var minimo = valorDatetimeLocal(new Date());
+  ['#perfil-horario-1', '#perfil-horario-2'].forEach(function (sel) {
+    var el = $(sel);
+    if (el && minimo) el.min = minimo;
+  });
+}
+
+/* Date -> "AAAA-MM-DDTHH:mm" en hora local, el formato de datetime-local. */
+function valorDatetimeLocal(fecha) {
+  if (!fecha || isNaN(fecha.getTime())) return '';
+  function dos(n) { return (n < 10 ? '0' : '') + n; }
+  return fecha.getFullYear() + '-' + dos(fecha.getMonth() + 1) + '-' + dos(fecha.getDate()) +
+    'T' + dos(fecha.getHours()) + ':' + dos(fecha.getMinutes());
 }
 
 /*
@@ -7069,6 +7122,25 @@ function recogerPerfilMonitor() {
     var msgTel = txt('r1ErrorTelefono', 'Escribe un celular de 7 a 15 digitos, o dejalo vacio.');
     errorDeCampo(elTelefono, msgTel); problemas.push(msgTel);
   }
+  // Los horarios son opcionales, pero cada uno que se escriba tiene que ser una
+  // fecha y hora que todavia no paso. Lo que pasa la validacion se publica como
+  // franja (ISO en UTC) y tambien se guarda formateado para el perfil local.
+  var franjasIso = [];
+  var horarios = [];
+  [$('#perfil-horario-1'), $('#perfil-horario-2')].forEach(function (el) {
+    var v = el ? String(el.value || '').trim() : '';
+    if (!v) return;
+    var fecha = new Date(v);
+    if (isNaN(fecha.getTime()) || fecha.getTime() <= Date.now()) {
+      var msgH = txt('r1ErrorHorario', 'Elige un horario que todavía no haya pasado.');
+      errorDeCampo(el, msgH); problemas.push(msgH);
+      return;
+    }
+    var iso = fecha.toISOString();
+    if (franjasIso.indexOf(iso) !== -1) return;
+    franjasIso.push(iso);
+    horarios.push(textoFranja(iso));
+  });
 
   var resumen = $('#perfil-errores');
   if (problemas.length) {
@@ -7083,12 +7155,6 @@ function recogerPerfilMonitor() {
     return null;
   }
   if (resumen) { vaciar(resumen); resumen.hidden = true; }
-
-  var horarios = [];
-  [$('#perfil-horario-1'), $('#perfil-horario-2')].forEach(function (el) {
-    var v = el ? String(el.value || '').trim() : '';
-    if (v) horarios.push(v);
-  });
 
   // El encaje se guarda en la base y se lee como texto: sin marcas $...$.
   var nombresFuertes = fuertes.map(function (c) { return textoPlano(nombreSubtema(c, materia)); });
@@ -7118,7 +7184,7 @@ function recogerPerfilMonitor() {
   var claveMonitor = estado.sesionId || nuevaSesionId();
   estado.claveMonitor = claveMonitor;
 
-  guardarMonitorSupabase({
+  var guardado = guardarMonitorSupabase({
     nombre: nombre,
     carrera: carrera,
     semestre: semestre,
@@ -7128,6 +7194,13 @@ function recogerPerfilMonitor() {
     materia: materia,
     clave: claveMonitor
   });
+  // publicar_franjas busca al monitor por su clave: solo tiene sentido cuando
+  // la fila ya quedo en la base. Nada de esto bloquea ni cambia la pantalla.
+  if (franjasIso.length) {
+    guardado.then(function (ok) {
+      if (ok) publicarFranjasSupabase(claveMonitor, franjasIso);
+    });
+  }
 
   // Si el celular se escribio aqui, o cambio respecto al de M2.5, queda una
   // fila nueva en leads con el contacto al dia. Sin correo no hay donde
@@ -7378,28 +7451,54 @@ function engancharCapturas() {
       if (!correoValido(correo)) { mostrarErrorCorreo(form, input); return; }
       limpiarErrorCorreo(form);
 
-      // nunca esperamos a la red para agradecer
-      enviarCorreo(correo, rol, { telefono: telefono });
+      function agradecer() {
+        // nunca esperamos a la red para agradecer
+        enviarCorreo(correo, rol, { telefono: telefono });
 
-      var gracias = graciasDe(form);
-      // El .gracias vive DENTRO del form, asi que NO se puede ocultar el form
-      // entero: se llevaria por delante el agradecimiento. Se oculta solo lo
-      // que se rellena, y se desactivan los controles para no enviar dos veces.
-      form.classList.add('is-enviado');
-      var campo = form.querySelector('.campo');
-      if (campo) campo.hidden = true;
-      var envio = form.querySelector('button[type="submit"]');
-      if (envio) { envio.hidden = true; envio.disabled = true; }
-      var email = form.querySelector('input[type="email"]');
-      if (email) email.disabled = true;
-      var tel = form.querySelector('input[type="tel"]');
-      if (tel) tel.disabled = true;
-      if (gracias) {
-        gracias.hidden = false;
-        if (!gracias.hasAttribute('tabindex')) gracias.setAttribute('tabindex', '-1');
-        gracias.setAttribute('role', 'status');
-        try { gracias.focus({ preventScroll: true }); } catch (e) { gracias.focus(); }
+        var gracias = graciasDe(form);
+        // El .gracias vive DENTRO del form, asi que NO se puede ocultar el form
+        // entero: se llevaria por delante el agradecimiento. Se oculta solo lo
+        // que se rellena, y se desactivan los controles para no enviar dos veces.
+        form.classList.add('is-enviado');
+        var campo = form.querySelector('.campo');
+        if (campo) campo.hidden = true;
+        var envio = form.querySelector('button[type="submit"]');
+        if (envio) { envio.hidden = true; envio.disabled = true; }
+        var email = form.querySelector('input[type="email"]');
+        if (email) email.disabled = true;
+        var tel = form.querySelector('input[type="tel"]');
+        if (tel) tel.disabled = true;
+        if (gracias) {
+          gracias.hidden = false;
+          if (!gracias.hasAttribute('tabindex')) gracias.setAttribute('tabindex', '-1');
+          gracias.setAttribute('role', 'status');
+          try { gracias.focus({ preventScroll: true }); } catch (e) { gracias.focus(); }
+        }
       }
+
+      // E6 con una franja real: primero se reserva, y solo si la base la da se
+      // agradece. Sin franja o sin credenciales (demo) todo sigue sincrono.
+      var franjaId = rol === 'estudiante' && form.closest && form.closest('#s-confirmacion') &&
+        estado.horarioElegido ? estado.horarioElegido.franjaId : null;
+      if (franjaId == null || !configSupabase()) { agradecer(); return; }
+
+      if (form.getAttribute('data-reservando') === '1') return;
+      form.setAttribute('data-reservando', '1');
+      form.setAttribute('aria-busy', 'true');
+      var boton = form.querySelector('button[type="submit"]');
+      if (boton) boton.disabled = true;
+      reservarFranjaSupabase(franjaId, correo, telefono).then(function (r) {
+        form.removeAttribute('data-reservando');
+        form.removeAttribute('aria-busy');
+        if (r.ok || r.motivo === 'sin-servicio') { agradecer(); return; }
+        if (boton) boton.disabled = false;
+        if (r.motivo === 'correo') { mostrarErrorCorreo(form, input); return; }
+        // ocupada, pasada, no_existe: la hora ya no se puede tomar. Se quita de
+        // la seleccion, se vuelven a leer las libres y se regresa a E5.
+        estado.horarioElegido = null;
+        estado.avisoFranja = txt('e5FranjaOcupada', 'Esa hora ya no está disponible. Elige otra.');
+        recargarFranjasSupabase().then(function () { ir('perfil'); });
+      });
     });
   }
 }
@@ -7678,6 +7777,64 @@ function horariosDeClave(clave) {
   return Array.isArray(lista) ? lista.slice() : [];
 }
 
+/* Todas las franjas, libres y reservadas, en orden. Se traen tambien las
+   reservadas para distinguir a un monitor con todo ocupado de uno que nunca
+   publico franjas (ese conserva los horarios de texto). Una franja reservada no
+   lleva datos de nadie. Devuelve null (no []) cuando la lectura falla, para
+   distinguir "no hay franjas" de "no pude leerlas": sin la migracion 004 la
+   tabla no existe y la app sigue con los horarios de texto. */
+function leerFranjasSupabase(cliente) {
+  return cliente.from('franjas')
+    .select('id,monitor_id,inicia_en,duracion_min,reservada')
+    .order('inicia_en', { ascending: true })
+    .then(function (r) {
+      if (r.error) {
+        console.warn('[Calibra] no se pudieron leer las franjas; se usan los horarios de texto:', r.error.message || r.error);
+        return null;
+      }
+      return r.data || [];
+    })
+    .catch(function (e) {
+      console.warn('[Calibra] no se pudieron leer las franjas:', e && e.message ? e.message : e);
+      return null;
+    });
+}
+
+/* Reparte las franjas entre los monitores que vienen de la base. Un monitor que
+   publico franjas ofrece SOLO las libres y futuras, aunque no le quede ninguna:
+   volver a los horarios de texto dejaria agendar una hora que nada bloquea. Un
+   monitor que nunca publico franjas conserva los horarios de texto. */
+function aplicarFranjasAMonitores(filas) {
+  var porMonitor = agruparPor(filas, 'monitor_id');
+  (CONTENIDO.monitores || []).forEach(function (m) {
+    if (!m || !m.desdeSupabase || !m.idBase) return;
+    var propias = porMonitor[m.idBase] || [];
+    var ahora = Date.now();
+    var lista = propias.filter(function (f) {
+      return !f.reservada && new Date(f.inicia_en).getTime() > ahora;
+    }).map(function (f) {
+      return { id: f.id, iniciaEn: f.inicia_en, texto: textoFranja(f.inicia_en) };
+    });
+    m.franjas = lista;
+    m.usaFranjas = propias.length > 0;
+    m.horarios = m.usaFranjas
+      ? lista.map(function (f) { return { id: 'f' + f.id, texto: f.texto, franjaId: f.id }; })
+      : horariosDeClave(m.clave);
+  });
+}
+
+/* Vuelve a leer las franjas libres, por ejemplo tras un "ya no esta". */
+function recargarFranjasSupabase() {
+  return obtenerClienteSupabase().then(function (cliente) {
+    if (!cliente) return false;
+    return leerFranjasSupabase(cliente).then(function (filas) {
+      if (filas === null) return false;
+      aplicarFranjasAMonitores(filas);
+      return true;
+    });
+  }).catch(function () { return false; });
+}
+
 /* Fila de monitores -> forma de MONITORES. La base no guarda subtemas,
    horarios, resenas ni si es recomendado. */
 function monitorDesdeSupabase(fila, materiaPorIdBase) {
@@ -7697,6 +7854,9 @@ function monitorDesdeSupabase(fila, materiaPorIdBase) {
     resenas: 0,
     precio: Number(fila.precio_hora) || 0,
     horarios: horariosDeClave(fila.clave),
+    // Franjas libres de la tabla franjas; aplicarFranjasAMonitores las llena y
+    // entonces mandan sobre los horarios de texto.
+    franjas: [],
     encaje: fila.encaje_texto || '',
     presentacion: fila.presentacion || '',
     mismoProfesor: false,
@@ -7735,6 +7895,7 @@ function aplicarDatosSupabase(filas) {
     var ejemplos = CONTENIDO.monitores.filter(function (m) { return !m.desdeSupabase; });
     reemplazarEnSitio(CONTENIDO.monitores, CONTENIDO.monitoresEjemplo ? reales.concat(ejemplos) : reales);
   }
+  aplicarFranjasAMonitores(filas.franjas || []);
 
   // Los filtros se llenaron con los datos del archivo al arrancar.
   ['#filtro-materia', '#filtro-precio', '#filtro-nivel'].forEach(function (sel) {
@@ -7760,14 +7921,17 @@ function cargarDesdeSupabase() {
       // prueba dejaria de confirmar misconcepciones, que es el diferenciador.
       leerTablaSupabase(cliente, 'knowledge_components', 'id,subtema_id,clave,nombre'),
       leerTablaSupabase(cliente, 'misconcepciones', 'id,kc_id,clave,texto'),
-      leerTablaSupabase(cliente, 'pregunta_kc', 'pregunta_id,kc_id', 'pregunta_id')
+      leerTablaSupabase(cliente, 'pregunta_kc', 'pregunta_id,kc_id', 'pregunta_id'),
+      // Tolerante a proposito: si la migracion 004 aun no esta aplicada la tabla
+      // no existe y esta lectura devuelve null en vez de tumbar las otras ocho.
+      leerFranjasSupabase(cliente)
     ]).then(function (t) {
       // Si ya se vencio el tiempo, la demo arranco con el archivo: no se
       // cambian los datos a mitad de una sesion.
       if (!vigente.activo) return false;
       aplicarDatosSupabase({
         materias: t[0], subtemas: t[1], preguntas: t[2], opciones: t[3], monitores: t[4],
-        kcs: t[5], misconcepciones: t[6], preguntaKc: t[7]
+        kcs: t[5], misconcepciones: t[6], preguntaKc: t[7], franjas: t[8] || []
       });
       return true;
     });
@@ -7875,6 +8039,53 @@ function guardarDiagnosticoSupabase() {
       : null,
     // Lo unico que ata esta fila con el correo que el estudiante deja en E6.
     sesion_id: estado.sesionId || null
+  });
+}
+
+/* Reserva la franja en una sola llamada atomica de la base. Resuelve
+   { ok: true } o { ok: false, motivo }, y nunca rechaza. 'sin-servicio' quiere
+   decir que no se pudo preguntar (sin red, sin credenciales o la funcion aun no
+   existe): ahi la demo sigue como siempre, porque un error de red no la bloquea. */
+function reservarFranjaSupabase(franjaId, correo, telefono) {
+  if (!configSupabase()) return Promise.resolve({ ok: false, motivo: 'sin-servicio' });
+  return obtenerClienteSupabase().then(function (cliente) {
+    if (!cliente) return { ok: false, motivo: 'sin-servicio' };
+    return cliente.rpc('reservar_franja', {
+      p_franja_id: franjaId,
+      p_correo: correo,
+      p_telefono: telefono || null,
+      p_sesion_id: estado.sesionId || null
+    }).then(function (r) {
+      if (r.error) {
+        console.warn('[Calibra] reservar_franja no respondio:', r.error.message || r.error);
+        return { ok: false, motivo: 'sin-servicio' };
+      }
+      var d = r.data;
+      if (d && d.ok === true) return { ok: true, cita: d };
+      return { ok: false, motivo: d && d.motivo ? String(d.motivo) : 'sin-servicio' };
+    });
+  }).catch(function (e) {
+    console.warn('[Calibra] reservar_franja fallo:', e && e.message ? e.message : e);
+    return { ok: false, motivo: 'sin-servicio' };
+  });
+}
+
+/* Publica las franjas del monitor recien creado (ISO). Fire and forget. */
+function publicarFranjasSupabase(clave, franjasIso) {
+  if (!configSupabase() || !clave || !franjasIso || !franjasIso.length) return Promise.resolve(false);
+  return obtenerClienteSupabase().then(function (cliente) {
+    if (!cliente) return false;
+    return cliente.rpc('publicar_franjas', { p_clave: clave, p_franjas: franjasIso }).then(function (r) {
+      var d = r.data;
+      if (r.error || !d || d.ok !== true) {
+        console.warn('[Calibra] no se publicaron las franjas:', r.error ? (r.error.message || r.error) : (d && d.motivo));
+        return false;
+      }
+      return true;
+    });
+  }).catch(function (e) {
+    console.warn('[Calibra] no se publicaron las franjas:', e && e.message ? e.message : e);
+    return false;
   });
 }
 

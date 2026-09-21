@@ -1,16 +1,21 @@
 /*
   Calibra · enviar-correo
   ---------------------------------------------------------------------------
-  Manda el correo de confirmación al estudiante: la hora que quedó agendada,
-  cómo paga, su diagnóstico y el contacto del monitor.
+  Cuando se confirma una cita manda dos correos: la confirmación al estudiante
+  (la hora que quedó bloqueada, cómo paga, su diagnóstico y el contacto del
+  monitor) y el brief de la sesión al monitor (contacto del estudiante y en qué
+  falla).
 
-  Vive fuera de index.html a propósito. El navegador no puede armar este correo:
-  la llave que viaja en el HTML es anónima y no tiene permiso de lectura sobre
-  leads ni sobre resultados_diagnostico. Esta función sí, porque usa la llave
-  secreta del proyecto, que nunca sale de aquí.
+  Vive fuera de index.html a propósito. El navegador no puede armar estos
+  correos: la llave que viaja en el HTML es anónima y no tiene permiso de
+  lectura sobre citas, estudiantes, leads ni resultados_diagnostico. Esta
+  función sí, porque usa la llave secreta del proyecto, que nunca sale de aquí.
 
-  Cómo se dispara: un Database Webhook de Supabase en INSERT sobre public.leads.
-  Los pasos de despliegue están en el README de esta carpeta.
+  Cómo se dispara: un Database Webhook de Supabase en INSERT sobre public.citas.
+  Una cita ya trae ligados al estudiante, la franja y el diagnóstico (los ata la
+  función reservar_franja en una sola transacción), así que aquí no hay carrera
+  entre el insert del lead y el del diagnóstico. Todo se lee de la vista
+  public.brief_cita. Los pasos de despliegue están en el README de esta carpeta.
 
   Variables de entorno (Edge Function secrets):
     RESEND_API_KEY          obligatoria. Llave de Resend.
@@ -27,12 +32,20 @@
 
   Nunca escribe una llave en la respuesta ni en los logs.
 
-  El contenido trae matematica como $...$ (TeX). El correo es texto plano, asi
-  que subtema, error detectado y misconcepciones pasan por textoPlano antes de
-  entrar al cuerpo (ver textoPlano.ts y sus casos en textoPlano.test.ts).
+  Qué pasa cuando un envío falla (una sola marca, citas.correo_enviado_en):
+    - Falla el correo del estudiante: 502 y no se marca nada. El webhook puede
+      reintentar sin duplicar, porque tampoco se intentó el del monitor.
+    - Sale el del estudiante y falla el del monitor: se marca igual (para no
+      repetirle la confirmación al estudiante en un reintento), se responde 200
+      con monitor:"fallo" y el error queda en los logs. El brief del monitor no
+      se reenvía solo.
 */
 
-import { textoPlano } from "./textoPlano.ts";
+import {
+  armarCorreoEstudiante,
+  armarCorreoMonitor,
+  type Brief,
+} from "./correo.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY =
@@ -43,10 +56,6 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const REMITENTE = Deno.env.get("CALIBRA_REMITENTE") ?? "";
 const WEBHOOK_TOKEN = Deno.env.get("CALIBRA_WEBHOOK_TOKEN") ?? "";
 const PAGO = Deno.env.get("CALIBRA_PAGO") ?? "";
-
-const PAGO_MARCADOR =
-  "PENDIENTE: aquí va cómo se paga. Mientras nadie llene la variable " +
-  "CALIBRA_PAGO, el correo sale con esta línea tal cual.";
 
 /* --------------------------------------------------------------------------
    PostgREST con la llave secreta. Una sola puerta, para que ninguna consulta
@@ -67,8 +76,8 @@ async function leer(tabla: string, consulta: string): Promise<any[]> {
   return await r.json();
 }
 
-async function marcarEnviado(id: number): Promise<void> {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
+async function marcarEnviado(citaId: number): Promise<void> {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/citas?id=eq.${citaId}`, {
     method: "PATCH",
     headers: {
       apikey: SERVICE_KEY,
@@ -79,84 +88,6 @@ async function marcarEnviado(id: number): Promise<void> {
     body: JSON.stringify({ correo_enviado_en: new Date().toISOString() }),
   });
   if (!r.ok) throw new Error(`marcar enviado: HTTP ${r.status} ${await r.text()}`);
-}
-
-/* --------------------------------------------------------------------------
-   Armado del correo
-   -------------------------------------------------------------------------- */
-function lineasDiagnostico(
-  diag: any,
-  subtema: string,
-  materia: string,
-): string[] {
-  if (!diag) {
-    return [
-      "Todavía no tenemos tu diagnóstico. Si hiciste la prueba y esto te parece un error, respóndenos este correo.",
-    ];
-  }
-  const lineas: string[] = [];
-  if (materia) lineas.push(`Materia: ${materia}`);
-  if (subtema) lineas.push(`El subtema donde se te fue la mano: ${textoPlano(subtema)}`);
-  if (diag.error_detectado_texto) {
-    lineas.push(`Qué pasó exactamente: ${textoPlano(diag.error_detectado_texto)}`);
-  }
-  const kcs = diag.kcs;
-  if (kcs && Array.isArray(kcs.misconcepciones) && kcs.misconcepciones.length) {
-    const textos = kcs.misconcepciones
-      .map((m: any) => (typeof m === "string" ? m : m && m.texto))
-      .filter(Boolean)
-      .slice(0, 3)
-      .map((t: string) => textoPlano(String(t)));
-    if (textos.length) lineas.push(`Para revisar con tu monitor: ${textos.join("; ")}`);
-  }
-  if (lineas.length <= 1) {
-    lineas.push("Tu monitor recibe el detalle completo antes de la sesión.");
-  }
-  return lineas;
-}
-
-function armarCorreo(datos: {
-  monitorNombre: string;
-  monitorTelefono: string;
-  precioHora: number | null;
-  diagnostico: string[];
-}): { asunto: string; texto: string } {
-  const { monitorNombre, monitorTelefono, precioHora, diagnostico } = datos;
-
-  const asunto = monitorNombre
-    ? `Tu sesión con ${monitorNombre} está confirmada`
-    : "Tu sesión en Calibra está confirmada";
-
-  const bloques: string[] = [];
-  bloques.push("Hola,");
-  bloques.push(
-    monitorNombre
-      ? `Tu sesión con ${monitorNombre} quedó apartada. El siguiente paso es acordar la hora directamente con ${monitorNombre} y hacer el pago.`
-      : "Tu sesión quedó apartada. El siguiente paso es acordar la hora y hacer el pago.",
-  );
-
-  if (monitorTelefono) {
-    bloques.push(
-      `Contacto de tu monitor\n${monitorNombre || "Tu monitor"}: ${monitorTelefono}\nEscríbele y acuerden hora y lugar. Si prefieres que lo hagamos nosotros, respóndenos este correo.`,
-    );
-  } else {
-    bloques.push(
-      "Contacto de tu monitor\nTodavía no tenemos su número. Nosotros los ponemos en contacto: respóndenos este correo y te escribimos hoy mismo.",
-    );
-  }
-
-  bloques.push(`Tu diagnóstico\n${diagnostico.join("\n")}`);
-
-  const tarifa = precioHora && precioHora > 0
-    ? `La tarifa de tu monitor es de $${precioHora.toLocaleString("es-CO")} por hora.`
-    : "";
-  bloques.push(`Cómo pagar\n${[tarifa, PAGO || PAGO_MARCADOR].filter(Boolean).join("\n")}`);
-
-  bloques.push(
-    "Calibra es un prototipo del curso de Diseño de Productos de la Universidad de los Andes. Si algo no cuadra, responde este correo.",
-  );
-
-  return { asunto, texto: bloques.join("\n\n") };
 }
 
 async function enviarConResend(para: string, asunto: string, texto: string) {
@@ -192,93 +123,86 @@ Deno.serve(async (req: Request) => {
     if (!valor) return responder(500, { error: `falta la variable ${nombre}` });
   }
 
-  let lead: any = null;
+  let cita: any = null;
   try {
     const cuerpo = await req.json();
-    lead = cuerpo && (cuerpo.record ?? cuerpo.lead ?? cuerpo);
+    cita = cuerpo && (cuerpo.record ?? cuerpo.cita ?? cuerpo);
   } catch {
     return responder(400, { error: "cuerpo no es JSON" });
   }
-  if (!lead || !lead.id || !lead.correo) {
-    return responder(400, { error: "el cuerpo no trae una fila de leads" });
-  }
-
-  // Al monitor no se le manda nada: su fila solo guarda el contacto.
-  if (lead.rol !== "estudiante") {
-    return responder(200, { ignorado: "rol " + lead.rol });
-  }
-  if (lead.correo_enviado_en) {
-    return responder(200, { ignorado: "ya se habia enviado" });
+  const citaId = cita && Number(cita.id);
+  if (!citaId || !Number.isFinite(citaId)) {
+    return responder(400, { error: "el cuerpo no trae una fila de citas" });
   }
 
   try {
-    /* Monitor elegido, su tarifa y su clave pública. */
-    let monitorNombre = "";
-    let monitorClave = "";
-    let precioHora: number | null = null;
-    if (lead.monitor_id) {
-      const filas = await leer(
-        "monitores",
-        `id=eq.${lead.monitor_id}&select=nombre,clave,precio_hora&limit=1`,
+    /* Todo lo de la cita sale de la vista; del cuerpo del webhook solo se usa
+       el id, que es lo único que no puede estar desactualizado. */
+    const filas = await leer("brief_cita", `cita_id=eq.${citaId}&limit=1`);
+    const brief: (Brief & { correo_enviado_en?: string | null }) | undefined = filas[0];
+    if (!brief) return responder(404, { error: "no hay una cita con ese id", cita: citaId });
+
+    if (brief.estado !== "confirmada") {
+      return responder(200, { ignorado: "estado " + brief.estado });
+    }
+    if (brief.correo_enviado_en) {
+      return responder(200, { ignorado: "ya se habia enviado" });
+    }
+    if (!brief.estudiante_correo) {
+      return responder(422, { error: "la cita no tiene correo del estudiante", cita: citaId });
+    }
+
+    /* Contacto del monitor. Vive en leads (rol monitor), que no tiene lectura
+       pública; se llega por la clave del perfil, que es el id del navegador
+       desde el que se publicó. Se toma el correo y el teléfono más recientes
+       que no sean nulos, aunque estén en filas distintas. */
+    let monitorCorreo = "";
+    let monitorTelefono = "";
+    if (brief.monitor_clave) {
+      const contactos = await leer(
+        "leads",
+        `sesion_id=eq.${encodeURIComponent(brief.monitor_clave)}&rol=eq.monitor` +
+          `&select=correo,telefono&order=creado_en.desc&limit=10`,
       );
-      if (filas[0]) {
-        monitorNombre = filas[0].nombre ?? "";
-        monitorClave = filas[0].clave ?? "";
-        precioHora = filas[0].precio_hora ?? null;
+      monitorCorreo = contactos.find((c: any) => c.correo)?.correo ?? "";
+      monitorTelefono = contactos.find((c: any) => c.telefono)?.telefono ?? "";
+    }
+
+    /* 1. Estudiante. Si falla, 502 y nada queda marcado. */
+    const paraEstudiante = armarCorreoEstudiante(brief, { monitorTelefono, pago: PAGO });
+    try {
+      await enviarConResend(brief.estudiante_correo, paraEstudiante.asunto, paraEstudiante.texto);
+    } catch (e) {
+      const mensaje = e instanceof Error ? e.message : String(e);
+      console.error("[enviar-correo] fallo el correo del estudiante:", mensaje);
+      return responder(502, { error: mensaje, cita: citaId, estudiante: "fallo" });
+    }
+
+    /* 2. Monitor. Sin correo o con fallo no tumba la confirmación ya enviada. */
+    let estadoMonitor = "sin correo";
+    if (monitorCorreo) {
+      const paraMonitor = armarCorreoMonitor(brief);
+      try {
+        await enviarConResend(monitorCorreo, paraMonitor.asunto, paraMonitor.texto);
+        estadoMonitor = "enviado";
+      } catch (e) {
+        estadoMonitor = "fallo";
+        console.error(
+          "[enviar-correo] salio el del estudiante y fallo el del monitor:",
+          e instanceof Error ? e.message : String(e),
+        );
       }
     }
 
-    /* El teléfono del monitor vive en leads, que no tiene lectura pública. Se
-       llega a él por la clave del perfil, que es la sesión de ese navegador. */
-    let monitorTelefono = "";
-    if (monitorClave) {
-      const filas = await leer(
-        "leads",
-        `sesion_id=eq.${encodeURIComponent(monitorClave)}&rol=eq.monitor` +
-          `&telefono=not.is.null&select=telefono&order=creado_en.desc&limit=1`,
-      );
-      if (filas[0]) monitorTelefono = filas[0].telefono ?? "";
-    }
-
-    /* Diagnóstico de esta misma sesión. */
-    let diag: any = null;
-    if (lead.sesion_id) {
-      const filas = await leer(
-        "resultados_diagnostico",
-        `sesion_id=eq.${encodeURIComponent(lead.sesion_id)}` +
-          `&select=materia_id,subtema_debil_id,error_detectado_texto,kcs` +
-          `&order=creado_en.desc&limit=1`,
-      );
-      diag = filas[0] ?? null;
-    }
-
-    let subtema = "";
-    let materia = "";
-    if (diag && diag.subtema_debil_id) {
-      const filas = await leer("subtemas", `id=eq.${diag.subtema_debil_id}&select=nombre&limit=1`);
-      subtema = filas[0]?.nombre ?? "";
-    }
-    if (diag && diag.materia_id) {
-      const filas = await leer("materias", `id=eq.${diag.materia_id}&select=nombre&limit=1`);
-      materia = filas[0]?.nombre ?? "";
-    }
-
-    const { asunto, texto } = armarCorreo({
-      monitorNombre,
-      monitorTelefono,
-      precioHora,
-      diagnostico: lineasDiagnostico(diag, subtema, materia),
-    });
-
-    await enviarConResend(lead.correo, asunto, texto);
-    await marcarEnviado(lead.id);
+    await marcarEnviado(citaId);
 
     return responder(200, {
       enviado: true,
-      lead: lead.id,
-      conMonitor: Boolean(monitorNombre),
+      cita: citaId,
+      estudiante: "enviado",
+      monitor: estadoMonitor,
       conTelefonoDelMonitor: Boolean(monitorTelefono),
-      conDiagnostico: Boolean(diag),
+      conDiagnostico: Boolean(brief.diagnostico_id),
       pagoEsMarcador: !PAGO,
     });
   } catch (e) {

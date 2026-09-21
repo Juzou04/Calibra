@@ -1,18 +1,31 @@
 # Calibra — Plan de despliegue del MVP
 
-**Fecha:** 2026-09-16 · **Equipo:** Calibra (Lorenzo, Juan David Acevedo, Juan David Chávez, David)
+**Fecha:** 2026-09-16 (actualizado el 21 de septiembre) · **Equipo:** Calibra (Lorenzo, Juan David Acevedo, Juan David Chávez, David)
+
+## Estado al 21 de septiembre
+
+Este documento nació como plan de despliegue el 16 de septiembre. Las secciones de abajo conservan ese plan, ya cumplido en su mayor parte; lo vigente es esto:
+
+- **Base de datos:** el proyecto Supabase `uotlhaitdkfroavqkvee` existe, tiene datos (8 materias, contenido subido con `convertir.js --supabase`, diagnósticos ya guardados) y RLS activo. `supabase/schema.sql` define **13 tablas**; los cambios sobre una base viva van en `supabase/migraciones/` (001 a 004, todas aditivas). Nunca correr `schema.sql` sobre una base con datos: empieza con `drop table ... cascade`.
+- **Agenda (migración 004):** `franjas` (horas concretas de cada monitor), `estudiantes` (uno por correo) y `citas` (la sesión: franja + monitor + estudiante + diagnóstico). Se reserva solo con la función `reservar_franja()`, que bloquea la franja de forma atómica; `citas.franja_id` es único, así que una hora no se puede reservar dos veces. Los monitores agregan franjas con `publicar_franjas()`. `sesion_id` sigue siendo el id del navegador, no una cita.
+- **Backend:** una sola Edge Function, `supabase/functions/enviar-correo`, disparada por un webhook sobre `citas`. Manda la confirmación al estudiante y el brief al monitor. Necesita Resend.
+- **Frontend:** `index.html` (unas 8.200 líneas) lee 9 tablas al arrancar, escribe en `leads`, `monitores` y `resultados_diagnostico`, y llama a `reservar_franja` y `publicar_franjas`. Sin credenciales o sin conexión sigue funcionando con los datos del archivo.
+- **Contenido:** 8 materias activas con 12 preguntas cada una (Cálculo Integral tiene 51 con borradores). Los enunciados pueden llevar bloques de código con cercas ``` (ver `contenido/README.md`).
+- **Ramas:** `main` es la de producción y la de por defecto. Falta publicar en Vercel.
+- **Sigue sin haber:** autenticación, pagos reales y política de tratamiento de datos.
+- **Verificación:** `verificar.cmd` hizo 522 comprobaciones el 21 de septiembre, antes del cambio de franjas. Ese cambio lo rompe en los campos de horario del perfil y falta ajustarlo.
 
 ## Qué es Calibra hoy
 
 Calibra conecta estudiantes de pregrado de Uniandes con monitores de materias de ciclo básico. El diferenciador frente a directorios como Calico es una prueba de opción múltiple calibrada: cada opción incorrecta delata un error conceptual específico, así que el resultado le dice al estudiante en qué subtema falla y le entrega al monitor un brief de la sesión antes de empezar.
 
-Todo el prototipo vive hoy en un único `index.html` (5036 líneas, HTML/CSS/JS sin frameworks ni build). No hay backend, base de datos, autenticación ni pagos reales — fue una decisión explícita del brief original, pensada para poder abrir el archivo con doble clic o publicarlo gratis en GitHub Pages/Netlify Drop.
+*(Descripción del 16 de septiembre.)* Todo el prototipo vivía en un único `index.html` (5036 líneas, HTML/CSS/JS sin frameworks ni build), sin backend, base de datos, autenticación ni pagos reales — decisión explícita del brief original, pensada para poder abrir el archivo con doble clic o publicarlo gratis en GitHub Pages/Netlify Drop. Hoy sigue siendo un solo `index.html` sin build, pero con Supabase detrás (ver arriba).
 
-El contenido (materias, subtemas, preguntas y sus errores) no se edita en el HTML: vive en `contenido/*.md`, un archivo por materia, y un script Node (`contenido/convertir.js`) lo compila hacia dos arreglos de JavaScript (`MATERIAS`, `MONITORES`) que quedan escritos dentro del `index.html`. Hoy hay 3 materias activas con 36 preguntas (Cálculo Integral, Física II, Probabilidad y Estadística) y 3 más sin contenido (Álgebra Lineal, Cálculo Vectorial, Cálculo Diferencial).
+El contenido (materias, subtemas, preguntas y sus errores) no se edita en el HTML: vive en `contenido/*.md`, un archivo por materia, y un script Node (`contenido/convertir.js`) lo compila hacia dos arreglos de JavaScript (`MATERIAS`, `MONITORES`) que quedan escritos dentro del `index.html`. El 16 de septiembre había 3 materias activas con 36 preguntas y 3 sin contenido; hoy hay 8 activas con 12 preguntas cada una.
 
-La captura de correo usa una constante `FORM_ENDPOINT` vacia: si tuviera una URL de Formspree, enviaria el correo por `fetch`; vacia, solo simula el agradecimiento sin guardar nada. Un arnés de verificación con Playwright (`verificar.cmd`) recorre ambos flujos a 390×844; hoy pasa 174 de 195 chequeos (las 21 fallas son esperadas, por el cambio de 4 a 12 preguntas por materia).
+*(16 de septiembre.)* La captura de correo usaba una constante `FORM_ENDPOINT` vacía que solo simulaba el agradecimiento; hoy cada correo se guarda en `leads`. El arnés de verificación con Playwright (`verificar.cmd`) recorre ambos flujos a 390×844 (522 comprobaciones el 21 de septiembre).
 
-El repositorio ya existe en GitHub (`github.com/dvarela5101/Calibra`), pero todo el trabajo —incluido lo usado en la presentación de hoy— está en la rama `juzouy`; no hay una rama `main`.
+El repositorio está en GitHub (`github.com/dvarela5101/Calibra`). *(16 de septiembre: todo estaba en la rama `juzouy` y no había `main`; hoy `main` existe y es la de producción.)*
 
 ## Decisiones de alcance para este MVP
 
@@ -44,7 +57,7 @@ Vercel solo sirve los archivos estáticos; no hace falta ninguna función server
 
 ## Esquema de datos propuesto en Supabase
 
-Siete tablas. Solo `monitores`, `resultados_diagnostico` y `leads` aceptan inserción pública —sin auth, cualquiera puede insertar en esas tres (ver riesgos más abajo).
+*(Propuesta original de siete tablas; la vigente son 13, en `supabase/schema.sql`. Además de estas siete: `knowledge_components`, `misconcepciones` y `pregunta_kc` para el diagnóstico por habilidad, y `estudiantes`, `franjas` y `citas` para la agenda.)* Solo `monitores`, `resultados_diagnostico` y `leads` aceptan inserción pública —sin auth, cualquiera puede insertar en esas tres (ver riesgos más abajo). `franjas` y `citas` no se escriben directo: pasan por `publicar_franjas()` y `reservar_franja()`.
 
 | Tabla | Columnas clave | Quién escribe |
 | --- | --- | --- |
@@ -60,6 +73,8 @@ Políticas de RLS sugeridas: `select` abierto en las cuatro tablas de contenido 
 
 ## Plan paso a paso
 
+*Estado al 21 de septiembre: los pasos 1 a 6 están hechos (rama `main`, proyecto Supabase, tablas con RLS, `convertir.js --supabase`, `index.html` conectado y los tres inserts). Faltan el 7 (Vercel) y volver a correr el arnés (paso 8).*
+
 1. **Arreglar la rama de producción.** Crear `main` a partir de `juzouy` (o renombrar `juzouy` a `main` y ajustar el default branch en GitHub), para que Vercel despliegue el código correcto.
 2. **Crear el proyecto en Supabase** (plan gratuito) y guardar en un lugar seguro del equipo la `Project URL`, la `anon public key` y la `service_role key` —esta última nunca va al repositorio ni al frontend.
 3. **Crear las tablas** del esquema anterior con el editor SQL de Supabase, y activar Row Level Security con las políticas descritas.
@@ -72,8 +87,8 @@ Políticas de RLS sugeridas: `select` abierto en las cuatro tablas de contenido 
 ## Riesgos y pendientes conocidos
 
 - **Sin autenticación, con inserción pública abierta**: cualquiera puede crear un perfil de monitor falso o mandar resultados de diagnóstico falsos, porque la `anon key` con `insert` abierto no distingue usuarios. Aceptable para esta iteración del MVP, pero vale la pena decirlo explícitamente en la entrega como limitación conocida, no como descuido.
-- **No hay rama `main` todavía**: todo el trabajo, incluido el de la presentación de hoy, está en `juzouy`. Hay que resolver esto antes de conectar el despliegue automático.
-- **Tres materias sin contenido** (Álgebra Lineal, Cálculo Vectorial, Cálculo Diferencial): no bloquea el despliegue, pero si la entrega espera más materias activas, es trabajo de contenido, no de infraestructura.
+- ~~**No hay rama `main` todavía**~~ Resuelto: `main` existe y es la de producción.
+- ~~**Tres materias sin contenido**~~ Resuelto: las 8 materias están activas.
 - **Límites del plan gratuito de Supabase**: 500 MB de base de datos y el proyecto se pausa tras una semana sin actividad —irrelevante para el volumen de un MVP de curso, pero vale la pena que alguien del equipo lo revise si el proyecto queda inactivo entre entregas.
 - **El pipeline `contenido/*.md` → Supabase** necesita que alguien corra `convertir.js` con la `service_role key` cada vez que cambian las preguntas; si nadie automatiza eso con GitHub Actions, hay que acordarse de hacerlo a mano antes de cada entrega.
 
