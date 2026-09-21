@@ -74,6 +74,31 @@ El texto sigue siendo texto plano. Donde la estructura importa, la fórmula va e
 
 `node contenido/convertir.js` revisa esto y señala archivo y línea: un `$` sin cerrar, llaves `{ }` desbalanceadas, un `\left` sin su `\right`, un comando que no está en la lista, o un `\frac` escrito fuera de `$…$` (casi siempre es un `$` olvidado).
 
+## Código en el enunciado
+
+Cuando el enunciado trae un programa, va en un bloque cercado con triple acento grave, como en Markdown. La app lo dibuja en un cuadro de código, con la sangría tal cual la escribas.
+
+````
+### P4 · dificultad 2
+¿Qué imprime este programa?
+```
+def doble(x):
+    print(x * 2)
+r = doble(5)
+print(r)
+```
+
+- A) 10 y luego None · CORRECTA
+````
+
+- La cerca de apertura y la de cierre van solas en su línea. La de apertura **no lleva lenguaje**: es ```` ``` ````, no ```` ```python ````.
+- **La sangría se conserva** y las líneas en blanco de dentro también. Usa 4 espacios por nivel, como en Python.
+- Puede haber prosa antes y después del bloque: `El programa es:`, el bloque, y `y el usuario escribe 20. ¿Qué pasa?`. La prosa se une en una sola línea como cualquier enunciado.
+- Dentro de la cerca todo es texto literal: no se interpretan `$…$`, ni `##`, ni `- A)`, ni `kc:` / `mc:`. Un `$` de Python no es una fórmula.
+- **Solo aplica al enunciado.** Las opciones y los textos de error siguen siendo una línea de texto.
+- Un enunciado sin cercas se ve como siempre. Una cerca sin cerrar es error y `node contenido/convertir.js` señala la línea donde se abrió.
+- Comprueba la respuesta ejecutando el programa: lo que salga es lo que va en la opción `CORRECTA`.
+
 ## Knowledge components y misconcepciones (opcional, piloto en Cálculo Integral)
 
 El subtema dice *dónde* falla el estudiante; esto dice *qué habilidad* le falta y *qué error de razonamiento* comete, y le permite a la prueba confirmar un patrón en vez de adivinarlo. Una materia sin líneas `kc:` funciona exactamente como antes.

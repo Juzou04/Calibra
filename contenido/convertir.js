@@ -35,6 +35,29 @@ function error(archivo, linea, mensaje) {
   errores.push(archivo + ':' + linea + '  ' + mensaje);
 }
 
+/* ---------- Bloques de codigo en el enunciado ----------
+   Un enunciado puede llevar un programa entre cercas de tres acentos graves,
+   cada una sola en su linea. El enunciado se guarda como texto plano con
+   saltos de linea: la prosa, y el bloque con sus cercas y su sangria:
+     '¿Que imprime?\n```\nx = 5\nprint(x)\n```'
+   index.html tiene su propia copia de esta particion. Devuelve
+   [{ codigo, texto }]: para el bloque, texto es el programa sin las cercas. */
+function partirCercas(texto) {
+  const partes = [];
+  let codigo = false;
+  let lineas = [];
+  const cerrar = () => {
+    if (lineas.length || codigo) partes.push({ codigo: codigo, texto: lineas.join('\n') });
+    lineas = [];
+  };
+  for (const l of String(texto).split('\n')) {
+    if (l === '```') { cerrar(); codigo = !codigo; continue; }
+    lineas.push(l);
+  }
+  cerrar();
+  return partes;
+}
+
 /* ---------- Notacion matematica: $...$ con un subconjunto de TeX ----------
    El texto sigue siendo texto plano; index.html convierte cada $...$ en
    MathML al dibujar. Aqui solo se hace una revision ligera para atrapar
@@ -185,10 +208,49 @@ function leerMateria(archivo) {
   let preguntaActual = null;
   const idsVistos = {};
   const lineaMc = {};
+  // Cerca de codigo: cercaAbierta es la linea donde se abrio (0 = no hay una).
+  let cercaAbierta = 0;
+  let cercaConCodigo = false;
+  let ultimoFueCerca = false;
 
   for (let i = fm.desde; i < lineas.length; i += 1) {
     const l = lineas[i];
     const nl = i + 1;
+
+    // Dentro de una cerca cada linea se toma en crudo, con su sangria y sus
+    // lineas en blanco, antes de mirar si parece un encabezado, una opcion o
+    // un kc:/mc:. Solo hay una salida de emergencia: si la cerca se quedo sin
+    // cerrar, el siguiente encabezado de pregunta o de subtema la corta y se
+    // avisa, en vez de tragarse el resto del archivo.
+    if (cercaAbierta && (/^###\s+[A-Za-z0-9_-]+\s*[·|-]\s*dificultad/.test(l) || /^##\s+[a-z0-9_-]+\s*·\s*\S/.test(l))) {
+      error(archivo, cercaAbierta, 'la cerca de codigo abierta aqui no se cierra antes de la linea ' + nl + '. Falta una linea con solo ```');
+      preguntaActual.enunciado += '\n```';
+      cercaAbierta = 0;
+    }
+    if (cercaAbierta) {
+      if (l.trimEnd() === '```') {
+        if (!cercaConCodigo) error(archivo, cercaAbierta, 'la cerca de codigo de ' + preguntaActual.id + ' esta vacia');
+        preguntaActual.enunciado += '\n```';
+        cercaAbierta = 0;
+        ultimoFueCerca = true;
+      } else {
+        preguntaActual.enunciado += '\n' + l.trimEnd();
+        if (l.trim()) cercaConCodigo = true;
+      }
+      continue;
+    }
+    if (/^```/.test(l)) {
+      if (preguntaActual && preguntaActual.opciones.length === 0) {
+        if (l.trimEnd() !== '```') error(archivo, nl, 'la cerca de apertura va sola en su linea: escribe ``` sin nada despues (nada de ```python)');
+        if (!preguntaActual.enunciado) preguntaActual._lineaEnunciado = nl;
+        preguntaActual.enunciado += (preguntaActual.enunciado ? '\n' : '') + '```';
+        cercaAbierta = nl;
+        cercaConCodigo = false;
+      } else {
+        error(archivo, nl, 'una cerca de codigo solo va en el enunciado, entre el encabezado de la pregunta y sus opciones');
+      }
+      continue;
+    }
 
     // ## clave · Nombre visible
     const mSub = l.match(/^##\s+([a-z0-9_-]+)\s*[·|-]\s*(.+)$/);
@@ -260,6 +322,7 @@ function leerMateria(archivo) {
         opciones: [],
         _linea: nl,
       };
+      ultimoFueCerca = false;
       materia.preguntas.push(preguntaActual);
       continue;
     }
@@ -312,14 +375,28 @@ function leerMateria(archivo) {
     // Enunciado: texto suelto justo despues del encabezado de la pregunta
     if (preguntaActual && preguntaActual.opciones.length === 0 && l.trim()) {
       if (!preguntaActual.enunciado) preguntaActual._lineaEnunciado = nl;
-      preguntaActual.enunciado += (preguntaActual.enunciado ? ' ' : '') + l.trim();
+      // La prosa seguida se une con un espacio; tras una cerca va en linea nueva.
+      preguntaActual.enunciado += (preguntaActual.enunciado ? (ultimoFueCerca ? '\n' : ' ') : '') + l.trim();
+      ultimoFueCerca = false;
     }
+  }
+  if (cercaAbierta) {
+    error(archivo, cercaAbierta, 'la cerca de codigo de ' + preguntaActual.id + ' no se cierra. Falta una linea con solo ```');
+    preguntaActual.enunciado += '\n```';
   }
 
   // El enunciado puede ocupar varias lineas: se revisa ya unido, y el error
-  // apunta a su primera linea.
+  // apunta a su primera linea. Solo la prosa: el codigo puede llevar $ o \.
   for (const p of materia.preguntas) {
-    if (p.enunciado) validarMate(archivo, p._lineaEnunciado, 'el enunciado de ' + p.id, p.enunciado);
+    if (p.enunciado) {
+      const partes = partirCercas(p.enunciado);
+      for (const parte of partes) {
+        if (!parte.codigo) validarMate(archivo, p._lineaEnunciado, 'el enunciado de ' + p.id, parte.texto);
+      }
+      if (partes.every((parte) => parte.codigo)) {
+        avisos.push(archivo + ':' + p._lineaEnunciado + '  el enunciado de ' + p.id + ' es solo codigo: falta la frase que dice que se pregunta');
+      }
+    }
     delete p._lineaEnunciado;
   }
 
@@ -431,7 +508,8 @@ function leerMateria(archivo) {
 
 /* ---------- Serializacion a JS legible ---------- */
 function comillas(s) {
-  return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  // Los saltos de linea van escapados: uno real partiria el string en dos.
+  return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r') + "'";
 }
 
 function serializar(materias) {

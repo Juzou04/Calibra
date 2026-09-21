@@ -151,31 +151,9 @@ legend{display:block;inline-size:100%;padding:0}
 }
 .question{
   margin-block-start:10px;
-  min-inline-size:0;
   font-size:clamp(22px,6.2vw,26px);line-height:1.25;font-weight:700;letter-spacing:-.02em;
   overflow-wrap:break-word;
 }
-/* Enunciados con programa: la prosa y el bloque de codigo conviven dentro de
-   .question, que fija tamano, peso e interletrado de titulo. El bloque fija
-   los suyos para no heredarlos. */
-.enunciado-texto{display:block}
-.codigo{
-  display:block;
-  margin-block:12px;
-  padding:12px 14px;
-  max-inline-size:100%;
-  overflow-x:auto;
-  white-space:pre;
-  overflow-wrap:normal;
-  tab-size:4;
-  font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
-  font-size:15px;font-weight:400;line-height:1.5;letter-spacing:0;text-align:start;
-  color:var(--text);
-  background:var(--surface);
-  border:1px solid var(--border);border-inline-start:4px solid var(--primary);
-  border-radius:var(--r);
-}
-.codigo code{font:inherit;letter-spacing:inherit}
 .options{
   list-style:none;
   margin-block-start:24px;
@@ -1705,7 +1683,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
 
   <div class="body">
     <span class="topic" id="prueba-topic"></span>
-    <div class="question" id="prueba-enunciado" role="heading" aria-level="1"></div>
+    <h1 class="question" id="prueba-enunciado"></h1>
     <!-- El motor pinta aqu&iacute; las 4 opciones:
          <li><label class="opt"><input type="radio" name="opcion" value="A">
          <span class="key" aria-hidden="true">A</span><span class="txt">...</span></label></li> -->
@@ -1944,7 +1922,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   <div class="body">
     <div>
       <span class="topic" id="cert-topic"></span>
-      <div class="question" id="cert-enunciado" role="heading" aria-level="1"></div>
+      <h1 class="question" id="cert-enunciado"></h1>
     </div>
     <ul class="options" id="cert-opciones" aria-labelledby="cert-enunciado"></ul>
   </div>
@@ -3442,7 +3420,7 @@ const MATERIAS = [
     subtemas: { tipos: 'Tipos, operadores y conversión', funciones: 'Funciones, return y variables locales', condicionales: 'Booleanos y condicionales', 'cadenas-diccionarios': 'Cadenas y diccionarios' },
     preguntas: [
       { id: 'p1', subtema: 'tipos', dificultad: 1,
-        enunciado: '¿Qué imprime este programa?\n```\nprint(17 % 5)\n```',
+        enunciado: '¿Qué imprime print(17 % 5)?',
         opciones: [
           { letra: 'A', texto: '2', correcta: true },
           { letra: 'B', texto: '3', correcta: false, error: 'confundes % (el residuo) con // (el cociente de la división entera)' },
@@ -3450,7 +3428,7 @@ const MATERIAS = [
           { letra: 'D', texto: '0.85', correcta: false, error: 'crees que % calcula un porcentaje, el 17 % de 5' },
         ] },
       { id: 'p2', subtema: 'tipos', dificultad: 2,
-        enunciado: '¿Qué imprime este programa?\n```\nx = "3"\ny = 4\nprint(x * 2 + str(y))\n```',
+        enunciado: '¿Qué imprime este programa? x = "3" | y = 4 | print(x * 2 + str(y))',
         opciones: [
           { letra: 'A', texto: '334', correcta: true },
           { letra: 'B', texto: '10', correcta: false, error: 'tratas "3" como el número 3 aunque está entre comillas' },
@@ -3458,7 +3436,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'TypeError', correcta: false, error: 'crees que un str no se puede multiplicar por un int, cuando eso lo repite' },
         ] },
       { id: 'p3', subtema: 'tipos', dificultad: 2,
-        enunciado: 'El programa es:\n```\nn = input("Edad: ")\nprint(n + 1)\n```\ny el usuario escribe 20. ¿Qué pasa?',
+        enunciado: 'El programa es n = input("Edad: ") | print(n + 1), y el usuario escribe 20. ¿Qué pasa?',
         opciones: [
           { letra: 'A', texto: 'Sale un TypeError, porque no se puede sumar un str con un int', correcta: true },
           { letra: 'B', texto: 'Imprime 21', correcta: false, error: 'olvidas que input() siempre devuelve un str, aunque el usuario escriba un número' },
@@ -3466,7 +3444,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Imprime 20 1', correcta: false, error: 'confundes el + con la coma de print, que separa valores con un espacio' },
         ] },
       { id: 'p4', subtema: 'funciones', dificultad: 2,
-        enunciado: '¿Qué imprime este programa?\n```\ndef doble(x):\n    print(x * 2)\nr = doble(5)\nprint(r)\n```',
+        enunciado: '¿Qué imprime este programa? def doble(x): print(x * 2) | r = doble(5) | print(r)',
         opciones: [
           { letra: 'A', texto: '10 y luego None', correcta: true },
           { letra: 'B', texto: '10 y luego 10', correcta: false, error: 'crees que print dentro de la función también devuelve el valor' },
@@ -3474,7 +3452,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Un error, porque doble no tiene return', correcta: false, error: 'crees que una función sin return no se puede asignar a una variable' },
         ] },
       { id: 'p5', subtema: 'funciones', dificultad: 2,
-        enunciado: '¿Qué imprime este programa?\n```\nx = 5\ndef cambiar():\n    x = 10\ncambiar()\nprint(x)\n```',
+        enunciado: '¿Qué imprime este programa? x = 5 | def cambiar(): x = 10 | cambiar() | print(x)',
         opciones: [
           { letra: 'A', texto: '5', correcta: true },
           { letra: 'B', texto: '10', correcta: false, error: 'crees que asignar x dentro de la función cambia la x de afuera, cuando crea una variable local' },
@@ -3482,7 +3460,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Un error, porque x no está definida dentro de la función', correcta: false, error: 'crees que una función no puede crear una variable con el mismo nombre de una de afuera' },
         ] },
       { id: 'p6', subtema: 'funciones', dificultad: 3,
-        enunciado: '¿Qué imprime este programa?\n```\ndef dividir(a, b):\n    return a // b\nx = 3\ny = 12\nprint(dividir(y, x))\n```',
+        enunciado: '¿Qué imprime este programa? def dividir(a, b): return a // b | x = 3 | y = 12 | print(dividir(y, x))',
         opciones: [
           { letra: 'A', texto: '4', correcta: true },
           { letra: 'B', texto: '0', correcta: false, error: 'crees que x va con a y y va con b porque x se definió primero, cuando manda la posición en la llamada' },
@@ -3498,7 +3476,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'not a and b', correcta: false, error: 'aplicas el not solo al primer término' },
         ] },
       { id: 'p8', subtema: 'condicionales', dificultad: 2,
-        enunciado: '¿Qué imprime este programa?\n```\nnota = 4.5\nif nota >= 3:\n    print("aprobó")\nelif nota >= 4:\n    print("excelente")\nelse:\n    print("reprobó")\n```',
+        enunciado: '¿Qué imprime este programa? nota = 4.5 | if nota >= 3: print("aprobó") | elif nota >= 4: print("excelente") | else: print("reprobó")',
         opciones: [
           { letra: 'A', texto: 'aprobó', correcta: true },
           { letra: 'B', texto: 'excelente', correcta: false, error: 'crees que Python escoge la condición más específica, cuando ejecuta la primera que sea verdadera' },
@@ -3506,7 +3484,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Un error, porque dos condiciones son verdaderas a la vez', correcta: false, error: 'crees que las condiciones de un if/elif tienen que ser excluyentes' },
         ] },
       { id: 'p9', subtema: 'condicionales', dificultad: 3,
-        enunciado: '¿Qué imprime este programa?\n```\ncolor = "rojo"\nif color == "azul" or "verde":\n    print("frío")\nelse:\n    print("cálido")\n```',
+        enunciado: '¿Qué imprime este programa? color = "rojo" | if color == "azul" or "verde": print("frío") | else: print("cálido")',
         opciones: [
           { letra: 'A', texto: 'frío', correcta: true },
           { letra: 'B', texto: 'cálido', correcta: false, error: 'crees que or compara color con cada valor, cuando "verde" por sí solo ya cuenta como verdadero' },
@@ -3514,7 +3492,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'No imprime nada', correcta: false, error: 'crees que si la primera comparación es falsa el if se salta también el else' },
         ] },
       { id: 'p10', subtema: 'cadenas-diccionarios', dificultad: 2,
-        enunciado: '¿Qué imprime este programa?\n```\ns = "Python"\nprint(s[1:4])\n```',
+        enunciado: '¿Qué imprime este programa? s = "Python" | print(s[1:4])',
         opciones: [
           { letra: 'A', texto: 'yth', correcta: true },
           { letra: 'B', texto: 'Pyt', correcta: false, error: 'cuentas las posiciones desde 1 en vez de desde 0' },
@@ -3522,7 +3500,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Pyth', correcta: false, error: 'cuentas desde 1 y además incluyes el índice final' },
         ] },
       { id: 'p11', subtema: 'cadenas-diccionarios', dificultad: 2,
-        enunciado: '¿Qué imprime este programa?\n```\ns = "hola"\ns.upper()\nprint(s)\n```',
+        enunciado: '¿Qué imprime este programa? s = "hola" | s.upper() | print(s)',
         opciones: [
           { letra: 'A', texto: 'hola', correcta: true },
           { letra: 'B', texto: 'HOLA', correcta: false, error: 'crees que upper() cambia el string original, cuando devuelve uno nuevo que aquí nadie guarda' },
@@ -3530,7 +3508,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'None', correcta: false, error: 'crees que upper() deja la variable vacía después de usarla' },
         ] },
       { id: 'p12', subtema: 'cadenas-diccionarios', dificultad: 3,
-        enunciado: '¿Qué imprime este programa?\n```\nsala = {"vendidas": 0}\ndef vender(d, n):\n    d["vendidas"] += n\nvender(sala, 5)\nprint(sala["vendidas"])\n```',
+        enunciado: '¿Qué imprime este programa? sala = {"vendidas": 0} | def vender(d, n): d["vendidas"] += n | vender(sala, 5) | print(sala["vendidas"])',
         opciones: [
           { letra: 'A', texto: '5', correcta: true },
           { letra: 'B', texto: '0', correcta: false, error: 'crees que la función trabaja sobre una copia del diccionario, cuando recibe el mismo diccionario y lo modifica' },
@@ -5010,67 +4988,6 @@ function ponerMate(el, texto) {
   return el;
 }
 
-/* Enunciado con programa. Un bloque de codigo va entre dos lineas de tres
-   acentos graves; lo de afuera es prosa (con sus formulas). Las lineas del
-   bloque se conservan tal cual, con su sangria. La prosa contigua se une con
-   un espacio y las lineas en blanco de afuera se ignoran. Una cerca sin
-   cerrar toma el resto como codigo. Nunca lanza. */
-function partirEnunciado(texto) {
-  var trozos = [];
-  var prosa = [];
-  var codigo = null;
-  function cerrarCodigo() {
-    var t = codigo.join('\n').replace(/^(?:[ \t]*\n)+/, '').replace(/\s+$/, '');
-    trozos.push({ codigo: true, texto: t });
-    codigo = null;
-  }
-  String(texto === undefined || texto === null ? '' : texto).replace(/\r\n?/g, '\n').split('\n').forEach(function (l) {
-    if (codigo === null) {
-      if (/^\s*```/.test(l)) {
-        if (prosa.length) { trozos.push({ codigo: false, texto: prosa.join(' ') }); prosa = []; }
-        codigo = [];
-      } else if (l.trim()) {
-        prosa.push(l.trim());
-      }
-    } else if (/^\s*```\s*$/.test(l)) {
-      cerrarCodigo();
-    } else {
-      codigo.push(l);
-    }
-  });
-  if (codigo !== null) cerrarCodigo();
-  else if (prosa.length) trozos.push({ codigo: false, texto: prosa.join(' ') });
-  return trozos;
-}
-
-/* Como ponerMate(), pero el enunciado puede traer bloques de codigo, que se
-   dibujan en <pre><code> con textContent (nunca innerHTML). Sin cercas es
-   ponerMate tal cual. data-fuente guarda siempre el texto completo. */
-function ponerEnunciado(el, texto) {
-  if (!el) return el;
-  var fuente = String(texto === undefined || texto === null ? '' : texto);
-  if (!/(^|\n)[ \t]*```/.test(fuente)) return ponerMate(el, fuente);
-  el.dataset.fuente = fuente;
-  vaciar(el);
-  partirEnunciado(fuente).forEach(function (trozo) {
-    if (!trozo.codigo) {
-      var p = crear('p', 'enunciado-texto');
-      p.appendChild(matematica(trozo.texto));
-      el.appendChild(p);
-      return;
-    }
-    var pre = crear('pre', 'codigo');
-    pre.setAttribute('tabindex', '0');
-    pre.setAttribute('role', 'region');
-    pre.setAttribute('aria-label', 'Código');
-    var code = document.createElement('code');
-    code.textContent = trozo.texto;
-    pre.appendChild(code);
-    el.appendChild(pre);
-  });
-  return el;
-}
-
 /* Como crear(), pero con las formulas dibujadas. */
 function crearMate(tag, clase, texto) {
   return ponerMate(crear(tag, clase), texto);
@@ -5835,7 +5752,7 @@ function ir(hash) {
   }
 }
 
-/* Mueve el foco al titulo de la seccion (el h1, o el enunciado en las pruebas) para que el lector de pantalla anuncie. */
+/* Mueve el foco al h1 de la seccion para que el lector de pantalla anuncie. */
 function enfocarPantalla(hash) {
   var seccion = document.getElementById(SECCIONES[hash]);
   if (!seccion) return;
@@ -5850,7 +5767,7 @@ function enfocarPantalla(hash) {
   }
   if (window.scrollY) window.scrollTo(0, 0);
   if (primeraPintada) { primeraPintada = false; return; }
-  var titulo = seccion.querySelector('h1,[role="heading"][aria-level="1"]');
+  var titulo = seccion.querySelector('h1');
   if (!titulo) return;
   if (!titulo.hasAttribute('tabindex')) titulo.setAttribute('tabindex', '-1');
   try { titulo.focus({ preventScroll: true }); } catch (e) { titulo.focus(); }
@@ -6053,7 +5970,7 @@ function pintarPruebaGenerica(cfg) {
   if (topic) ponerMate(topic, nombreSubtema(pregunta.subtema, cfg.materia));
 
   var enunciado = $(cfg.ids.enunciado);
-  if (enunciado) ponerEnunciado(enunciado, pregunta.enunciado);
+  if (enunciado) ponerMate(enunciado, pregunta.enunciado);
 
   // Opciones. Nombre de grupo unico por pregunta para no arrastrar la seleccion.
   var lista = $(cfg.ids.opciones);
