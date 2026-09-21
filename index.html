@@ -3867,6 +3867,23 @@ const HORARIOS = [
   'Mañana 4:00 p. m.',
 ];
 
+/*
+  Horarios propios de los monitores que llegan de Supabase. La tabla monitores
+  no tiene columna de horarios, asi que se amarran aqui por la clave publica
+  del perfil (monitores.clave). Un monitor que no este en esta lista ofrece
+  los HORARIOS generales de arriba.
+*/
+const HORARIOS_POR_MONITOR = {
+  // Santiago Vargas. Horario confirmado por el monitor el 20 de septiembre de 2026.
+  'cc1c2030-0a1a-4597-b75f-191ffb9edda2': [
+    'Lunes 11:00–18:00',
+    'Martes 11:00–18:00',
+    'Miércoles 14:00–18:00',
+    'Jueves 11:00–18:00',
+    'Viernes 14:00–18:00',
+  ],
+};
+
 
 /* ---------- 6. Filtros del buscador (pantalla B1) ---------- */
 
@@ -4117,6 +4134,7 @@ var CONTENIDO = {
   materias:    leerContenido(function () { return MATERIAS; }, []),
   monitores:   leerContenido(function () { return MONITORES; }, []),
   horarios:    leerContenido(function () { return HORARIOS; }, []),
+  horariosPorMonitor: leerContenido(function () { return HORARIOS_POR_MONITOR; }, {}),
   precios:     leerContenido(function () { return PRECIOS_FILTRO; }, [20000, 25000, 30000, 40000]),
   niveles:     leerContenido(function () { return NIVELES_FILTRO; }, [1, 2, 3]),
   mapaPct:     leerContenido(function () { return MAPA_PORCENTAJE; }, { 0: 34, 50: 61, 100: 82 }),
@@ -6040,7 +6058,9 @@ function pintarPerfil() {
       agendar.disabled = false;
     });
     label.appendChild(radio);
-    label.appendChild(document.createTextNode(hor.texto));
+    // Un rango como "14:00–18:00" no se parte en el guion: a 390 px dejaba
+    // "18:00" sola en otra linea. Con el guion pegado, corta despues del dia.
+    label.appendChild(document.createTextNode(hor.texto.replace(/\s*–\s*/g, '\u2060–\u2060')));
     li.appendChild(label);
     grid.appendChild(li);
   });
@@ -6901,6 +6921,14 @@ function materiasDesdeSupabase(filas, plantillas) {
   return { materias: materias, ids: ids };
 }
 
+/* Los horarios que el archivo le asigna a un perfil de la base, o [] para que
+   horariosNormalizados caiga en los generales. */
+function horariosDeClave(clave) {
+  var mapa = CONTENIDO.horariosPorMonitor || {};
+  var lista = clave && Object.prototype.hasOwnProperty.call(mapa, clave) ? mapa[clave] : null;
+  return Array.isArray(lista) ? lista.slice() : [];
+}
+
 /* Fila de monitores -> forma de MONITORES. La base no guarda subtemas,
    horarios, resenas ni si es recomendado. */
 function monitorDesdeSupabase(fila, materiaPorIdBase) {
@@ -6919,7 +6947,7 @@ function monitorDesdeSupabase(fila, materiaPorIdBase) {
     calificacion: fila.calificacion == null ? '' : String(fila.calificacion).replace('.', ','),
     resenas: 0,
     precio: Number(fila.precio_hora) || 0,
-    horarios: [],
+    horarios: horariosDeClave(fila.clave),
     encaje: fila.encaje_texto || '',
     presentacion: fila.presentacion || '',
     mismoProfesor: false,
