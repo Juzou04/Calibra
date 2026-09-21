@@ -9,14 +9,14 @@
 <title>Calibra · Prototipo</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2084 2084'%3E%3Cpath fill='%230057ED' d='M1939.9 1443.68c-2.72-9.27-21-33.86-38.97-47.68-22.22-16.4-49.45-24.59-77.05-23.84-82.09 2.23-324 1.91-487.56-69.86-35.65-15.64-64.16-43.39-82.07-64.34-11.43-13.36-6.65-33.97 9.48-40.95 61.88-26.78 200.98-66.11 254.53-81.84 52.57-15.44 161.75-42.51 222.16-60.25 46.12-13.55 64.61-18.7 72.44-64.57 4.12-24.1 3.66-39.46 6.8-78.39 6.27-77.58 0.29-176.24-0.7-220.57-1.14-51.05-3.21-163.46-14.26-245.03-4.19-30.94-11.86-57.44-17.67-74.47-4.1-12.01-16.39-19.21-28.88-16.93-15.95 2.92-39.53 8.09-65.92 16.68l-1360 0z M1234.11 724.13c10.75-36.25 29.64-65.86 56.65-88.85 27-22.97 61.65-37.44 103.93-43.41 41.69-5.88 75.72-1.39 102.07 13.45 26.35 14.85 41.35 35.2 44.99 61.03 1.82 12.92 0.13 23.2-5.09 30.81-5.21 7.63-13.99 12.31-26.32 14.04-12.92 1.82-23.24-0.16-30.94-5.97-7.71-5.79-14.33-13.39-19.84-22.81-5.52-9.4-11.18-18.78-17-28.15-5.81-9.36-13.16-16.86-22.04-22.5-8.88-5.63-20.96-7.38-36.22-5.22-35.83 5.05-62.02 22.08-78.59 51.06-16.57 28.99-21.3 68.74-14.18 119.24 7.54 53.44 24.74 95.78 51.61 127.03 26.87 31.25 62.9 43.68 108.13 37.31 28.77-4.06 51.28-13.21 67.55-27.49 16.25-14.27 32.58-35.44 48.99-63.51l18.48 9.97c-7.85 25.07-17.6 48.3-29.25 69.71-11.66 21.41-27.26 39.19-46.83 53.32-19.57 14.13-45.21 23.45-76.92 27.92-36.42 5.14-69.07 0.76-97.98-13.13-28.91-13.89-52.63-35.55-71.16-64.98-18.52-29.42-30.65-64.41-36.36-104.93-5.71-40.52-3.61-81.85 7.15-118.11z'/%3E%3C/svg%3E">
 
-<!-- Inter desde Google Fonts, CARGA NO BLOQUEANTE.
+<!-- Inter (y Noto Sans Math para las formulas) desde Google Fonts, CARGA NO BLOQUEANTE.
      Si no hay internet (salon de clase, USB, portal cautivo) la pagina
      se pinta igual con la pila del sistema. Nada se rompe. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Math&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Math&display=swap"></noscript>
 
 <style>
 /* =========================================================================
@@ -177,6 +177,16 @@ legend{display:block;inline-size:100%;padding:0}
 .opt:has(input:checked) .txt{color:var(--primary);font-weight:600}
 .opt:has(input:checked) .key{border-color:var(--primary);color:var(--primary)}
 .opt:has(input:focus-visible){outline:3px solid var(--primary);outline-offset:2px}
+
+/* ---------- 6b. Formulas ($...$ del contenido, MathML nativo) ----------
+   Mismo tamano que el texto que las rodea. El navegador encoge exponentes,
+   subindices, limites y las partes de una fraccion en linea (~0.71 por
+   nivel); el piso de 14px mantiene la regla de ningun texto por debajo. */
+math{font-size:inherit;font-family:"Noto Sans Math","Cambria Math","STIX Two Math",math}
+math msup>:not(:first-child),math msub>:not(:first-child),math msubsup>:not(:first-child),
+math munderover>:not(:first-child),math munder>:not(:first-child),math mover>:not(:first-child),
+math mroot>:last-child,math mfrac>*{font-size:max(14px,.8em)}
+.mate-error{font:inherit;text-decoration:underline dotted;text-underline-offset:.2em}
 
 /* ---------- 7. Barras de dominio (E3) ---------- */
 .bars{list-style:none;display:flex;flex-direction:column;gap:22px}
@@ -2490,7 +2500,7 @@ const MATERIAS = [
     subtemas: { limites: 'Límites y continuidad', derivada: 'La derivada y sus reglas', aplicaciones: 'Aplicaciones de la derivada', optimizacion: 'Optimización y razones de cambio' },
     preguntas: [
       { id: 'p1', subtema: 'limites', dificultad: 2,
-        enunciado: 'Calcula el límite: lim(x→2) (x² - 4)/(x - 2)',
+        enunciado: 'Calcula el límite: $\\lim_{x\\to 2} \\frac{x^2 - 4}{x - 2}$',
         opciones: [
           { letra: 'A', texto: '4', correcta: true },
           { letra: 'B', texto: '0', correcta: false, error: 'aplicas L\'Hôpital sin verificar que hay una forma indeterminada 0/0' },
@@ -2498,15 +2508,15 @@ const MATERIAS = [
           { letra: 'D', texto: '2', correcta: false, error: 'sustituyes directamente sin reconocer la indeterminación' },
         ] },
       { id: 'p2', subtema: 'limites', dificultad: 2,
-        enunciado: 'Sea f(x) = (x² - 1)/(x - 1) para x ≠ 1 y f(1) = 3. ¿La función es continua en x = 1?',
+        enunciado: 'Sea $f(x) = \\frac{x^2 - 1}{x - 1}$ para x ≠ 1 y f(1) = 3. ¿La función es continua en x = 1?',
         opciones: [
-          { letra: 'A', texto: 'No, porque lim(x→1) f(x) = 2 ≠ f(1) = 3', correcta: true },
+          { letra: 'A', texto: 'No, porque $\\lim_{x\\to 1} f(x) = 2 \\ne f(1) = 3$', correcta: true },
           { letra: 'B', texto: 'Sí, porque el límite existe', correcta: false, error: 'confundes la existencia del límite con la continuidad de la función' },
           { letra: 'C', texto: 'No, porque f(1) no está definida', correcta: false, error: 'no reconoces que f(1) = 3 está explícitamente definida' },
           { letra: 'D', texto: 'Sí, porque se puede aplicar L\'Hôpital', correcta: false, error: 'aplicas reglas de derivación sin verificar las condiciones de continuidad' },
         ] },
       { id: 'p3', subtema: 'limites', dificultad: 2,
-        enunciado: 'Evalúa lim(x→0) sen(x)/x',
+        enunciado: 'Evalúa $\\lim_{x\\to 0} \\frac{\\sen(x)}{x}$',
         opciones: [
           { letra: 'A', texto: '1', correcta: true },
           { letra: 'B', texto: '0', correcta: false, error: 'aplicas límite directo sin reconocer que es un límite notable' },
@@ -2570,20 +2580,20 @@ const MATERIAS = [
           { letra: 'D', texto: '100 m × 0 m', correcta: false, error: 'obtienes un resultado matemático que no tiene sentido físico como terreno' },
         ] },
       { id: 'p11', subtema: 'optimizacion', dificultad: 2,
-        enunciado: 'Un globo esférico se infla a razón de 10 cm³/s. ¿A qué velocidad crece el radio cuando r = 5 cm? (V = 4/3 πr³)',
+        enunciado: 'Un globo esférico se infla a razón de 10 cm³/s. ¿A qué velocidad crece el radio cuando r = 5 cm? ($V = \\frac{4}{3}\\pi r^3$)',
         opciones: [
-          { letra: 'A', texto: 'dr/dt = 10/(4π·25) = 1/(10π) cm/s', correcta: true },
-          { letra: 'B', texto: 'dr/dt = 10/r²', correcta: false, error: 'derivas el volumen pero olvidas aplicar correctamente la regla de la cadena con respecto al tiempo' },
-          { letra: 'C', texto: 'dr/dt = 10 cm/s', correcta: false, error: 'confundes la tasa de cambio del volumen con la del radio' },
-          { letra: 'D', texto: 'dr/dt = 2 cm/s', correcta: false, error: 'calculas un valor que no verificas si tiene sentido físico para la situación' },
+          { letra: 'A', texto: '$\\frac{dr}{dt} = \\frac{10}{4\\pi\\cdot 25} = \\frac{1}{10\\pi}$ cm/s', correcta: true },
+          { letra: 'B', texto: '$\\frac{dr}{dt} = \\frac{10}{r^2}$', correcta: false, error: 'derivas el volumen pero olvidas aplicar correctamente la regla de la cadena con respecto al tiempo' },
+          { letra: 'C', texto: '$\\frac{dr}{dt} = 10$ cm/s', correcta: false, error: 'confundes la tasa de cambio del volumen con la del radio' },
+          { letra: 'D', texto: '$\\frac{dr}{dt} = 2$ cm/s', correcta: false, error: 'calculas un valor que no verificas si tiene sentido físico para la situación' },
         ] },
       { id: 'p12', subtema: 'optimizacion', dificultad: 2,
         enunciado: 'Una escalera de 10 m resbala por una pared. Si el extremo inferior se aleja a 2 m/s, ¿a qué velocidad baja el extremo superior cuando está a 6 m del suelo?',
         opciones: [
-          { letra: 'A', texto: 'dy/dt = -3/2 m/s', correcta: true },
-          { letra: 'B', texto: 'dy/dt = -2 m/s', correcta: false, error: 'asumes que ambos extremos se mueven a la misma velocidad' },
-          { letra: 'C', texto: 'dy/dt = 2 m/s', correcta: false, error: 'calculas la magnitud pero olvidas que el extremo superior baja (signo negativo)' },
-          { letra: 'D', texto: 'dy/dt = -8/3 m/s', correcta: false, error: 'derivas la ecuación x² + y² = 100 antes de sustituir correctamente x = 8 cuando y = 6' },
+          { letra: 'A', texto: '$\\frac{dy}{dt} = -\\frac{3}{2}$ m/s', correcta: true },
+          { letra: 'B', texto: '$\\frac{dy}{dt} = -2$ m/s', correcta: false, error: 'asumes que ambos extremos se mueven a la misma velocidad' },
+          { letra: 'C', texto: '$\\frac{dy}{dt} = 2$ m/s', correcta: false, error: 'calculas la magnitud pero olvidas que el extremo superior baja (signo negativo)' },
+          { letra: 'D', texto: '$\\frac{dy}{dt} = -\\frac{8}{3}$ m/s', correcta: false, error: 'derivas la ecuación x² + y² = 100 antes de sustituir correctamente x = 8 cuando y = 6' },
         ] },
     ],
     prueba:        { longitud: 12, adaptativa: true,  barajarOpciones: true },
@@ -2665,7 +2675,7 @@ const MATERIAS = [
       'taylor-integra': { kc: 'serie-taylor', texto: 'construyes los coeficientes integrando en vez de derivando' },
       'taylor-funcion-equivocada': { kc: 'serie-taylor', texto: 'usas la serie de otra función conocida' },
       'taylor-trunca': { kc: 'serie-taylor', texto: 'crees que la serie termina después de pocos términos' },
-      'olvida-factorial': { kc: 'serie-taylor', texto: 'usas f⁽ⁿ⁾(0) como coeficiente sin dividir entre n!' },
+      'olvida-factorial': { kc: 'serie-taylor', texto: 'usas $f^{(n)}(0)$ como coeficiente sin dividir entre n!' },
       'radio-sin-cuadrado': { kc: 'app-volumen', texto: 'olvidas elevar al cuadrado el radio' },
       'omite-pi': { kc: 'app-volumen', texto: 'omites el factor π o 2π' },
       'discos-vs-cascarones': { kc: 'app-volumen', texto: 'confundes o mezclas los métodos de discos y cascarones' },
@@ -2712,7 +2722,7 @@ const MATERIAS = [
       { id: 'p5', subtema: 'ecuaciones-diferenciales', dificultad: 2, kcs: ['edo-separables'],
         enunciado: 'Una ecuación diferencial de variables separables tiene la forma dy/dx = f(x)·g(y). ¿Cuál es el primer paso para resolverla?',
         opciones: [
-          { letra: 'A', texto: 'Separar variables y escribir (1/g(y))dy = f(x)dx', correcta: true },
+          { letra: 'A', texto: 'Separar variables y escribir $\\frac{1}{g(y)}\\,dy = f(x)\\,dx$', correcta: true },
           { letra: 'B', texto: 'Integrar ambos lados directamente sin separar', correcta: false, error: 'no separas las variables antes de integrar', mc: 'no-separa' },
           { letra: 'C', texto: 'Derivar ambos lados para simplificar', correcta: false, error: 'confundes resolver con derivar', mc: 'deriva-en-vez-de-integrar' },
           { letra: 'D', texto: 'Sustituir y = 0 para encontrar la constante', correcta: false, error: 'intentas encontrar la constante antes de integrar', mc: 'constante-antes' },
@@ -2720,10 +2730,10 @@ const MATERIAS = [
       { id: 'p6', subtema: 'ecuaciones-diferenciales', dificultad: 3, kcs: ['edo-lineal'],
         enunciado: 'Para la ecuación diferencial dy/dx + P(x)y = Q(x), el factor integrante es:',
         opciones: [
-          { letra: 'A', texto: 'e^(∫P(x)dx)', correcta: true },
-          { letra: 'B', texto: 'e^(∫Q(x)dx)', correcta: false, error: 'confundes P(x) con Q(x) en la fórmula del factor integrante', mc: 'factor-con-q' },
-          { letra: 'C', texto: '∫P(x)dx', correcta: false, error: 'olvidas aplicar la exponencial al integrar P(x)', mc: 'factor-sin-exponencial' },
-          { letra: 'D', texto: 'P(x)·eˣ', correcta: false, error: 'mezclas la fórmula con la solución de homogéneas', mc: 'factor-mezclado' },
+          { letra: 'A', texto: '$e^{\\int P(x)\\,dx}$', correcta: true },
+          { letra: 'B', texto: '$e^{\\int Q(x)\\,dx}$', correcta: false, error: 'confundes P(x) con Q(x) en la fórmula del factor integrante', mc: 'factor-con-q' },
+          { letra: 'C', texto: '$\\int P(x)\\,dx$', correcta: false, error: 'olvidas aplicar la exponencial al integrar P(x)', mc: 'factor-sin-exponencial' },
+          { letra: 'D', texto: '$P(x)\\cdot e^x$', correcta: false, error: 'mezclas la fórmula con la solución de homogéneas', mc: 'factor-mezclado' },
         ] },
       { id: 'p7', subtema: 'ecuaciones-diferenciales', dificultad: 2, kcs: ['edo-exponencial'],
         enunciado: 'Si dy/dx = ky donde k es constante, la solución general es:',
@@ -2734,7 +2744,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'y = eˣ + k', correcta: false, error: 'olvidas la constante k en el exponente', mc: 'pierde-k-exponente' },
         ] },
       { id: 'p8', subtema: 'series', dificultad: 2, kcs: ['serie-criterio'],
-        enunciado: 'Para determinar si una serie ∑(1/n²) converge, ¿qué criterio es más directo?',
+        enunciado: 'Para determinar si una serie $\\sum \\frac{1}{n^2}$ converge, ¿qué criterio es más directo?',
         opciones: [
           { letra: 'A', texto: 'Criterio de la integral o criterio p con p = 2', correcta: true },
           { letra: 'B', texto: 'Criterio del cociente', correcta: false, error: 'usas un criterio más complejo cuando el criterio p es suficiente', mc: 'criterio-ineficiente' },
@@ -2742,7 +2752,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Comparación con 1/n', correcta: false, error: 'comparas con una serie divergente en vez de convergente', mc: 'compara-con-divergente' },
         ] },
       { id: 'p9', subtema: 'series', dificultad: 3, kcs: ['serie-potencias'],
-        enunciado: 'Una serie de potencias ∑aₙ(x-c)ⁿ tiene radio de convergencia R = 4. ¿Qué puedes afirmar?',
+        enunciado: 'Una serie de potencias $\\sum a_n(x-c)^n$ tiene radio de convergencia R = 4. ¿Qué puedes afirmar?',
         opciones: [
           { letra: 'A', texto: 'Converge absolutamente para |x-c| < 4', correcta: true },
           { letra: 'B', texto: 'Converge para todo x en (0, 4)', correcta: false, error: 'interpretas R como intervalo absoluto sin considerar el centro c', mc: 'radio-sin-centro' },
@@ -2752,7 +2762,7 @@ const MATERIAS = [
       { id: 'p10', subtema: 'series', dificultad: 2, kcs: ['serie-taylor'],
         enunciado: 'Para encontrar la serie de Taylor de f(x) = eˣ centrada en x = 0, necesitas:',
         opciones: [
-          { letra: 'A', texto: 'Calcular f⁽ⁿ⁾(0) para todo n y usar ∑(f⁽ⁿ⁾(0)/n!)xⁿ', correcta: true },
+          { letra: 'A', texto: 'Calcular $f^{(n)}(0)$ para todo n y usar $\\sum \\frac{f^{(n)}(0)}{n!}x^n$', correcta: true },
           { letra: 'B', texto: 'Integrar eˣ repetidamente', correcta: false, error: 'confundes derivadas con integrales en la construcción de la serie', mc: 'taylor-integra' },
           { letra: 'C', texto: 'Usar la serie de ln(x)', correcta: false, error: 'confundes eˣ con su función inversa', mc: 'taylor-funcion-equivocada' },
           { letra: 'D', texto: 'Solo calcular f\'(0) y f\'\'(0)', correcta: false, error: 'crees que la serie termina después de dos términos', mc: 'taylor-trunca' },
@@ -2760,18 +2770,18 @@ const MATERIAS = [
       { id: 'p11', subtema: 'aplicaciones-integral', dificultad: 2, kcs: ['app-volumen'],
         enunciado: 'El volumen de un sólido de revolución al rotar y = f(x) alrededor del eje x entre a y b es:',
         opciones: [
-          { letra: 'A', texto: 'π∫[f(x)]²dx de a a b', correcta: true },
-          { letra: 'B', texto: 'π∫f(x)dx de a a b', correcta: false, error: 'olvidas elevar al cuadrado el radio', mc: 'radio-sin-cuadrado' },
-          { letra: 'C', texto: '∫[f(x)]²dx de a a b', correcta: false, error: 'omites el π en la fórmula del volumen', mc: 'omite-pi' },
-          { letra: 'D', texto: '2π∫xf(x)dx de a a b', correcta: false, error: 'confundes método de discos con método de cascarones', mc: 'discos-vs-cascarones' },
+          { letra: 'A', texto: '$\\pi\\int_a^b [f(x)]^2\\,dx$', correcta: true },
+          { letra: 'B', texto: '$\\pi\\int_a^b f(x)\\,dx$', correcta: false, error: 'olvidas elevar al cuadrado el radio', mc: 'radio-sin-cuadrado' },
+          { letra: 'C', texto: '$\\int_a^b [f(x)]^2\\,dx$', correcta: false, error: 'omites el π en la fórmula del volumen', mc: 'omite-pi' },
+          { letra: 'D', texto: '$2\\pi\\int_a^b x f(x)\\,dx$', correcta: false, error: 'confundes método de discos con método de cascarones', mc: 'discos-vs-cascarones' },
         ] },
       { id: 'p12', subtema: 'aplicaciones-integral', dificultad: 3, kcs: ['app-arco'],
         enunciado: 'Para calcular la longitud de arco de y = f(x) de a a b, usas:',
         opciones: [
-          { letra: 'A', texto: '∫√(1 + [f\'(x)]²)dx de a a b', correcta: true },
-          { letra: 'B', texto: '∫f\'(x)dx de a a b', correcta: false, error: 'crees que la longitud es solo la integral de la derivada', mc: 'arco-solo-derivada' },
-          { letra: 'C', texto: '∫√([f(x)]²)dx de a a b', correcta: false, error: 'confundes la fórmula usando f(x) en lugar de f\'(x)', mc: 'arco-f-en-vez-de-fprima' },
-          { letra: 'D', texto: '[f(b) - f(a)]', correcta: false, error: 'usas la distancia vertical en lugar de la longitud de curva', mc: 'arco-distancia-vertical' },
+          { letra: 'A', texto: '$\\int_a^b \\sqrt{1 + [f\'(x)]^2}\\,dx$', correcta: true },
+          { letra: 'B', texto: '$\\int_a^b f\'(x)\\,dx$', correcta: false, error: 'crees que la longitud es solo la integral de la derivada', mc: 'arco-solo-derivada' },
+          { letra: 'C', texto: '$\\int_a^b \\sqrt{[f(x)]^2}\\,dx$', correcta: false, error: 'confundes la fórmula usando f(x) en lugar de f\'(x)', mc: 'arco-f-en-vez-de-fprima' },
+          { letra: 'D', texto: '$[f(b) - f(a)]$', correcta: false, error: 'usas la distancia vertical en lugar de la longitud de curva', mc: 'arco-distancia-vertical' },
         ] },
       { id: 'p13', subtema: 'partes', dificultad: 2, kcs: ['partes-eleccion-u'],
         enunciado: 'En ∫ eˣ·x² dx, ¿qué conviene elegir como u?',
@@ -2806,12 +2816,12 @@ const MATERIAS = [
           { letra: 'D', texto: 'x·ln(x) + C', correcta: false, error: 'olvidas restar la integral ∫v du', mc: 'omite-integral-restante' },
         ] },
       { id: 'p17', subtema: 'partes', dificultad: 2, kcs: ['partes-formula'],
-        enunciado: 'En ∫ x·e^(2x) dx, con u = x y dv = e^(2x) dx, el resultado es:',
+        enunciado: 'En $\\int x\\cdot e^{2x}\\,dx$, con u = x y $dv = e^{2x}\\,dx$, el resultado es:',
         opciones: [
-          { letra: 'A', texto: '(x/2)·e^(2x) − (1/4)·e^(2x) + C', correcta: true },
-          { letra: 'B', texto: '(x/2)·e^(2x) + C', correcta: false, error: 'olvidas restar la integral ∫v du', mc: 'omite-integral-restante' },
-          { letra: 'C', texto: '(x²/2)·(e^(2x)/2) + C', correcta: false, error: 'integras cada factor por separado', mc: 'producto-factor-a-factor' },
-          { letra: 'D', texto: '(x/2)·e^(2x) + (1/4)·e^(2x) + C', correcta: false, error: 'te equivocas en el signo de la fórmula de partes', mc: 'signo-partes' },
+          { letra: 'A', texto: '$\\frac{x}{2}e^{2x} - \\frac{1}{4}e^{2x} + C$', correcta: true },
+          { letra: 'B', texto: '$\\frac{x}{2}e^{2x} + C$', correcta: false, error: 'olvidas restar la integral ∫v du', mc: 'omite-integral-restante' },
+          { letra: 'C', texto: '$\\frac{x^2}{2}\\cdot\\frac{e^{2x}}{2} + C$', correcta: false, error: 'integras cada factor por separado', mc: 'producto-factor-a-factor' },
+          { letra: 'D', texto: '$\\frac{x}{2}e^{2x} + \\frac{1}{4}e^{2x} + C$', correcta: false, error: 'te equivocas en el signo de la fórmula de partes', mc: 'signo-partes' },
         ] },
       { id: 'p18', subtema: 'partes', dificultad: 3, kcs: ['partes-reiterada', 'partes-formula'],
         enunciado: 'Al resolver ∫ x²·eˣ dx con u = x² queda x²·eˣ − ∫ 2x·eˣ dx. ¿Qué sigue?',
@@ -2824,61 +2834,61 @@ const MATERIAS = [
       { id: 'p19', subtema: 'partes', dificultad: 3, kcs: ['partes-reiterada'],
         enunciado: 'Para I = ∫ eˣ·sen(x) dx, tras aplicar partes dos veces (primero u = sen(x), luego u = cos(x)) llegas a I = eˣ·sen(x) − eˣ·cos(x) − I. ¿Cuánto vale I?',
         opciones: [
-          { letra: 'A', texto: '(eˣ/2)·(sen(x) − cos(x)) + C', correcta: true },
-          { letra: 'B', texto: 'eˣ·sen(x) − eˣ·cos(x) + C', correcta: false, error: 'ignoras que la integral original reaparece y hay que despejarla', mc: 'ciclica-no-reconocida' },
+          { letra: 'A', texto: '$\\frac{e^x}{2}(\\sen(x) - \\cos(x)) + C$', correcta: true },
+          { letra: 'B', texto: '$e^x\\sen(x) - e^x\\cos(x) + C$', correcta: false, error: 'ignoras que la integral original reaparece y hay que despejarla', mc: 'ciclica-no-reconocida' },
           { letra: 'C', texto: 'Hay que aplicar partes una tercera vez, ahora con u = eˣ', correcta: false, error: 'al repetir partes inviertes la elección de u y deshaces el paso anterior', mc: 'deshace-paso' },
-          { letra: 'D', texto: 'eˣ·(sen(x) − cos(x)) + C', correcta: false, error: 'al despejar I olvidas dividir entre 2', mc: 'despeje-incompleto' },
+          { letra: 'D', texto: '$e^x(\\sen(x) - \\cos(x)) + C$', correcta: false, error: 'al despejar I olvidas dividir entre 2', mc: 'despeje-incompleto' },
         ] },
       { id: 'p20', subtema: 'partes', dificultad: 3, kcs: ['partes-reiterada'],
         enunciado: 'Para I = ∫ eˣ·cos(x) dx, tras dos aplicaciones de partes llegas a I = eˣ·cos(x) + eˣ·sen(x) − I. Entonces I es:',
         opciones: [
-          { letra: 'A', texto: '(eˣ/2)·(cos(x) + sen(x)) + C', correcta: true },
-          { letra: 'B', texto: 'eˣ·(cos(x) + sen(x)) + C', correcta: false, error: 'al despejar I olvidas dividir entre 2', mc: 'despeje-incompleto' },
-          { letra: 'C', texto: 'eˣ·cos(x) + eˣ·sen(x) − I', correcta: false, error: 'dejas la integral original en la respuesta sin despejarla', mc: 'ciclica-no-reconocida' },
-          { letra: 'D', texto: 'eˣ·cos(x) + C', correcta: false, error: 'te quedas con el primer término de la primera aplicación de partes', mc: 'partes-una-sola-vez' },
+          { letra: 'A', texto: '$\\frac{e^x}{2}(\\cos(x) + \\sen(x)) + C$', correcta: true },
+          { letra: 'B', texto: '$e^x(\\cos(x) + \\sen(x)) + C$', correcta: false, error: 'al despejar I olvidas dividir entre 2', mc: 'despeje-incompleto' },
+          { letra: 'C', texto: '$e^x\\cos(x) + e^x\\sen(x) - I$', correcta: false, error: 'dejas la integral original en la respuesta sin despejarla', mc: 'ciclica-no-reconocida' },
+          { letra: 'D', texto: '$e^x\\cos(x) + C$', correcta: false, error: 'te quedas con el primer término de la primera aplicación de partes', mc: 'partes-una-sola-vez' },
         ] },
       { id: 'p21', subtema: 'sustitucion', dificultad: 2, kcs: ['sust-reconocer', 'sust-dx'],
-        enunciado: '∫ 2x·e^(x²) dx es:',
+        enunciado: '$\\int 2x\\cdot e^{x^2}\\,dx$ es:',
         opciones: [
-          { letra: 'A', texto: 'e^(x²) + C', correcta: true },
-          { letra: 'B', texto: 'x²·e^(x²) + C', correcta: false, error: 'no reconoces que 2x es la derivada de x² e integras los factores por separado', mc: 'no-ve-derivada-interna' },
-          { letra: 'C', texto: 'e^(x²)/(2x) + C', correcta: false, error: 'divides por la derivada de la función interna como si fuera una constante', mc: 'ignora-cadena' },
-          { letra: 'D', texto: '2·e^(x²) + C', correcta: false, error: 'ajustas mal la constante al pasar de dx a du', mc: 'olvida-constante-du' },
+          { letra: 'A', texto: '$e^{x^2} + C$', correcta: true },
+          { letra: 'B', texto: '$x^2 e^{x^2} + C$', correcta: false, error: 'no reconoces que 2x es la derivada de x² e integras los factores por separado', mc: 'no-ve-derivada-interna' },
+          { letra: 'C', texto: '$\\frac{e^{x^2}}{2x} + C$', correcta: false, error: 'divides por la derivada de la función interna como si fuera una constante', mc: 'ignora-cadena' },
+          { letra: 'D', texto: '$2e^{x^2} + C$', correcta: false, error: 'ajustas mal la constante al pasar de dx a du', mc: 'olvida-constante-du' },
         ] },
       { id: 'p22', subtema: 'sustitucion', dificultad: 3, kcs: ['sust-reconocer', 'sust-dx'],
-        enunciado: '¿Cómo se resuelve ∫ x/(x² + 1) dx?',
+        enunciado: '¿Cómo se resuelve $\\int \\frac{x}{x^2 + 1}\\,dx$?',
         opciones: [
-          { letra: 'A', texto: 'Con u = x² + 1, y da (1/2)·ln(x² + 1) + C', correcta: true },
+          { letra: 'A', texto: 'Con u = x² + 1, y da $\\frac{1}{2}\\ln(x^2 + 1) + C$', correcta: true },
           { letra: 'B', texto: 'Con u = x, porque es el numerador', correcta: false, error: 'eliges u por la forma y no por la derivada de la función interna', mc: 'no-ve-derivada-interna' },
-          { letra: 'C', texto: 'Directo: es arctan(x) + C', correcta: false, error: 'aplicas la fórmula de ∫ 1/(x² + 1) dx, que no corresponde a esta forma', mc: 'metodo-equivocado' },
-          { letra: 'D', texto: 'Con u = x² + 1, y da ln(x² + 1) + C', correcta: false, error: 'olvidas el 1/2 al pasar de dx a du', mc: 'olvida-constante-du' },
+          { letra: 'C', texto: 'Directo: es arctan(x) + C', correcta: false, error: 'aplicas la fórmula de $\\int \\frac{1}{x^2 + 1}\\,dx$, que no corresponde a esta forma', mc: 'metodo-equivocado' },
+          { letra: 'D', texto: 'Con u = x² + 1, y da $\\ln(x^2 + 1) + C$', correcta: false, error: 'olvidas el 1/2 al pasar de dx a du', mc: 'olvida-constante-du' },
         ] },
       { id: 'p23', subtema: 'sustitucion', dificultad: 2, kcs: ['sust-dx'],
-        enunciado: 'En ∫ x·√(x² + 4) dx, con u = x² + 4, la integral en u queda:',
+        enunciado: 'En $\\int x\\sqrt{x^2 + 4}\\,dx$, con u = x² + 4, la integral en u queda:',
         opciones: [
-          { letra: 'A', texto: '(1/2)·∫ √u du', correcta: true },
-          { letra: 'B', texto: '∫ √u du', correcta: false, error: 'olvidas el 1/2 al despejar x dx', mc: 'olvida-constante-du' },
-          { letra: 'C', texto: '∫ x·√u du', correcta: false, error: 'dejas x y u mezcladas en la misma integral', mc: 'deja-x-mezclada' },
-          { letra: 'D', texto: '∫ √u dx', correcta: false, error: 'cambias el integrando a u pero dejas dx sin convertir', mc: 'dx-sin-convertir' },
+          { letra: 'A', texto: '$\\frac{1}{2}\\int \\sqrt{u}\\,du$', correcta: true },
+          { letra: 'B', texto: '$\\int \\sqrt{u}\\,du$', correcta: false, error: 'olvidas el 1/2 al despejar x dx', mc: 'olvida-constante-du' },
+          { letra: 'C', texto: '$\\int x\\sqrt{u}\\,du$', correcta: false, error: 'dejas x y u mezcladas en la misma integral', mc: 'deja-x-mezclada' },
+          { letra: 'D', texto: '$\\int \\sqrt{u}\\,dx$', correcta: false, error: 'cambias el integrando a u pero dejas dx sin convertir', mc: 'dx-sin-convertir' },
         ] },
       { id: 'p24', subtema: 'sustitucion', dificultad: 2, kcs: ['sust-dx'],
-        enunciado: 'Con u = ln(x), ¿en qué se convierte ∫ (ln(x))²/x dx?',
+        enunciado: 'Con u = ln(x), ¿en qué se convierte $\\int \\frac{(\\ln(x))^2}{x}\\,dx$?',
         opciones: [
-          { letra: 'A', texto: '∫ u² du', correcta: true },
-          { letra: 'B', texto: '∫ u²/x du', correcta: false, error: 'dejas x y u mezcladas en la misma integral', mc: 'deja-x-mezclada' },
-          { letra: 'C', texto: '∫ u² dx', correcta: false, error: 'cambias el integrando a u pero dejas dx sin convertir', mc: 'dx-sin-convertir' },
-          { letra: 'D', texto: '(1/2)·∫ u² du', correcta: false, error: 'agregas una constante que no aparece al pasar de dx a du', mc: 'olvida-constante-du' },
+          { letra: 'A', texto: '$\\int u^2\\,du$', correcta: true },
+          { letra: 'B', texto: '$\\int \\frac{u^2}{x}\\,du$', correcta: false, error: 'dejas x y u mezcladas en la misma integral', mc: 'deja-x-mezclada' },
+          { letra: 'C', texto: '$\\int u^2\\,dx$', correcta: false, error: 'cambias el integrando a u pero dejas dx sin convertir', mc: 'dx-sin-convertir' },
+          { letra: 'D', texto: '$\\frac{1}{2}\\int u^2\\,du$', correcta: false, error: 'agregas una constante que no aparece al pasar de dx a du', mc: 'olvida-constante-du' },
         ] },
       { id: 'p25', subtema: 'sustitucion', dificultad: 2, kcs: ['sust-limites'],
-        enunciado: 'Para ∫ de 0 a 2 de 2x·(x² + 1)³ dx con u = x² + 1, la integral en u es:',
+        enunciado: 'Para $\\int_0^2 2x\\cdot(x^2 + 1)^3\\,dx$ con u = x² + 1, la integral en u es:',
         opciones: [
-          { letra: 'A', texto: '∫ de 1 a 5 de u³ du', correcta: true },
-          { letra: 'B', texto: '∫ de 0 a 2 de u³ du', correcta: false, error: 'usas los límites en x después de cambiar a u', mc: 'limites-sin-cambiar' },
-          { letra: 'C', texto: '∫ de 1 a 3 de u³ du', correcta: false, error: 'calculas el límite nuevo con otra expresión que no es u', mc: 'limite-mal-calculado' },
-          { letra: 'D', texto: 'Regresar a (x² + 1)⁴/4 y evaluar entre 1 y 5', correcta: false, error: 'cambias los límites y además regresas a x', mc: 'limites-dos-veces' },
+          { letra: 'A', texto: '$\\int_1^5 u^3\\,du$', correcta: true },
+          { letra: 'B', texto: '$\\int_0^2 u^3\\,du$', correcta: false, error: 'usas los límites en x después de cambiar a u', mc: 'limites-sin-cambiar' },
+          { letra: 'C', texto: '$\\int_1^3 u^3\\,du$', correcta: false, error: 'calculas el límite nuevo con otra expresión que no es u', mc: 'limite-mal-calculado' },
+          { letra: 'D', texto: 'Regresar a $\\frac{(x^2 + 1)^4}{4}$ y evaluar entre 1 y 5', correcta: false, error: 'cambias los límites y además regresas a x', mc: 'limites-dos-veces' },
         ] },
       { id: 'p26', subtema: 'sustitucion', dificultad: 3, kcs: ['sust-limites'],
-        enunciado: 'En ∫ de 0 a π/2 de sen²(x)·cos(x) dx usaste u = sen(x) y llegaste a u³/3. ¿Cómo terminas?',
+        enunciado: 'En $\\int_0^{\\pi/2} \\sen^2 x \\cos x\\,dx$ usaste u = sen(x) y llegaste a u³/3. ¿Cómo terminas?',
         opciones: [
           { letra: 'A', texto: 'Evalúo u³/3 entre u = 0 y u = 1, y da 1/3', correcta: true },
           { letra: 'B', texto: 'Evalúo u³/3 entre u = 0 y u = π/2, y da π³/24', correcta: false, error: 'usas los límites en x después de cambiar a u', mc: 'limites-sin-cambiar' },
@@ -2888,13 +2898,13 @@ const MATERIAS = [
       { id: 'p27', subtema: 'impropias', dificultad: 2, kcs: ['impropia-p'],
         enunciado: '¿Cuál de estas integrales desde 1 hasta ∞ converge?',
         opciones: [
-          { letra: 'A', texto: '∫ 1/x³ dx', correcta: true },
-          { letra: 'B', texto: '∫ 1/x dx', correcta: false, error: 'crees que 1/x se comporta como las potencias con p > 1', mc: 'confunde-p1' },
-          { letra: 'C', texto: '∫ 1/√x dx', correcta: false, error: 'inviertes la condición y crees que converge con p < 1', mc: 'condicion-p-mal' },
+          { letra: 'A', texto: '$\\int \\frac{1}{x^3}\\,dx$', correcta: true },
+          { letra: 'B', texto: '$\\int \\frac{1}{x}\\,dx$', correcta: false, error: 'crees que 1/x se comporta como las potencias con p > 1', mc: 'confunde-p1' },
+          { letra: 'C', texto: '$\\int \\frac{1}{\\sqrt{x}}\\,dx$', correcta: false, error: 'inviertes la condición y crees que converge con p < 1', mc: 'condicion-p-mal' },
           { letra: 'D', texto: 'Ninguna, porque el intervalo es infinito', correcta: false, error: 'crees que un intervalo infinito siempre da un resultado infinito', mc: 'no-reconoce-convergente' },
         ] },
       { id: 'p28', subtema: 'impropias', dificultad: 3, kcs: ['impropia-p', 'impropia-limite'],
-        enunciado: '∫ desde 1 hasta ∞ de 1/x^(3/2) dx:',
+        enunciado: '$\\int_1^{\\infty} \\frac{1}{x^{3/2}}\\,dx$:',
         opciones: [
           { letra: 'A', texto: 'Converge a 2', correcta: true },
           { letra: 'B', texto: 'Diverge, igual que 1/x', correcta: false, error: 'la confundes con 1/x, que sí diverge', mc: 'confunde-p1' },
@@ -2902,15 +2912,15 @@ const MATERIAS = [
           { letra: 'D', texto: 'Diverge, porque hace falta p ≥ 2', correcta: false, error: 'exiges una condición más fuerte que p > 1', mc: 'condicion-p-mal' },
         ] },
       { id: 'p29', subtema: 'impropias', dificultad: 2, kcs: ['impropia-limite'],
-        enunciado: '¿Cómo se trabaja correctamente ∫ desde 0 hasta ∞ de e^(−x) dx?',
+        enunciado: '¿Cómo se trabaja correctamente $\\int_0^{\\infty} e^{-x}\\,dx$?',
         opciones: [
-          { letra: 'A', texto: 'Como el límite cuando b → ∞ de ∫ de 0 a b de e^(−x) dx', correcta: true },
-          { letra: 'B', texto: 'Evaluando −e^(−x) directamente en x = ∞ y en x = 0', correcta: false, error: 'reemplazas ∞ como si fuera un número', mc: 'infinito-como-numero' },
-          { letra: 'C', texto: 'Vale 0, porque e^(−x) tiende a 0', correcta: false, error: 'confundes que el integrando tienda a 0 con el valor de la integral', mc: 'integrando-vs-integral' },
-          { letra: 'D', texto: 'Como el límite cuando b → ∞ de e^(−b)', correcta: false, error: 'evalúas solo un extremo de la antiderivada', mc: 'limite-mal-evaluado' },
+          { letra: 'A', texto: 'Como $\\lim_{b\\to\\infty} \\int_0^b e^{-x}\\,dx$', correcta: true },
+          { letra: 'B', texto: 'Evaluando $-e^{-x}$ directamente en x = ∞ y en x = 0', correcta: false, error: 'reemplazas ∞ como si fuera un número', mc: 'infinito-como-numero' },
+          { letra: 'C', texto: 'Vale 0, porque $e^{-x}$ tiende a 0', correcta: false, error: 'confundes que el integrando tienda a 0 con el valor de la integral', mc: 'integrando-vs-integral' },
+          { letra: 'D', texto: 'Como $\\lim_{b\\to\\infty} e^{-b}$', correcta: false, error: 'evalúas solo un extremo de la antiderivada', mc: 'limite-mal-evaluado' },
         ] },
       { id: 'p30', subtema: 'impropias', dificultad: 3, kcs: ['impropia-limite'],
-        enunciado: 'Un estudiante dice que ∫ desde 1 hasta ∞ de 1/x dx converge "porque 1/x tiende a 0". ¿Qué está mal?',
+        enunciado: 'Un estudiante dice que $\\int_1^{\\infty} \\frac{1}{x}\\,dx$ converge "porque 1/x tiende a 0". ¿Qué está mal?',
         opciones: [
           { letra: 'A', texto: 'Que el integrando tienda a 0 no basta: ln(b) tiende a ∞ cuando b → ∞', correcta: true },
           { letra: 'B', texto: 'Nada, y la integral vale 0', correcta: false, error: 'confundes que el integrando tienda a 0 con que la integral converja', mc: 'integrando-vs-integral' },
@@ -2918,7 +2928,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Converge a 1, porque solo cuenta el límite inferior', correcta: false, error: 'evalúas mal la antiderivada en los límites', mc: 'limite-mal-evaluado' },
         ] },
       { id: 'p31', subtema: 'impropias', dificultad: 2, kcs: ['impropia-discontinuidad', 'impropia-limite'],
-        enunciado: '¿Es impropia ∫ de 0 a 1 de 1/√x dx?',
+        enunciado: '¿Es impropia $\\int_0^1 \\frac{1}{\\sqrt{x}}\\,dx$?',
         opciones: [
           { letra: 'A', texto: 'Sí, porque 1/√x no está definida en x = 0', correcta: true },
           { letra: 'B', texto: 'No, porque los límites de integración son finitos', correcta: false, error: 'crees que solo es impropia si tiene límites infinitos', mc: 'solo-limites-infinitos' },
@@ -2926,7 +2936,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'No, porque x = 0 es un extremo y los extremos no cuentan', correcta: false, error: 'no revisas si el integrando se indefine en un extremo', mc: 'ignora-discontinuidad' },
         ] },
       { id: 'p32', subtema: 'impropias', dificultad: 3, kcs: ['impropia-discontinuidad', 'impropia-limite'],
-        enunciado: 'Un estudiante calcula ∫ de −1 a 1 de 1/x² dx como [−1/x] entre −1 y 1, y obtiene −2. ¿Qué pasa?',
+        enunciado: 'Un estudiante calcula $\\int_{-1}^1 \\frac{1}{x^2}\\,dx$ como $\\left[-\\frac{1}{x}\\right]$ entre −1 y 1, y obtiene −2. ¿Qué pasa?',
         opciones: [
           { letra: 'A', texto: 'No vale: 1/x² se indefine en x = 0, hay que partir la integral y resulta divergente', correcta: true },
           { letra: 'B', texto: 'Está bien: los límites son finitos, así que no es impropia', correcta: false, error: 'crees que solo es impropia si tiene límites infinitos', mc: 'solo-limites-infinitos' },
@@ -2936,53 +2946,53 @@ const MATERIAS = [
       { id: 'p33', subtema: 'ecuaciones-diferenciales', dificultad: 2, kcs: ['edo-separables'],
         enunciado: 'Resuelves dy/dx = x·y² separando variables. ¿Qué queda para integrar?',
         opciones: [
-          { letra: 'A', texto: '∫ dy/y² = ∫ x dx', correcta: true },
-          { letra: 'B', texto: '∫ dy = ∫ x·y² dx', correcta: false, error: 'integras sin separar antes las variables', mc: 'no-separa' },
-          { letra: 'C', texto: 'd²y/dx² = y² + 2xy·(dy/dx)', correcta: false, error: 'derivas la ecuación en vez de integrarla', mc: 'deriva-en-vez-de-integrar' },
+          { letra: 'A', texto: '$\\int \\frac{dy}{y^2} = \\int x\\,dx$', correcta: true },
+          { letra: 'B', texto: '$\\int dy = \\int x\\cdot y^2\\,dx$', correcta: false, error: 'integras sin separar antes las variables', mc: 'no-separa' },
+          { letra: 'C', texto: '$\\frac{d^2y}{dx^2} = y^2 + 2xy\\cdot\\frac{dy}{dx}$', correcta: false, error: 'derivas la ecuación en vez de integrarla', mc: 'deriva-en-vez-de-integrar' },
           { letra: 'D', texto: 'Primero se halla C con y(0) y después se separa', correcta: false, error: 'buscas la constante antes de integrar', mc: 'constante-antes' },
         ] },
       { id: 'p34', subtema: 'ecuaciones-diferenciales', dificultad: 3, kcs: ['edo-separables'],
-        enunciado: 'La solución general de dy/dx = 2x/y es:',
+        enunciado: 'La solución general de $\\frac{dy}{dx} = \\frac{2x}{y}$ es:',
         opciones: [
-          { letra: 'A', texto: 'y² = 2x² + C', correcta: true },
-          { letra: 'B', texto: 'y = x²/y + C', correcta: false, error: 'integras sin separar antes las variables', mc: 'no-separa' },
-          { letra: 'C', texto: 'y² = 2x²', correcta: false, error: 'descartas la constante antes de terminar de integrar', mc: 'constante-antes' },
-          { letra: 'D', texto: 'y\' = 2/y − 2x·y\'/y²', correcta: false, error: 'derivas la ecuación en vez de integrarla', mc: 'deriva-en-vez-de-integrar' },
+          { letra: 'A', texto: '$y^2 = 2x^2 + C$', correcta: true },
+          { letra: 'B', texto: '$y = \\frac{x^2}{y} + C$', correcta: false, error: 'integras sin separar antes las variables', mc: 'no-separa' },
+          { letra: 'C', texto: '$y^2 = 2x^2$', correcta: false, error: 'descartas la constante antes de terminar de integrar', mc: 'constante-antes' },
+          { letra: 'D', texto: '$y\' = \\frac{2}{y} - \\frac{2x\\cdot y\'}{y^2}$', correcta: false, error: 'derivas la ecuación en vez de integrarla', mc: 'deriva-en-vez-de-integrar' },
         ] },
       { id: 'p35', subtema: 'ecuaciones-diferenciales', dificultad: 2, kcs: ['edo-lineal'],
         enunciado: 'Para dy/dx + 2y = eˣ, el factor integrante es:',
         opciones: [
-          { letra: 'A', texto: 'e^(2x)', correcta: true },
-          { letra: 'B', texto: 'e^(eˣ)', correcta: false, error: 'usas el lado derecho en vez del coeficiente de y', mc: 'factor-con-q' },
+          { letra: 'A', texto: '$e^{2x}$', correcta: true },
+          { letra: 'B', texto: '$e^{e^x}$', correcta: false, error: 'usas el lado derecho en vez del coeficiente de y', mc: 'factor-con-q' },
           { letra: 'C', texto: '2x', correcta: false, error: 'olvidas la exponencial en el factor integrante', mc: 'factor-sin-exponencial' },
-          { letra: 'D', texto: '2·eˣ', correcta: false, error: 'mezclas el coeficiente de y con el lado derecho', mc: 'factor-mezclado' },
+          { letra: 'D', texto: '$2\\cdot e^x$', correcta: false, error: 'mezclas el coeficiente de y con el lado derecho', mc: 'factor-mezclado' },
         ] },
       { id: 'p36', subtema: 'ecuaciones-diferenciales', dificultad: 3, kcs: ['edo-lineal'],
-        enunciado: 'Para dy/dx + (1/x)·y = x, con x > 0, ¿qué factor integrante usas y qué ecuación queda?',
+        enunciado: 'Para $\\frac{dy}{dx} + \\frac{1}{x}\\cdot y = x$, con x > 0, ¿qué factor integrante usas y qué ecuación queda?',
         opciones: [
-          { letra: 'A', texto: 'μ = x, y queda (x·y)\' = x²', correcta: true },
-          { letra: 'B', texto: 'μ = e^(x²/2), y queda (e^(x²/2)·y)\' = x·e^(x²/2)', correcta: false, error: 'usas Q(x) en vez de P(x) para el factor integrante', mc: 'factor-con-q' },
-          { letra: 'C', texto: 'μ = ln(x), y queda (ln(x)·y)\' = x·ln(x)', correcta: false, error: 'olvidas la exponencial en el factor integrante', mc: 'factor-sin-exponencial' },
-          { letra: 'D', texto: 'μ = x, y queda x·y = x', correcta: false, error: 'multiplicas por el factor pero te saltas la integración', mc: 'factor-mezclado' },
+          { letra: 'A', texto: '$\\mu = x$, y queda $(x\\cdot y)\' = x^2$', correcta: true },
+          { letra: 'B', texto: '$\\mu = e^{x^2/2}$, y queda $(e^{x^2/2}\\cdot y)\' = x\\cdot e^{x^2/2}$', correcta: false, error: 'usas Q(x) en vez de P(x) para el factor integrante', mc: 'factor-con-q' },
+          { letra: 'C', texto: '$\\mu = \\ln(x)$, y queda $(\\ln(x)\\cdot y)\' = x\\cdot\\ln(x)$', correcta: false, error: 'olvidas la exponencial en el factor integrante', mc: 'factor-sin-exponencial' },
+          { letra: 'D', texto: '$\\mu = x$, y queda $x\\cdot y = x$', correcta: false, error: 'multiplicas por el factor pero te saltas la integración', mc: 'factor-mezclado' },
         ] },
       { id: 'p37', subtema: 'ecuaciones-diferenciales', dificultad: 2, kcs: ['edo-exponencial'],
         enunciado: 'Una población crece según dP/dt = 0,03·P, con P(0) = 500. ¿Cuál es P(t)?',
         opciones: [
-          { letra: 'A', texto: 'P(t) = 500·e^(0,03t)', correcta: true },
-          { letra: 'B', texto: 'P(t) = 500 + 0,03t', correcta: false, error: 'resuelves como integración directa sin ver que P está en ambos lados', mc: 'integra-directo-ky' },
-          { letra: 'C', texto: 'P(t) = 500·eᵗ + 0,03', correcta: false, error: 'sacas la constante del exponente', mc: 'pierde-k-exponente' },
-          { letra: 'D', texto: 'P(t) = e^(0,03t) + 500', correcta: false, error: 'sumas la condición inicial en vez de multiplicar', mc: 'constante-sumada' },
+          { letra: 'A', texto: '$P(t) = 500\\cdot e^{0,03t}$', correcta: true },
+          { letra: 'B', texto: '$P(t) = 500 + 0,03t$', correcta: false, error: 'resuelves como integración directa sin ver que P está en ambos lados', mc: 'integra-directo-ky' },
+          { letra: 'C', texto: '$P(t) = 500\\cdot e^t + 0,03$', correcta: false, error: 'sacas la constante del exponente', mc: 'pierde-k-exponente' },
+          { letra: 'D', texto: '$P(t) = e^{0,03t} + 500$', correcta: false, error: 'sumas la condición inicial en vez de multiplicar', mc: 'constante-sumada' },
         ] },
       { id: 'p38', subtema: 'ecuaciones-diferenciales', dificultad: 3, kcs: ['edo-exponencial'],
         enunciado: 'Si dy/dx = −2y y y(0) = 3, ¿cuánto vale y(1)?',
         opciones: [
-          { letra: 'A', texto: '3·e^(−2)', correcta: true },
+          { letra: 'A', texto: '$3\\cdot e^{-2}$', correcta: true },
           { letra: 'B', texto: '1', correcta: false, error: 'resuelves y = 3 − 2x como si fuera integración directa', mc: 'integra-directo-ky' },
-          { letra: 'C', texto: '3·e^(−1)', correcta: false, error: 'pierdes la constante k del exponente', mc: 'pierde-k-exponente' },
-          { letra: 'D', texto: 'e^(−2) + 3', correcta: false, error: 'sumas la condición inicial en vez de multiplicar', mc: 'constante-sumada' },
+          { letra: 'C', texto: '$3\\cdot e^{-1}$', correcta: false, error: 'pierdes la constante k del exponente', mc: 'pierde-k-exponente' },
+          { letra: 'D', texto: '$e^{-2} + 3$', correcta: false, error: 'sumas la condición inicial en vez de multiplicar', mc: 'constante-sumada' },
         ] },
       { id: 'p39', subtema: 'series', dificultad: 2, kcs: ['serie-criterio'],
-        enunciado: '¿Qué se puede concluir de ∑ 1/√n?',
+        enunciado: '¿Qué se puede concluir de $\\sum \\frac{1}{\\sqrt{n}}$?',
         opciones: [
           { letra: 'A', texto: 'Diverge, porque es una serie p con p = 1/2 ≤ 1', correcta: true },
           { letra: 'B', texto: 'Converge, porque 1/√n tiende a 0', correcta: false, error: 'crees que si el término tiende a 0 la serie converge', mc: 'termino-a-cero' },
@@ -2990,15 +3000,15 @@ const MATERIAS = [
           { letra: 'D', texto: 'Converge, porque cada término es menor que 1', correcta: false, error: 'comparas con ∑ 1, que diverge y no permite concluir', mc: 'compara-con-divergente' },
         ] },
       { id: 'p40', subtema: 'series', dificultad: 3, kcs: ['serie-criterio'],
-        enunciado: '¿Converge ∑ n/(n + 1)?',
+        enunciado: '¿Converge $\\sum \\frac{n}{n + 1}$?',
         opciones: [
           { letra: 'A', texto: 'No: el término general tiende a 1, no a 0, así que diverge', correcta: true },
-          { letra: 'B', texto: 'Sí, porque n/(n + 1) < 1 para todo n', correcta: false, error: 'comparas con ∑ 1, que diverge y no permite concluir', mc: 'compara-con-divergente' },
+          { letra: 'B', texto: 'Sí, porque $\\frac{n}{n + 1} < 1$ para todo n', correcta: false, error: 'comparas con ∑ 1, que diverge y no permite concluir', mc: 'compara-con-divergente' },
           { letra: 'C', texto: 'Hay que usar el criterio de la raíz para decidir', correcta: false, error: 'usas un criterio que aquí no decide', mc: 'criterio-ineficiente' },
           { letra: 'D', texto: 'No se puede saber: el criterio del término solo sirve cuando el término tiende a 0', correcta: false, error: 'confundes el criterio del término general', mc: 'termino-a-cero' },
         ] },
       { id: 'p41', subtema: 'series', dificultad: 2, kcs: ['serie-potencias'],
-        enunciado: 'La serie ∑ (x − 3)ⁿ/2ⁿ tiene radio de convergencia R = 2. ¿Dónde converge con seguridad?',
+        enunciado: 'La serie $\\sum \\frac{(x - 3)^n}{2^n}$ tiene radio de convergencia R = 2. ¿Dónde converge con seguridad?',
         opciones: [
           { letra: 'A', texto: 'En (1, 5)', correcta: true },
           { letra: 'B', texto: 'En (−2, 2)', correcta: false, error: 'olvidas que el intervalo va centrado en 3', mc: 'radio-sin-centro' },
@@ -3006,7 +3016,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Solo en x = 1 y en x = 5', correcta: false, error: 'confundes el radio con puntos aislados', mc: 'radio-como-puntos' },
         ] },
       { id: 'p42', subtema: 'series', dificultad: 3, kcs: ['serie-potencias', 'serie-criterio'],
-        enunciado: '∑ xⁿ/n tiene R = 1. ¿Qué pasa en x = −1 y en x = 1?',
+        enunciado: '$\\sum \\frac{x^n}{n}$ tiene R = 1. ¿Qué pasa en x = −1 y en x = 1?',
         opciones: [
           { letra: 'A', texto: 'Converge en x = −1 y diverge en x = 1', correcta: true },
           { letra: 'B', texto: 'Diverge en los dos, porque en el borde siempre diverge', correcta: false, error: 'decides qué pasa en los extremos sin verificarlos', mc: 'extremos-asumidos' },
@@ -3024,17 +3034,17 @@ const MATERIAS = [
       { id: 'p44', subtema: 'series', dificultad: 3, kcs: ['serie-taylor'],
         enunciado: 'Los primeros términos de la serie de Taylor de ln(1 + x) centrada en 0 son:',
         opciones: [
-          { letra: 'A', texto: 'x − x²/2 + x³/3 − …', correcta: true },
-          { letra: 'B', texto: 'x − x² + 2x³ − …', correcta: false, error: 'usas las derivadas sin dividir entre n!', mc: 'olvida-factorial' },
-          { letra: 'C', texto: '1 + x + x²/2 + x³/6 + …', correcta: false, error: 'usas la serie de eˣ', mc: 'taylor-funcion-equivocada' },
-          { letra: 'D', texto: 'x − x²/2, y ahí termina', correcta: false, error: 'crees que la serie termina después de pocos términos', mc: 'taylor-trunca' },
+          { letra: 'A', texto: '$x - \\frac{x^2}{2} + \\frac{x^3}{3} - …$', correcta: true },
+          { letra: 'B', texto: '$x - x^2 + 2x^3 - …$', correcta: false, error: 'usas las derivadas sin dividir entre n!', mc: 'olvida-factorial' },
+          { letra: 'C', texto: '$1 + x + \\frac{x^2}{2} + \\frac{x^3}{6} + …$', correcta: false, error: 'usas la serie de eˣ', mc: 'taylor-funcion-equivocada' },
+          { letra: 'D', texto: '$x - \\frac{x^2}{2}$, y ahí termina', correcta: false, error: 'crees que la serie termina después de pocos términos', mc: 'taylor-trunca' },
         ] },
       { id: 'p45', subtema: 'series', dificultad: 2, kcs: ['serie-taylor'],
         enunciado: 'Para el coeficiente de x² en la serie de Taylor de f centrada en 0, calculas:',
         opciones: [
-          { letra: 'A', texto: 'f\'\'(0)/2', correcta: true },
+          { letra: 'A', texto: '$\\frac{f\'\'(0)}{2}$', correcta: true },
           { letra: 'B', texto: 'La segunda integral de f evaluada en 0', correcta: false, error: 'construyes los coeficientes integrando en vez de derivando', mc: 'taylor-integra' },
-          { letra: 'C', texto: 'f\'\'(0)', correcta: false, error: 'no divides entre 2!', mc: 'olvida-factorial' },
+          { letra: 'C', texto: '$f\'\'(0)$', correcta: false, error: 'no divides entre 2!', mc: 'olvida-factorial' },
           { letra: 'D', texto: '1/2, igual que en la serie de eˣ', correcta: false, error: 'usas la serie de otra función conocida', mc: 'taylor-funcion-equivocada' },
         ] },
       { id: 'p46', subtema: 'aplicaciones-integral', dificultad: 2, kcs: ['app-volumen'],
@@ -3043,22 +3053,22 @@ const MATERIAS = [
           { letra: 'A', texto: '8π', correcta: true },
           { letra: 'B', texto: '16π/3', correcta: false, error: 'olvidas elevar al cuadrado el radio', mc: 'radio-sin-cuadrado' },
           { letra: 'C', texto: '8', correcta: false, error: 'omites el π en la fórmula del volumen', mc: 'omite-pi' },
-          { letra: 'D', texto: '2π·∫ de 0 a 4 de x·√x dx', correcta: false, error: 'usas cascarones para una rotación alrededor del eje x', mc: 'discos-vs-cascarones' },
+          { letra: 'D', texto: '$2\\pi\\cdot\\int_0^4 x\\cdot\\sqrt{x}\\,dx$', correcta: false, error: 'usas cascarones para una rotación alrededor del eje x', mc: 'discos-vs-cascarones' },
         ] },
       { id: 'p47', subtema: 'aplicaciones-integral', dificultad: 3, kcs: ['app-volumen'],
         enunciado: 'Rotas la región bajo y = x², entre x = 0 y x = 2, alrededor del eje y. Con cascarones, el volumen es:',
         opciones: [
-          { letra: 'A', texto: '2π·∫ de 0 a 2 de x·x² dx = 8π', correcta: true },
-          { letra: 'B', texto: 'π·∫ de 0 a 2 de (x²)² dx', correcta: false, error: 'usas discos alrededor del eje x en vez de cascarones', mc: 'discos-vs-cascarones' },
-          { letra: 'C', texto: '∫ de 0 a 2 de x·x² dx = 4', correcta: false, error: 'omites el factor 2π', mc: 'omite-pi' },
-          { letra: 'D', texto: '2π·∫ de 0 a 2 de x²·x² dx', correcta: false, error: 'mezclas la altura con el radio del cascarón', mc: 'discos-vs-cascarones' },
+          { letra: 'A', texto: '$2\\pi\\cdot\\int_0^2 x\\cdot x^2\\,dx = 8\\pi$', correcta: true },
+          { letra: 'B', texto: '$\\pi\\cdot\\int_0^2 (x^2)^2\\,dx$', correcta: false, error: 'usas discos alrededor del eje x en vez de cascarones', mc: 'discos-vs-cascarones' },
+          { letra: 'C', texto: '$\\int_0^2 x\\cdot x^2\\,dx = 4$', correcta: false, error: 'omites el factor 2π', mc: 'omite-pi' },
+          { letra: 'D', texto: '$2\\pi\\cdot\\int_0^2 x^2\\cdot x^2\\,dx$', correcta: false, error: 'mezclas la altura con el radio del cascarón', mc: 'discos-vs-cascarones' },
         ] },
       { id: 'p48', subtema: 'aplicaciones-integral', dificultad: 2, kcs: ['app-arco'],
-        enunciado: 'La longitud de y = x^(3/2) entre x = 0 y x = 1 se plantea como:',
+        enunciado: 'La longitud de $y = x^{3/2}$ entre x = 0 y x = 1 se plantea como:',
         opciones: [
-          { letra: 'A', texto: '∫ de 0 a 1 de √(1 + (9/4)·x) dx', correcta: true },
-          { letra: 'B', texto: '∫ de 0 a 1 de (3/2)·√x dx', correcta: false, error: 'crees que la longitud es la integral de la derivada', mc: 'arco-solo-derivada' },
-          { letra: 'C', texto: '∫ de 0 a 1 de √(1 + x³) dx', correcta: false, error: 'usas f(x) en lugar de f\'(x)', mc: 'arco-f-en-vez-de-fprima' },
+          { letra: 'A', texto: '$\\int_0^1 \\sqrt{1 + \\frac{9}{4}\\cdot x}\\,dx$', correcta: true },
+          { letra: 'B', texto: '$\\int_0^1 \\frac{3}{2}\\cdot\\sqrt{x}\\,dx$', correcta: false, error: 'crees que la longitud es la integral de la derivada', mc: 'arco-solo-derivada' },
+          { letra: 'C', texto: '$\\int_0^1 \\sqrt{1 + x^3}\\,dx$', correcta: false, error: 'usas f(x) en lugar de f\'(x)', mc: 'arco-f-en-vez-de-fprima' },
           { letra: 'D', texto: 'f(1) − f(0) = 1', correcta: false, error: 'usas la diferencia de alturas en vez de la longitud de la curva', mc: 'arco-distancia-vertical' },
         ] },
       { id: 'p49', subtema: 'aplicaciones-integral', dificultad: 3, kcs: ['app-arco'],
@@ -3066,24 +3076,24 @@ const MATERIAS = [
         opciones: [
           { letra: 'A', texto: '3√5', correcta: true },
           { letra: 'B', texto: '6, la diferencia de alturas f(3) − f(0)', correcta: false, error: 'usas la diferencia de alturas en vez de la longitud de la curva', mc: 'arco-distancia-vertical' },
-          { letra: 'C', texto: '∫ de 0 a 3 de 2 dx', correcta: false, error: 'crees que la longitud es la integral de la derivada', mc: 'arco-solo-derivada' },
-          { letra: 'D', texto: '∫ de 0 a 3 de √(1 + 4x²) dx', correcta: false, error: 'usas f(x) en lugar de f\'(x)', mc: 'arco-f-en-vez-de-fprima' },
+          { letra: 'C', texto: '$\\int_0^3 2\\,dx$', correcta: false, error: 'crees que la longitud es la integral de la derivada', mc: 'arco-solo-derivada' },
+          { letra: 'D', texto: '$\\int_0^3 \\sqrt{1 + 4x^2}\\,dx$', correcta: false, error: 'usas f(x) en lugar de f\'(x)', mc: 'arco-f-en-vez-de-fprima' },
         ] },
       { id: 'p50', subtema: 'aplicaciones-integral', dificultad: 2, kcs: ['app-area'],
         enunciado: 'El área entre y = x y y = x², entre sus puntos de corte, es:',
         opciones: [
-          { letra: 'A', texto: '∫ de 0 a 1 de (x − x²) dx = 1/6', correcta: true },
-          { letra: 'B', texto: '∫ de 0 a 1 de (x² − x) dx = −1/6', correcta: false, error: 'restas la curva de arriba a la de abajo', mc: 'area-sin-orden' },
-          { letra: 'C', texto: '∫ de 0 a 2 de (x − x²) dx', correcta: false, error: 'usas límites que no son los puntos de corte', mc: 'area-sin-intersecciones' },
-          { letra: 'D', texto: '∫ de 0 a 1 de x dx = 1/2', correcta: false, error: 'integras solo una de las curvas', mc: 'area-integra-una' },
+          { letra: 'A', texto: '$\\int_0^1 (x - x^2)\\,dx = \\frac{1}{6}$', correcta: true },
+          { letra: 'B', texto: '$\\int_0^1 (x^2 - x)\\,dx = -\\frac{1}{6}$', correcta: false, error: 'restas la curva de arriba a la de abajo', mc: 'area-sin-orden' },
+          { letra: 'C', texto: '$\\int_0^2 (x - x^2)\\,dx$', correcta: false, error: 'usas límites que no son los puntos de corte', mc: 'area-sin-intersecciones' },
+          { letra: 'D', texto: '$\\int_0^1 x\\,dx = \\frac{1}{2}$', correcta: false, error: 'integras solo una de las curvas', mc: 'area-integra-una' },
         ] },
       { id: 'p51', subtema: 'aplicaciones-integral', dificultad: 3, kcs: ['app-area'],
         enunciado: 'El área encerrada entre y = 4 − x² y el eje x es:',
         opciones: [
           { letra: 'A', texto: '32/3', correcta: true },
           { letra: 'B', texto: '−32/3', correcta: false, error: 'restas la parábola al eje en vez de al revés', mc: 'area-sin-orden' },
-          { letra: 'C', texto: '∫ de 0 a 4 de (4 − x²) dx', correcta: false, error: 'usas límites que no son los puntos de corte', mc: 'area-sin-intersecciones' },
-          { letra: 'D', texto: '∫ de −2 a 2 de x² dx = 16/3', correcta: false, error: 'integras solo una de las curvas', mc: 'area-integra-una' },
+          { letra: 'C', texto: '$\\int_0^4 (4 - x^2)\\,dx$', correcta: false, error: 'usas límites que no son los puntos de corte', mc: 'area-sin-intersecciones' },
+          { letra: 'D', texto: '$\\int_{-2}^2 x^2\\,dx = \\frac{16}{3}$', correcta: false, error: 'integras solo una de las curvas', mc: 'area-integra-una' },
         ] },
     ],
     prueba:        { longitud: 12, adaptativa: true,  barajarOpciones: true },
@@ -3100,7 +3110,7 @@ const MATERIAS = [
     subtemas: { parciales: 'Derivadas parciales y gradiente', multiples: 'Integrales dobles y triples', linea: 'Integrales de línea', teoremas: 'Green, Stokes y Gauss' },
     preguntas: [
       { id: 'p1', subtema: 'parciales', dificultad: 2,
-        enunciado: 'Dada f(x,y) = x²y + y³, calcula ∂f/∂x en el punto (2,1).',
+        enunciado: 'Dada f(x,y) = x²y + y³, calcula $\\frac{\\partial f}{\\partial x}$ en el punto (2,1).',
         opciones: [
           { letra: 'A', texto: '4', correcta: true },
           { letra: 'B', texto: '7', correcta: false, error: 'derivas respecto a y en lugar de x' },
@@ -3124,7 +3134,7 @@ const MATERIAS = [
           { letra: 'D', texto: '2√2', correcta: false, error: 'normalizas pero luego calculas la magnitud del gradiente en lugar del producto punto' },
         ] },
       { id: 'p4', subtema: 'multiples', dificultad: 2,
-        enunciado: 'Calcula ∫∫_R xy dA donde R es el rectángulo [0,2] × [0,1]. Al integrar primero respecto a x:',
+        enunciado: 'Calcula $\\iint_R xy\\,dA$ donde R es el rectángulo [0,2] × [0,1]. Al integrar primero respecto a x:',
         opciones: [
           { letra: 'A', texto: '1', correcta: true },
           { letra: 'B', texto: '2', correcta: false, error: 'inviertes mal el orden y no ajustas los límites correctamente' },
@@ -3132,7 +3142,7 @@ const MATERIAS = [
           { letra: 'D', texto: '4', correcta: false, error: 'olvidas dividir por los exponentes al integrar' },
         ] },
       { id: 'p5', subtema: 'multiples', dificultad: 2,
-        enunciado: 'Al convertir ∫∫_R f(x,y) dA a coordenadas polares donde R es el círculo x² + y² ≤ 4, los límites correctos son:',
+        enunciado: 'Al convertir $\\iint_R f(x,y)\\,dA$ a coordenadas polares donde R es el círculo x² + y² ≤ 4, los límites correctos son:',
         opciones: [
           { letra: 'A', texto: '0 ≤ r ≤ 2, 0 ≤ θ ≤ 2π', correcta: true },
           { letra: 'B', texto: '0 ≤ r ≤ 4, 0 ≤ θ ≤ 2π', correcta: false, error: 'no cambias correctamente el límite de r al cambiar de variable' },
@@ -3140,7 +3150,7 @@ const MATERIAS = [
           { letra: 'D', texto: '-2 ≤ r ≤ 2, 0 ≤ θ ≤ 2π', correcta: false, error: 'mantienes los límites rectangulares en lugar de adaptarlos a polares' },
         ] },
       { id: 'p6', subtema: 'multiples', dificultad: 2,
-        enunciado: 'Al calcular ∫∫_R e^(x²+y²) dA sobre el círculo unitario usando coordenadas polares, el elemento de área correcto es:',
+        enunciado: 'Al calcular $\\iint_R e^{x^2+y^2}\\,dA$ sobre el círculo unitario usando coordenadas polares, el elemento de área correcto es:',
         opciones: [
           { letra: 'A', texto: 'r dr dθ', correcta: true },
           { letra: 'B', texto: 'dr dθ', correcta: false, error: 'olvidas el jacobiano de la transformación' },
@@ -3148,7 +3158,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'dθ dr', correcta: false, error: 'inviertes el orden sin el jacobiano' },
         ] },
       { id: 'p7', subtema: 'linea', dificultad: 2,
-        enunciado: 'Calcula ∫_C y dx donde C es el segmento de (0,0) a (1,1) parametrizado como r(t) = (t, t) con 0 ≤ t ≤ 1:',
+        enunciado: 'Calcula $\\int_C y\\,dx$ donde C es el segmento de (0,0) a (1,1) parametrizado como r(t) = (t, t) con 0 ≤ t ≤ 1:',
         opciones: [
           { letra: 'A', texto: '1/2', correcta: true },
           { letra: 'B', texto: '-1/2', correcta: false, error: 'parametrizas con la orientación contraria' },
@@ -3156,7 +3166,7 @@ const MATERIAS = [
           { letra: 'D', texto: '2', correcta: false, error: 'integras y² en lugar de y' },
         ] },
       { id: 'p8', subtema: 'linea', dificultad: 2,
-        enunciado: 'Para calcular ∫_C F·dr donde F = (y, -x) y C es el círculo unitario recorrido en sentido antihorario, la parametrización correcta es:',
+        enunciado: 'Para calcular $\\int_C F\\cdot dr$ donde F = (y, -x) y C es el círculo unitario recorrido en sentido antihorario, la parametrización correcta es:',
         opciones: [
           { letra: 'A', texto: 'r(t) = (cos t, sen t), 0 ≤ t ≤ 2π', correcta: true },
           { letra: 'B', texto: 'r(t) = (sen t, cos t), 0 ≤ t ≤ 2π', correcta: false, error: 'parametrizas con orientación horaria' },
@@ -3164,7 +3174,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'r(t) = (t, √(1-t²)), -1 ≤ t ≤ 1', correcta: false, error: 'usas parametrización no cerrada' },
         ] },
       { id: 'p9', subtema: 'linea', dificultad: 2,
-        enunciado: 'Si F = ∇f es un campo conservativo y C es una curva de A a B, entonces ∫_C F·dr es igual a:',
+        enunciado: 'Si F = ∇f es un campo conservativo y C es una curva de A a B, entonces $\\int_C F\\cdot dr$ es igual a:',
         opciones: [
           { letra: 'A', texto: 'f(B) - f(A)', correcta: true },
           { letra: 'B', texto: 'f(A) - f(B)', correcta: false, error: 'inviertes la orientación de la integral' },
@@ -3172,7 +3182,7 @@ const MATERIAS = [
           { letra: 'D', texto: '0', correcta: false, error: 'asumes que toda integral sobre un campo conservativo es cero' },
         ] },
       { id: 'p10', subtema: 'teoremas', dificultad: 2,
-        enunciado: 'El teorema de Green permite calcular ∫_C P dx + Q dy como una integral doble sobre la región D cuando:',
+        enunciado: 'El teorema de Green permite calcular $\\int_C P\\,dx + Q\\,dy$ como una integral doble sobre la región D cuando:',
         opciones: [
           { letra: 'A', texto: 'C es una curva cerrada simple que encierra D', correcta: true },
           { letra: 'B', texto: 'C es cualquier curva (no necesariamente cerrada)', correcta: false, error: 'aplicas Green a una curva que no es cerrada' },
@@ -3180,7 +3190,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'P y Q son constantes', correcta: false, error: 'confundes las condiciones de aplicabilidad' },
         ] },
       { id: 'p11', subtema: 'teoremas', dificultad: 2,
-        enunciado: 'Para aplicar el teorema de Stokes a ∫_C F·dr donde C es la frontera de una superficie S:',
+        enunciado: 'Para aplicar el teorema de Stokes a $\\int_C F\\cdot dr$ donde C es la frontera de una superficie S:',
         opciones: [
           { letra: 'A', texto: 'C debe recorrerse según la regla de la mano derecha respecto a la normal de S', correcta: true },
           { letra: 'B', texto: 'C debe recorrerse en sentido horario', correcta: false, error: 'equivocas la orientación de la frontera' },
@@ -3188,11 +3198,11 @@ const MATERIAS = [
           { letra: 'D', texto: 'F debe ser conservativo', correcta: false, error: 'confundes las condiciones de Stokes' },
         ] },
       { id: 'p12', subtema: 'teoremas', dificultad: 2,
-        enunciado: 'El teorema de Gauss (divergencia) relaciona ∫∫_S F·n dS con:',
+        enunciado: 'El teorema de Gauss (divergencia) relaciona $\\iint_S F\\cdot n\\,dS$ con:',
         opciones: [
-          { letra: 'A', texto: '∫∫∫_V div F dV donde S encierra V', correcta: true },
-          { letra: 'B', texto: '∫∫_S rot F·n dS', correcta: false, error: 'usas Stokes donde corresponde Gauss' },
-          { letra: 'C', texto: '∫_C F·dr donde C es la frontera de S', correcta: false, error: 'aplicas teorema incorrecto para superficies cerradas' },
+          { letra: 'A', texto: '$∭_V \\mathrm{div}\\,F\\,dV$ donde S encierra V', correcta: true },
+          { letra: 'B', texto: '$\\iint_S \\mathrm{rot}\\,F\\cdot n\\,dS$', correcta: false, error: 'usas Stokes donde corresponde Gauss' },
+          { letra: 'C', texto: '$\\int_C F\\cdot dr$ donde C es la frontera de S', correcta: false, error: 'aplicas teorema incorrecto para superficies cerradas' },
           { letra: 'D', texto: '0 si F es conservativo', correcta: false, error: 'confundes campo conservativo con divergencia nula' },
         ] },
     ],
@@ -3284,18 +3294,18 @@ const MATERIAS = [
       { id: 'p10', subtema: 'rotacional', dificultad: 2,
         enunciado: 'Una varilla delgada de masa M y longitud L gira alrededor de su centro. ¿Cuál es su momento de inercia?',
         opciones: [
-          { letra: 'A', texto: 'ML²/12', correcta: true },
-          { letra: 'B', texto: 'ML²/3', correcta: false, error: 'usas el momento de inercia para rotación en un extremo en lugar del centro' },
-          { letra: 'C', texto: 'ML²', correcta: false, error: 'olvidas el factor geométrico del momento de inercia' },
-          { letra: 'D', texto: 'ML²/2', correcta: false, error: 'confundes la fórmula con la de un disco' },
+          { letra: 'A', texto: '$\\frac{ML^2}{12}$', correcta: true },
+          { letra: 'B', texto: '$\\frac{ML^2}{3}$', correcta: false, error: 'usas el momento de inercia para rotación en un extremo en lugar del centro' },
+          { letra: 'C', texto: '$ML^2$', correcta: false, error: 'olvidas el factor geométrico del momento de inercia' },
+          { letra: 'D', texto: '$\\frac{ML^2}{2}$', correcta: false, error: 'confundes la fórmula con la de un disco' },
         ] },
       { id: 'p11', subtema: 'rotacional', dificultad: 2,
-        enunciado: 'Una esfera sólida de radio R y masa M gira alrededor de un eje tangente a su superficie. Si I_centro = (2/5)MR², ¿cuál es el momento de inercia respecto al eje tangente?',
+        enunciado: 'Una esfera sólida de radio R y masa M gira alrededor de un eje tangente a su superficie. Si $I_{\\text{centro}} = \\frac{2}{5}MR^2$, ¿cuál es el momento de inercia respecto al eje tangente?',
         opciones: [
-          { letra: 'A', texto: '(7/5)MR²', correcta: true },
-          { letra: 'B', texto: '(2/5)MR²', correcta: false, error: 'olvidas aplicar el teorema de ejes paralelos' },
-          { letra: 'C', texto: 'MR²', correcta: false, error: 'usas incorrectamente la distancia entre ejes' },
-          { letra: 'D', texto: '(3/5)MR²', correcta: false, error: 'sumas mal los términos del teorema de ejes paralelos' },
+          { letra: 'A', texto: '$\\frac{7}{5}MR^2$', correcta: true },
+          { letra: 'B', texto: '$\\frac{2}{5}MR^2$', correcta: false, error: 'olvidas aplicar el teorema de ejes paralelos' },
+          { letra: 'C', texto: '$MR^2$', correcta: false, error: 'usas incorrectamente la distancia entre ejes' },
+          { letra: 'D', texto: '$\\frac{3}{5}MR^2$', correcta: false, error: 'sumas mal los términos del teorema de ejes paralelos' },
         ] },
       { id: 'p12', subtema: 'rotacional', dificultad: 2,
         enunciado: 'Un disco de radio 0.5 m tiene momento de inercia I = 2 kg·m². Si se le aplica un torque de 10 N·m, ¿cuál es su aceleración angular?',
@@ -3328,7 +3338,7 @@ const MATERIAS = [
           { letra: 'D', texto: 'Depende de la masa de las cargas', correcta: false, error: 'confundes fuerza eléctrica con gravitacional' },
         ] },
       { id: 'p2', subtema: 'electrostatica', dificultad: 3,
-        enunciado: 'El campo eléctrico E a una distancia r de una carga puntual Q es E = kQ/r². Si duplicas r:',
+        enunciado: 'El campo eléctrico E a una distancia r de una carga puntual Q es $E = \\frac{kQ}{r^2}$. Si duplicas r:',
         opciones: [
           { letra: 'A', texto: 'E se reduce a la cuarta parte', correcta: true },
           { letra: 'B', texto: 'E se reduce a la mitad', correcta: false, error: 'aplicas proporcionalidad lineal en lugar de cuadrática' },
@@ -3352,10 +3362,10 @@ const MATERIAS = [
           { letra: 'D', texto: 'U = V/q²', correcta: false, error: 'agregas una dependencia incorrecta de q' },
         ] },
       { id: 'p5', subtema: 'potencial', dificultad: 3,
-        enunciado: 'El trabajo realizado por el campo eléctrico al mover una carga +q del punto A al B (donde V_A > V_B) es:',
+        enunciado: 'El trabajo realizado por el campo eléctrico al mover una carga +q del punto A al B (donde $V_A > V_B$) es:',
         opciones: [
-          { letra: 'A', texto: 'W = q(V_A - V_B) y es positivo', correcta: true },
-          { letra: 'B', texto: 'W = q(V_B - V_A)', correcta: false, error: 'inviertes el orden en la diferencia de potencial' },
+          { letra: 'A', texto: '$W = q(V_A - V_B)$ y es positivo', correcta: true },
+          { letra: 'B', texto: '$W = q(V_B - V_A)$', correcta: false, error: 'inviertes el orden en la diferencia de potencial' },
           { letra: 'C', texto: 'W = 0 porque el campo es conservativo', correcta: false, error: 'confundes trabajo nulo con campo conservativo' },
           { letra: 'D', texto: 'W es negativo porque la carga se mueve contra el campo', correcta: false, error: 'no reconoces que carga positiva pierde energía al bajar potencial' },
         ] },
@@ -3370,10 +3380,10 @@ const MATERIAS = [
       { id: 'p7', subtema: 'circuitos', dificultad: 2,
         enunciado: 'En un circuito en serie con resistencias R₁ y R₂, la resistencia equivalente es:',
         opciones: [
-          { letra: 'A', texto: 'R_eq = R₁ + R₂', correcta: true },
-          { letra: 'B', texto: '1/R_eq = 1/R₁ + 1/R₂', correcta: false, error: 'usas la fórmula de paralelo en serie' },
-          { letra: 'C', texto: 'R_eq = R₁·R₂', correcta: false, error: 'confundes suma con producto' },
-          { letra: 'D', texto: 'R_eq = (R₁ + R₂)/2', correcta: false, error: 'calculas promedio en vez de equivalente' },
+          { letra: 'A', texto: '$R_{\\text{eq}} = R_1 + R_2$', correcta: true },
+          { letra: 'B', texto: '$\\frac{1}{R_{\\text{eq}}} = \\frac{1}{R_1} + \\frac{1}{R_2}$', correcta: false, error: 'usas la fórmula de paralelo en serie' },
+          { letra: 'C', texto: '$R_{\\text{eq}} = R_1\\cdot R_2$', correcta: false, error: 'confundes suma con producto' },
+          { letra: 'D', texto: '$R_{\\text{eq}} = \\frac{R_1 + R_2}{2}$', correcta: false, error: 'calculas promedio en vez de equivalente' },
         ] },
       { id: 'p8', subtema: 'circuitos', dificultad: 3,
         enunciado: 'La ley de Kirchhoff de corrientes (LKC) establece que en un nodo:',
@@ -3488,15 +3498,15 @@ const MATERIAS = [
       { id: 'p8', subtema: 'continuas', dificultad: 3,
         enunciado: 'Si X ~ N(100, 25), para calcular P(X < 110) usando la tabla estándar Z ~ N(0,1):',
         opciones: [
-          { letra: 'A', texto: 'Calculas Z = (110-100)/5 = 2 y buscas P(Z < 2)', correcta: true },
+          { letra: 'A', texto: 'Calculas $Z = \\frac{110-100}{5} = 2$ y buscas P(Z < 2)', correcta: true },
           { letra: 'B', texto: 'Buscas directamente P(X < 110) en la tabla', correcta: false, error: 'olvidas estandarizar' },
-          { letra: 'C', texto: 'Calculas Z = (110-100)/25 = 0,4', correcta: false, error: 'confundes la desviación estándar con la varianza' },
+          { letra: 'C', texto: 'Calculas $Z = \\frac{110-100}{25} = 0,4$', correcta: false, error: 'confundes la desviación estándar con la varianza' },
           { letra: 'D', texto: 'Restas 110 - 100 = 10 y ese es el resultado', correcta: false, error: 'confundes diferencia con probabilidad' },
         ] },
       { id: 'p9', subtema: 'continuas', dificultad: 2,
         enunciado: 'Una función f(x) puede ser densidad de probabilidad solo si:',
         opciones: [
-          { letra: 'A', texto: 'f(x) ≥ 0 para todo x y ∫f(x)dx = 1 en su dominio', correcta: true },
+          { letra: 'A', texto: 'f(x) ≥ 0 para todo x y $\\int f(x)\\,dx = 1$ en su dominio', correcta: true },
           { letra: 'B', texto: 'f(x) ≤ 1 para todo x', correcta: false, error: 'confundes densidad con probabilidad acumulada' },
           { letra: 'C', texto: 'f(x) = 1/n donde n es el número de valores', correcta: false, error: 'tratas continua como discreta' },
           { letra: 'D', texto: 'Solo si f(x) es simétrica', correcta: false, error: 'agregas una condición innecesaria' },
@@ -4463,6 +4473,527 @@ function vaciar(el) {
   while (el.firstChild) el.removeChild(el.firstChild);
 }
 
+/* ---------------------------------------------------------------------------
+   4a. Matematicas: $...$ en el contenido -> MathML nativo
+   El contenido sigue siendo texto plano. Lo que va entre $ sin escapar se lee
+   como un subconjunto pequeno de TeX y se dibuja con MathML, creando cada nodo
+   con createElementNS y textContent (nunca innerHTML). \$ es un $ literal.
+   Si una formula no se entiende, no se lanza nada: se pinta el texto crudo en
+   <span class="mate-error"> y se anota en window.__calibraMateErrores, que el
+   arnes lee para cazar erratas del contenido.
+   Comandos admitidos (convertir.js valida los .md contra esta misma lista):
+   \frac \sqrt (con \sqrt[n]{}) \int \iint \oint \sum \prod \lim
+   \sen \sin \cos \tan \sec \csc \cot \ln \log \exp
+   \alpha \beta \gamma \delta \epsilon \varepsilon \theta \lambda \mu \nu \pi
+   \rho \sigma \tau \phi \varphi \omega \Delta \Sigma \Omega \Gamma \Phi
+   \le \leq \ge \geq \ne \neq \approx \pm \mp \to \rightarrow \infty \cdot
+   \times \div \partial \nabla \left \right \text \, \; \quad \vec \bar \hat
+   \mathrm, mas ^ y _ (un caracter o {grupo}) y {} para agrupar.
+   --------------------------------------------------------------------------- */
+
+window.__calibraMateErrores = [];
+
+var MATE_NS = 'http://www.w3.org/1998/Math/MathML';
+
+var MATE_LETRAS = {
+  alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ϵ', varepsilon: 'ε',
+  theta: 'θ', lambda: 'λ', mu: 'μ', nu: 'ν', pi: 'π', rho: 'ρ', sigma: 'σ',
+  tau: 'τ', phi: 'ϕ', varphi: 'φ', omega: 'ω', infty: '∞', partial: '∂', nabla: '∇',
+  Delta: 'Δ', Sigma: 'Σ', Omega: 'Ω', Gamma: 'Γ', Phi: 'Φ'
+};
+var MATE_OPERADORES = {
+  le: '≤', leq: '≤', ge: '≥', geq: '≥', ne: '≠', neq: '≠', approx: '≈',
+  pm: '±', mp: '∓', to: '→', rightarrow: '→', cdot: '·', times: '×', div: '÷'
+};
+var MATE_FUNCIONES = { sen: 1, sin: 1, cos: 1, tan: 1, sec: 1, csc: 1, cot: 1, ln: 1, log: 1, exp: 1 };
+var MATE_GRANDES = { int: '∫', iint: '∬', oint: '∮', sum: '∑', prod: '∏', lim: 'lim' };
+var MATE_ESPACIOS = { ',': '0.1667em', ';': '0.2778em', quad: '1em' };
+var MATE_ACENTOS = { vec: '→', bar: '¯', hat: '^' };
+var MATE_ACENTOS_PLANO = { vec: '⃗', bar: '̄', hat: '̂' };
+var MATE_SIMBOLOS = '+-=<>()[]|/\'!,;:.*';
+var MATE_CIFRAS_UNICODE = '⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉';
+var MATE_SUPER = {
+  '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+  '+': '⁺', '−': '⁻', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
+  a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ', j: 'ʲ', k: 'ᵏ',
+  l: 'ˡ', m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', r: 'ʳ', s: 'ˢ', t: 'ᵗ', u: 'ᵘ', v: 'ᵛ', w: 'ʷ',
+  x: 'ˣ', y: 'ʸ', z: 'ᶻ'
+};
+var MATE_SUB = {
+  '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+  '+': '₊', '−': '₋', '-': '₋', '=': '₌', '(': '₍', ')': '₎',
+  a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ', l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ',
+  r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ'
+};
+
+/* Parte el texto en trozos {mate, texto}. \$ fuera de formula es un $ literal.
+   Un $ sin pareja deja el ultimo trozo con abierto = true. */
+function partirMate(texto) {
+  var trozos = [];
+  var actual = '';
+  var enMate = false;
+  for (var i = 0; i < texto.length; i++) {
+    var c = texto.charAt(i);
+    if (c === '\\' && texto.charAt(i + 1) === '$') {
+      actual += enMate ? '\\$' : '$';
+      i++;
+    } else if (c === '$') {
+      if (actual || enMate) trozos.push({ mate: enMate, texto: actual });
+      actual = '';
+      enMate = !enMate;
+    } else {
+      actual += c;
+    }
+  }
+  if (enMate) trozos.push({ mate: true, texto: actual, abierto: true });
+  else if (actual) trozos.push({ mate: false, texto: actual });
+  return trozos;
+}
+
+/* Analizador recursivo: de la cadena TeX a un arbol pequeno de nodos
+   {t: 'num'|'id'|'op'|'fn'|'texto'|'espacio'|'fila'|'frac'|'raiz'|'guion'|
+   'grande'|'cerca'|'acento'}. Lanza Error con el motivo si algo no cuadra. */
+function analizarMate(fuente) {
+  var s = fuente;
+  var pos = 0;
+
+  function blancos() { while (pos < s.length && /\s/.test(s.charAt(pos))) pos++; }
+  function fallo(msg) { throw new Error(msg + ' (posicion ' + pos + ')'); }
+
+  function comando() {
+    // pos esta sobre la barra invertida
+    pos++;
+    if (pos >= s.length) fallo('barra invertida al final');
+    var c = s.charAt(pos);
+    if (!/[A-Za-z]/.test(c)) { pos++; return c; }
+    var ini = pos;
+    while (pos < s.length && /[A-Za-z]/.test(s.charAt(pos))) pos++;
+    return s.slice(ini, pos);
+  }
+
+  function crudoEntreLlaves() {
+    blancos();
+    if (s.charAt(pos) !== '{') fallo('se esperaba {');
+    var nivel = 1;
+    var ini = ++pos;
+    while (pos < s.length) {
+      var c = s.charAt(pos);
+      if (c === '\\') { pos += 2; continue; }
+      if (c === '{') nivel++;
+      else if (c === '}' && --nivel === 0) { pos++; return s.slice(ini, pos - 1); }
+      pos++;
+    }
+    fallo('falta }');
+  }
+
+  function fila(hijos) {
+    return hijos.length === 1 ? hijos[0] : { t: 'fila', c: hijos };
+  }
+
+  // Lee elementos hasta } o \right o el final. No consume el cierre.
+  function secuencia() {
+    var hijos = [];
+    for (;;) {
+      blancos();
+      if (pos >= s.length) break;
+      var c = s.charAt(pos);
+      if (c === '}') break;
+      if (c === ']' && secuencia.corchete) break;
+      if (c === '\\' && /^\\right(?![A-Za-z])/.test(s.slice(pos))) break;
+      hijos.push(conGuiones());
+    }
+    return hijos;
+  }
+
+  function grupo() {
+    pos++; // {
+    var hijos = secuencia();
+    if (s.charAt(pos) !== '}') fallo('falta }');
+    pos++;
+    return fila(hijos);
+  }
+
+  // Un argumento: {grupo} o un solo atomo, sin guiones.
+  function argumento() {
+    blancos();
+    if (pos >= s.length) fallo('falta un argumento');
+    if (s.charAt(pos) === '{') return grupo();
+    return atomo();
+  }
+
+  function delimitador() {
+    blancos();
+    var c = s.charAt(pos);
+    if (!c) fallo('falta el delimitador de \\left o \\right');
+    if ('()[]|.'.indexOf(c) === -1) fallo('delimitador no admitido: ' + c);
+    pos++;
+    return c;
+  }
+
+  function atomo() {
+    blancos();
+    var c = s.charAt(pos);
+    if (c === '{') return grupo();
+    if (c === '}') fallo('} sin pareja');
+    if (c === '^' || c === '_') return { t: 'fila', c: [] };
+    if (/[0-9]/.test(c)) {
+      // Coma o punto decimal solo si le sigue una cifra: 0,05 es un numero; a, b no.
+      var m = /^[0-9]+(?:[.,][0-9]+)*/.exec(s.slice(pos));
+      pos += m[0].length;
+      return { t: 'num', v: m[0] };
+    }
+    if (/[A-Za-z]/.test(c)) { pos++; return { t: 'id', v: c }; }
+    if (c === '\\') {
+      var nombre = comando();
+      if (nombre === '$') return { t: 'op', v: '$' };
+      if (MATE_ESPACIOS[nombre]) return { t: 'espacio', v: nombre };
+      if (MATE_LETRAS[nombre]) return { t: 'id', v: MATE_LETRAS[nombre], recta: /^[A-Z]/.test(nombre) };
+      if (MATE_OPERADORES[nombre]) return { t: 'op', v: MATE_OPERADORES[nombre] };
+      if (MATE_FUNCIONES[nombre]) return { t: 'fn', v: nombre };
+      if (MATE_GRANDES[nombre]) return { t: 'grande', v: nombre };
+      if (MATE_ACENTOS[nombre]) return { t: 'acento', v: nombre, base: argumento() };
+      if (nombre === 'frac') {
+        var num = argumento();
+        return { t: 'frac', a: num, b: argumento() };
+      }
+      if (nombre === 'sqrt') {
+        var indice = null;
+        blancos();
+        if (s.charAt(pos) === '[') {
+          pos++;
+          var antes = secuencia.corchete;
+          secuencia.corchete = true;
+          try { indice = fila(secuencia()); } finally { secuencia.corchete = antes; }
+          if (s.charAt(pos) !== ']') fallo('falta ] en \\sqrt[n]');
+          pos++;
+        }
+        return { t: 'raiz', a: argumento(), n: indice };
+      }
+      if (nombre === 'text') return { t: 'texto', v: crudoEntreLlaves() };
+      if (nombre === 'mathrm') return { t: 'id', v: crudoEntreLlaves(), recta: true };
+      if (nombre === 'left') {
+        var abre = delimitador();
+        var cuerpo = secuencia();
+        if (!/^\\right(?![A-Za-z])/.test(s.slice(pos))) fallo('\\left sin \\right');
+        pos += 6;
+        return { t: 'cerca', abre: abre, cierra: delimitador(), c: fila(cuerpo) };
+      }
+      if (nombre === 'right') fallo('\\right sin \\left');
+      fallo('comando desconocido: \\' + nombre);
+    }
+    // Caracter suelto: simbolo ASCII o Unicode escrito tal cual (x², π, ≤).
+    var ch = c;
+    var cod = c.charCodeAt(0);
+    if (cod >= 0xD800 && cod <= 0xDBFF) ch = s.slice(pos, pos + 2);
+    pos += ch.length;
+    if (MATE_SIMBOLOS.indexOf(ch) !== -1) {
+      if (ch === '-') ch = '−';
+      else if (ch === '\'') ch = '′';
+      return { t: 'op', v: ch };
+    }
+    if (cod < 128) fallo('caracter no admitido: ' + ch);
+    if (MATE_CIFRAS_UNICODE.indexOf(ch) !== -1) return { t: 'num', v: ch };
+    if (ch.toLowerCase() !== ch.toUpperCase()) return { t: 'id', v: ch };
+    return { t: 'op', v: ch };
+  }
+
+  // Un atomo con sus ^ y _ (en cualquier orden, a lo sumo uno de cada uno).
+  function conGuiones() {
+    var base = atomo();
+    var sub = null, sup = null;
+    for (;;) {
+      blancos();
+      var c = s.charAt(pos);
+      if (c === '^' && !sup) { pos++; sup = argumento(); }
+      else if (c === '_' && !sub) { pos++; sub = argumento(); }
+      else if (c === '^' || c === '_') fallo('doble ' + c);
+      else break;
+    }
+    if (base.t === 'grande') { base.sub = sub; base.sup = sup; return base; }
+    if (!sub && !sup) return base;
+    return { t: 'guion', base: base, sub: sub, sup: sup };
+  }
+
+  secuencia.corchete = false;
+  var todo = secuencia();
+  if (pos < s.length) fallo(s.charAt(pos) + ' sin pareja');
+  return fila(todo);
+}
+
+/* --- Del arbol a MathML --------------------------------------------------- */
+
+function mml(tag, texto) {
+  var el = document.createElementNS(MATE_NS, tag);
+  if (texto !== undefined) el.textContent = texto;
+  return el;
+}
+
+function mmlDe(nodo) {
+  var el;
+  switch (nodo.t) {
+    case 'num': return mml('mn', nodo.v);
+    case 'id':
+      el = mml('mi', nodo.v);
+      if (nodo.recta) el.setAttribute('mathvariant', 'normal');
+      return el;
+    case 'op':
+      el = mml('mo', nodo.v);
+      // Los parentesis sueltos no se estiran, como en TeX; para eso esta \left.
+      if ('()[]|'.indexOf(nodo.v) !== -1) el.setAttribute('stretchy', 'false');
+      // La barra de division va pegada, como en TeX: "π/2", no "π / 2".
+      if (nodo.v === '/') { el.setAttribute('lspace', '0'); el.setAttribute('rspace', '0'); }
+      return el;
+    case 'fn':
+      el = mml('mi', nodo.v);
+      el.setAttribute('mathvariant', 'normal');
+      return el;
+    case 'texto': return mml('mtext', nodo.v);
+    case 'espacio':
+      el = mml('mspace');
+      el.setAttribute('width', MATE_ESPACIOS[nodo.v]);
+      return el;
+    case 'fila':
+      el = mml('mrow');
+      anexarFilaMml(el, nodo.c);
+      return el;
+    case 'frac':
+      el = mml('mfrac');
+      el.appendChild(mmlDe(nodo.a));
+      el.appendChild(mmlDe(nodo.b));
+      return el;
+    case 'raiz':
+      if (!nodo.n) {
+        el = mml('msqrt');
+        el.appendChild(mmlDe(nodo.a));
+        return el;
+      }
+      el = mml('mroot');
+      el.appendChild(mmlDe(nodo.a));
+      el.appendChild(mmlDe(nodo.n));
+      return el;
+    case 'guion':
+      el = mml(nodo.sub && nodo.sup ? 'msubsup' : nodo.sub ? 'msub' : 'msup');
+      el.appendChild(mmlDe(nodo.base));
+      if (nodo.sub) el.appendChild(mmlDe(nodo.sub));
+      if (nodo.sup) el.appendChild(mmlDe(nodo.sup));
+      return el;
+    case 'grande':
+      var simbolo = mml('mo', MATE_GRANDES[nodo.v]);
+      if (!nodo.sub && !nodo.sup) return simbolo;
+      // Integrales con limites a los lados; sumas, productos y limites por
+      // debajo y por encima (en linea el navegador los baja a los lados solo).
+      var integral = nodo.v === 'int' || nodo.v === 'iint' || nodo.v === 'oint';
+      if (!integral) simbolo.setAttribute('movablelimits', 'true');
+      el = mml(nodo.sub && nodo.sup
+        ? (integral ? 'msubsup' : 'munderover')
+        : nodo.sub ? (integral ? 'msub' : 'munder') : (integral ? 'msup' : 'mover'));
+      el.appendChild(simbolo);
+      if (nodo.sub) el.appendChild(mmlDe(nodo.sub));
+      if (nodo.sup) el.appendChild(mmlDe(nodo.sup));
+      return el;
+    case 'cerca':
+      el = mml('mrow');
+      if (nodo.abre !== '.') el.appendChild(mml('mo', nodo.abre));
+      el.appendChild(mmlDe(nodo.c));
+      if (nodo.cierra !== '.') el.appendChild(mml('mo', nodo.cierra));
+      Array.prototype.forEach.call(el.children, function (h) {
+        if (h.localName === 'mo') { h.setAttribute('stretchy', 'true'); h.setAttribute('fence', 'true'); }
+      });
+      return el;
+    case 'acento':
+      el = mml('mover');
+      el.setAttribute('accent', 'true');
+      el.appendChild(mmlDe(nodo.base));
+      el.appendChild(mml('mo', MATE_ACENTOS[nodo.v]));
+      return el;
+  }
+  throw new Error('nodo desconocido: ' + nodo.t);
+}
+
+/* Una funcion (sen, cos, ln...) va seguida de la aplicacion invisible U+2061. */
+function esFuncionMate(nodo) {
+  return nodo.t === 'fn' || (nodo.t === 'guion' && nodo.base.t === 'fn');
+}
+
+/* MathML no separa "x cos x" como TeX: el espacio fino va a mano, delante de
+   la funcion (si no abre la fila ni sigue a un operador, que ya trae su
+   espacio) y detras, en la aplicacion invisible. */
+function anexarFilaMml(padre, hijos) {
+  hijos.forEach(function (h, i) {
+    var funcion = esFuncionMate(h);
+    var previo = i > 0 ? hijos[i - 1] : null;
+    if (funcion && previo && !(previo.t === 'op' && ')]'.indexOf(previo.v) === -1)) {
+      padre.appendChild(mmlDe({ t: 'espacio', v: ',' }));
+    }
+    padre.appendChild(mmlDe(h));
+    if (funcion) {
+      var ap = mml('mo', '⁡');
+      ap.setAttribute('lspace', '0');
+      ap.setAttribute('rspace', MATE_ESPACIOS[',']);
+      padre.appendChild(ap);
+    }
+  });
+}
+
+function registrarErrorMate(fuente, error) {
+  if (!Array.isArray(window.__calibraMateErrores)) window.__calibraMateErrores = [];
+  window.__calibraMateErrores.push({ fuente: fuente, error: error });
+}
+
+/* Texto con $...$ -> DocumentFragment con nodos de texto y <math>. Nunca lanza. */
+function matematica(texto) {
+  var frag = document.createDocumentFragment();
+  partirMate(String(texto === undefined || texto === null ? '' : texto)).forEach(function (trozo) {
+    if (!trozo.mate) { frag.appendChild(document.createTextNode(trozo.texto)); return; }
+    var math = null;
+    var motivo = trozo.abierto ? 'signo $ sin cerrar' : '';
+    if (!motivo) {
+      try {
+        var arbol = analizarMate(trozo.texto);
+        math = mml('math');
+        if (arbol.t === 'fila') anexarFilaMml(math, arbol.c);
+        else anexarFilaMml(math, [arbol]);
+      } catch (e) {
+        math = null;
+        motivo = e && e.message ? e.message : String(e);
+      }
+    }
+    if (math) { frag.appendChild(math); return; }
+    registrarErrorMate(trozo.texto, motivo);
+    frag.appendChild(crear('span', 'mate-error', '$' + trozo.texto + (trozo.abierto ? '' : '$')));
+  });
+  return frag;
+}
+
+/* Llena el elemento con el texto, dibujando las formulas. data-fuente guarda
+   el texto original, que es lo que compara el arnes. */
+function ponerMate(el, texto) {
+  if (!el) return el;
+  var fuente = String(texto === undefined || texto === null ? '' : texto);
+  el.dataset.fuente = fuente;
+  if (fuente.indexOf('$') === -1) { el.textContent = fuente; return el; }
+  vaciar(el);
+  el.appendChild(matematica(fuente));
+  return el;
+}
+
+/* Como crear(), pero con las formulas dibujadas. */
+function crearMate(tag, clase, texto) {
+  return ponerMate(crear(tag, clase), texto);
+}
+
+/* --- Del arbol a texto Unicode legible ------------------------------------
+   Para donde no cabe MathML: aria-label, <option>, textos que se guardan.
+   La Edge Function enviar-correo tiene una copia; los dos deben dar lo mismo
+   con estos casos (salida real de esta funcion):
+     '$\frac{4}{3}\pi r^3$'                      -> '4/3 πr³'
+     '$\int_0^{\pi/2} \sen^2 x \cos x\,dx$'      -> '∫ de 0 a π/2 sen²x cos x dx'
+     '$\lim_{x\to 2} \frac{x^2-4}{x-2}$'         -> 'lim(x→2) (x²−4)/(x−2)'
+     '$\sqrt{x^2+4}$'                            -> '√(x²+4)'
+     '$\sum_{n=1}^{\infty} \frac{1}{n^2}$'       -> '∑ de n=1 a ∞ 1/n²'
+     'cuesta \$5'                                -> 'cuesta $5'
+     'sin matematicas'                           -> 'sin matematicas'
+   Reglas: \frac -> a/b, con parentesis si el numerador o el denominador tiene
+   mas de un elemento; ^ y _ -> super/subindice Unicode si todos los caracteres
+   lo tienen, si no ^(...) / _(...) (o ^x con un solo caracter); \sqrt de un
+   solo elemento -> √x, si no √(...); griegas y operadores -> Unicode;
+   \, \; \quad -> espacio; tras funciones, fracciones, operadores grandes y
+   comas va un espacio, y otro delante de una funcion; entre letras, cifras y
+   operadores no va ninguno ('$a = b$' -> 'a=b'); los espacios repetidos se
+   colapsan. Una formula que no se entiende
+   se devuelve tal cual, sin los $. */
+function planoGuion(nodo, mapa, marca) {
+  var t = planoDe(nodo).s.replace(/\s+/g, '');
+  var salida = '';
+  for (var i = 0; i < t.length; i++) {
+    if (!mapa[t.charAt(i)]) { salida = null; break; }
+    salida += mapa[t.charAt(i)];
+  }
+  if (salida !== null && t) return salida;
+  return t.length === 1 ? marca + t : marca + '(' + t + ')';
+}
+
+function cuentaMate(nodo) {
+  if (nodo.t !== 'fila') return 1;
+  return nodo.c.filter(function (h) { return h.t !== 'espacio'; }).length;
+}
+
+function planoEnvuelto(nodo) {
+  var s = planoDe(nodo).s.trim();
+  return cuentaMate(nodo) > 1 || nodo.t === 'frac' ? '(' + s + ')' : s;
+}
+
+// Devuelve { s: texto, sp: si pide un espacio detras }.
+function planoDe(nodo) {
+  switch (nodo.t) {
+    case 'num': case 'id': return { s: nodo.v, sp: false };
+    case 'op': return { s: nodo.v, sp: nodo.v === ',' || nodo.v === ';' };
+    case 'fn': return { s: nodo.v, sp: true };
+    case 'texto': return { s: nodo.v, sp: false };
+    case 'espacio': return { s: ' ', sp: false };
+    case 'fila':
+      var s = '';
+      var sp = false;
+      nodo.c.forEach(function (h) {
+        var r = planoDe(h);
+        // Espacio detras de lo que lo pide, y delante de una funcion: "x cos x".
+        if ((sp || (esFuncionMate(h) && !/[\s(]$/.test(s))) && s) s += ' ';
+        s += r.s;
+        sp = r.sp;
+      });
+      return { s: s, sp: sp };
+    case 'frac': return { s: planoEnvuelto(nodo.a) + '/' + planoEnvuelto(nodo.b), sp: true };
+    case 'raiz':
+      var dentro = cuentaMate(nodo.a) > 1 ? '(' + planoDe(nodo.a).s.trim() + ')' : planoDe(nodo.a).s;
+      if (!nodo.n) return { s: '√' + dentro, sp: false };
+      var n = planoDe(nodo.n).s.trim();
+      if (n === '3') return { s: '∛' + dentro, sp: false };
+      if (n === '4') return { s: '∜' + dentro, sp: false };
+      return { s: planoGuion(nodo.n, MATE_SUPER, '^') + '√' + dentro, sp: false };
+    case 'guion':
+      var base = nodo.base.t === 'fila' && cuentaMate(nodo.base) > 1
+        ? planoEnvuelto(nodo.base) : planoDe(nodo.base).s;
+      return {
+        s: base + (nodo.sub ? planoGuion(nodo.sub, MATE_SUB, '_') : '') +
+          (nodo.sup ? planoGuion(nodo.sup, MATE_SUPER, '^') : ''),
+        sp: false
+      };
+    case 'grande':
+      var simbolo = MATE_GRANDES[nodo.v];
+      var abajo = nodo.sub ? planoDe(nodo.sub).s.trim() : '';
+      var arriba = nodo.sup ? planoDe(nodo.sup).s.trim() : '';
+      if (nodo.v === 'lim') return { s: 'lim' + (abajo ? '(' + abajo + ')' : ''), sp: true };
+      if (abajo && arriba) return { s: simbolo + ' de ' + abajo + ' a ' + arriba, sp: true };
+      if (abajo) return { s: simbolo + planoGuion(nodo.sub, MATE_SUB, '_'), sp: true };
+      if (arriba) return { s: simbolo + planoGuion(nodo.sup, MATE_SUPER, '^'), sp: true };
+      return { s: simbolo, sp: true };
+    case 'cerca':
+      return {
+        s: (nodo.abre === '.' ? '' : nodo.abre) + planoDe(nodo.c).s.trim() + (nodo.cierra === '.' ? '' : nodo.cierra),
+        sp: false
+      };
+    case 'acento': return { s: planoDe(nodo.base).s + MATE_ACENTOS_PLANO[nodo.v], sp: false };
+  }
+  return { s: '', sp: false };
+}
+
+/* Texto con $...$ -> texto plano Unicode. Sin $ devuelve el mismo texto. */
+function textoPlano(texto) {
+  var fuente = String(texto === undefined || texto === null ? '' : texto);
+  if (fuente.indexOf('$') === -1) return fuente;
+  return partirMate(fuente).map(function (trozo) {
+    if (!trozo.mate) return trozo.texto;
+    if (trozo.abierto) return '$' + trozo.texto;
+    try {
+      return planoDe(analizarMate(trozo.texto)).s.replace(/\s+/g, ' ').trim();
+    } catch (e) {
+      return trozo.texto;
+    }
+  }).join('');
+}
+
+window.__calibraMate = { matematica: matematica, textoPlano: textoPlano, ponerMate: ponerMate };
+
 /* Ancho de una barra: se escribe en las dos propiedades por compatibilidad. */
 function anchoBarra(el, pct) {
   if (!el) return;
@@ -5325,10 +5856,10 @@ function pintarPruebaGenerica(cfg) {
   anchoBarra($(cfg.ids.fill), pct);
 
   var topic = $(cfg.ids.topic);
-  if (topic) topic.textContent = nombreSubtema(pregunta.subtema, cfg.materia);
+  if (topic) ponerMate(topic, nombreSubtema(pregunta.subtema, cfg.materia));
 
   var enunciado = $(cfg.ids.enunciado);
-  if (enunciado) enunciado.textContent = pregunta.enunciado;
+  if (enunciado) ponerMate(enunciado, pregunta.enunciado);
 
   // Opciones. Nombre de grupo unico por pregunta para no arrastrar la seleccion.
   var lista = $(cfg.ids.opciones);
@@ -5352,7 +5883,7 @@ function pintarPruebaGenerica(cfg) {
       var key = crear('span', 'key', vista.letra);
       key.setAttribute('aria-hidden', 'true');
 
-      var texto = crear('span', 'txt', op.texto);
+      var texto = crearMate('span', 'txt', op.texto);
 
       label.appendChild(radio);
       label.appendChild(key);
@@ -5547,7 +6078,7 @@ function pintarDiagnostico() {
       li.setAttribute('data-pct-crudo', String(b.crudo));
 
       var head = crear('div', 'bar-head');
-      head.appendChild(crear('span', 'bar-name', b.nombre));
+      head.appendChild(crearMate('span', 'bar-name', b.nombre));
       head.appendChild(crear('span', 'bar-pct', b.pct + '%'));
 
       var track = crear('div', 'track');
@@ -5556,7 +6087,7 @@ function pintarDiagnostico() {
       track.setAttribute('aria-valuemax', '100');
       track.setAttribute('aria-valuenow', String(b.pct));
       track.setAttribute('aria-label',
-        'Dominio de ' + b.nombre + (esDebil ? ', tu punto más bajo' : ''));
+        'Dominio de ' + textoPlano(b.nombre) + (esDebil ? ', tu punto más bajo' : ''));
       var fill = document.createElement('span');
       anchoBarra(fill, b.pct);
       track.appendChild(fill);
@@ -5568,12 +6099,23 @@ function pintarDiagnostico() {
   }
 
   var titulo = $('#diag-debil-titulo');
-  if (titulo) titulo.textContent = diag.debil ? 'Tu punto débil: ' + diag.debil.nombre : '';
+  if (titulo) {
+    // El prefijo va como texto; solo el nombre del subtema pasa por matematica().
+    vaciar(titulo);
+    if (diag.debil) {
+      titulo.appendChild(document.createTextNode('Tu punto débil: '));
+      titulo.appendChild(matematica(diag.debil.nombre));
+    }
+    titulo.dataset.fuente = diag.debil ? 'Tu punto débil: ' + diag.debil.nombre : '';
+  }
 
   var error = $('#diag-debil-error');
   if (error) {
     // Cuando no fallo ninguna, el texto va tal cual, sin "Error detectado:".
-    error.textContent = diag.error === CONTENIDO.sinFallos
+    vaciar(error);
+    if (diag.error !== CONTENIDO.sinFallos) error.appendChild(document.createTextNode('Error detectado: '));
+    error.appendChild(matematica(diag.error));
+    error.dataset.fuente = diag.error === CONTENIDO.sinFallos
       ? diag.error
       : 'Error detectado: ' + diag.error;
   }
@@ -5602,9 +6144,9 @@ function pintarDetalleKc(diag) {
       mc.estado === 'confirmada' ? 'Confirmado' : 'Posible');
     li.appendChild(chip);
     // El texto se escribe en minuscula para ir detras de "Error detectado:"; aqui va solo.
-    li.appendChild(crear('span', 'kc-error-texto', mc.texto.charAt(0).toUpperCase() + mc.texto.slice(1)));
+    li.appendChild(crearMate('span', 'kc-error-texto', mc.texto.charAt(0).toUpperCase() + mc.texto.slice(1)));
     if (mc.kc && materia.kcs[mc.kc]) {
-      li.appendChild(crear('span', 'kc-error-habilidad', materia.kcs[mc.kc].nombre));
+      li.appendChild(crearMate('span', 'kc-error-habilidad', materia.kcs[mc.kc].nombre));
     }
     errores.appendChild(li);
   });
@@ -5618,7 +6160,7 @@ function pintarDetalleKc(diag) {
   debiles.forEach(function (k) {
     var li = crear('li', 'kc-habilidad');
     li.setAttribute('data-kc', k.id);
-    li.appendChild(crear('span', 'kc-habilidad-nombre', k.nombre));
+    li.appendChild(crearMate('span', 'kc-habilidad-nombre', k.nombre));
     li.appendChild(crear('span', 'kc-habilidad-cuenta', k.aciertos + ' de ' + k.total));
     lista.appendChild(li);
   });
@@ -5799,7 +6341,7 @@ function llenarSelectSubtemas() {
         vistos[clave] = true;
         var op = document.createElement("option");
         op.value = clave;
-        op.textContent = nombreSubtema(clave, m);
+        op.textContent = textoPlano(nombreSubtema(clave, m));
         select.appendChild(op);
       });
     });
@@ -5812,7 +6354,7 @@ function llenarSelectSubtemas() {
   subtemasDe(materia).forEach(function (clave) {
     var op = document.createElement('option');
     op.value = clave;
-    op.textContent = nombreSubtema(clave, materia);
+    op.textContent = textoPlano(nombreSubtema(clave, materia));
     select.appendChild(op);
   });
   if (previo && subtemasDe(materia).indexOf(previo) !== -1) select.value = previo;
@@ -6201,7 +6743,7 @@ function pintarSubtemasPerfil() {
     claves.forEach(function (clave) {
       var op = document.createElement('option');
       op.value = clave;
-      op.textContent = nombreSubtema(clave, materia);
+      op.textContent = textoPlano(nombreSubtema(clave, materia));
       cont.appendChild(op);
     });
     return;
@@ -6221,7 +6763,8 @@ function pintarSubtemasPerfil() {
     caja.value = clave;
     caja.name = 'perfil-subtema';
     label.appendChild(caja);
-    label.appendChild(document.createTextNode(' ' + nombreSubtema(clave, materia)));
+    label.appendChild(document.createTextNode(' '));
+    label.appendChild(matematica(nombreSubtema(clave, materia)));
     li.appendChild(label);
     lista.appendChild(li);
   });
@@ -6343,7 +6886,8 @@ function recogerPerfilMonitor() {
     if (v) horarios.push(v);
   });
 
-  var nombresFuertes = fuertes.map(function (c) { return nombreSubtema(c, materia); });
+  // El encaje se guarda en la base y se lee como texto: sin marcas $...$.
+  var nombresFuertes = fuertes.map(function (c) { return textoPlano(nombreSubtema(c, materia)); });
 
   var monitor = {
     inicial: inicialDe(nombre),
@@ -6542,7 +7086,8 @@ function lineaBrief(etiqueta, valor) {
   var p = crear('p', 'brief-linea');
   p.appendChild(crear('span', 'eyebrow', etiqueta));
   p.appendChild(document.createTextNode(' · '));
-  p.appendChild(crear('span', 'brief-valor', valor));
+  // Solo el brief pasa por matematica(): lineaResumen lleva precios con $.
+  p.appendChild(crearMate('span', 'brief-valor', valor));
   return p;
 }
 

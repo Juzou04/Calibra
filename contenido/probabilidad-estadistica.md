@@ -90,15 +90,15 @@ Para una variable continua X, ¿qué es cierto sobre P(X = a) donde a es una con
 ### P8 · dificultad 3
 Si X ~ N(100, 25), para calcular P(X < 110) usando la tabla estándar Z ~ N(0,1):
 
-- A) Calculas Z = (110-100)/5 = 2 y buscas P(Z < 2) · CORRECTA
+- A) Calculas $Z = \frac{110-100}{5} = 2$ y buscas P(Z < 2) · CORRECTA
 - B) Buscas directamente P(X < 110) en la tabla · olvidas estandarizar
-- C) Calculas Z = (110-100)/25 = 0,4 · confundes la desviación estándar con la varianza
+- C) Calculas $Z = \frac{110-100}{25} = 0,4$ · confundes la desviación estándar con la varianza
 - D) Restas 110 - 100 = 10 y ese es el resultado · confundes diferencia con probabilidad
 
 ### P9 · dificultad 2
 Una función f(x) puede ser densidad de probabilidad solo si:
 
-- A) f(x) ≥ 0 para todo x y ∫f(x)dx = 1 en su dominio · CORRECTA
+- A) f(x) ≥ 0 para todo x y $\int f(x)\,dx = 1$ en su dominio · CORRECTA
 - B) f(x) ≤ 1 para todo x · confundes densidad con probabilidad acumulada
 - C) f(x) = 1/n donde n es el número de valores · tratas continua como discreta
 - D) Solo si f(x) es simétrica · agregas una condición innecesaria

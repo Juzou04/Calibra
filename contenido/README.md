@@ -45,6 +45,35 @@ Dos reglas que no son obvias y que cuestan un rato si se descubren tarde:
 - **El separador es un punto medio con espacio a cada lado.** El punto medio pegado es multiplicación y no separa nada, así que `x·ln(x)` se escribe tal cual y `x·eˣ − eˣ + C · CORRECTA` se lee bien. Lo que no puedes hacer es meter un ` · ` suelto dentro del texto del error.
 - **El orden de las preguntas lo manda el id, no el archivo.** Puedes agrupar por subtema como quieras: el conversor ordena por P1, P2, P3... Eso importa porque la prueba de Cálculo Integral tiene dos preguntas del mismo subtema separadas.
 
+## Matemáticas
+
+El texto sigue siendo texto plano. Donde la estructura importa, la fórmula va entre `$…$` con un pedazo pequeño de TeX, y la app la dibuja como fórmula de verdad (MathML) al mostrarla. Sirve en el enunciado, en el texto de las opciones, en el texto del error, en los nombres de subtema y de kc y en el texto de las mc.
+
+**Úsalo solo donde hace falta:** fracciones apiladas, integrales con límites, límites, sumatorias con índice y raíces anidadas. Lo demás se queda en Unicode, como hasta ahora: `x²`, `q₁`, `≤`, `π`, `x·ln(x)` no necesitan `$`.
+
+| Escribes | Qué es |
+|---|---|
+| `$\int_0^{\pi/2} \sen^2 x \cos x\,dx$` | integral con límites, con `\,` antes del `dx` |
+| `$\frac{4}{3}\pi r^3$` | fracción apilada |
+| `$\lim_{x\to 2} \frac{x^2-4}{x-2}$` | límite |
+| `$\sum_{n=1}^{\infty} \frac{1}{n^2}$` | sumatoria con índice |
+| `$\sqrt[3]{1 + \sqrt{x}}$` | raíces anidadas |
+| `$\left( \frac{a}{b} \right)^2$` | paréntesis que crecen con lo de adentro |
+| `$\alpha = 0,05$` | la coma decimal vale: `0,05` es un solo número |
+| `cuesta \$5` | un signo de pesos de verdad, fuera o dentro de una fórmula |
+
+- `^` y `_` para exponente y subíndice. Si el argumento tiene más de un carácter va entre llaves: `x^{n+1}`, `a_{ij}`.
+- Comandos que entiende la app, y ningún otro:
+  - estructura: `\frac \sqrt \int \iint \oint \sum \prod \lim \left \right \text \vec \bar \hat \mathrm`
+  - funciones: `\sen \sin \cos \tan \sec \csc \cot \ln \log \exp` (`\sen` es el seno en español)
+  - griegas: `\alpha \beta \gamma \delta \epsilon \varepsilon \theta \lambda \mu \nu \pi \rho \sigma \tau \phi \varphi \omega \Delta \Sigma \Omega \Gamma \Phi`
+  - símbolos: `\le \leq \ge \geq \ne \neq \approx \pm \mp \to \rightarrow \infty \cdot \times \div \partial \nabla`
+  - espacios: `\,` `\;` `\quad`
+- Dentro de `$…$` también puedes escribir Unicode directo (`x²`, `π`, `≤`).
+- Un ` · ` dentro de `$…$` es parte de la fórmula y no separa la opción de su error.
+
+`node contenido/convertir.js` revisa esto y señala archivo y línea: un `$` sin cerrar, llaves `{ }` desbalanceadas, un `\left` sin su `\right`, un comando que no está en la lista, o un `\frac` escrito fuera de `$…$` (casi siempre es un `$` olvidado).
+
 ## Knowledge components y misconcepciones (opcional, piloto en Cálculo Integral)
 
 El subtema dice *dónde* falla el estudiante; esto dice *qué habilidad* le falta y *qué error de razonamiento* comete, y le permite a la prueba confirmar un patrón en vez de adivinarlo. Una materia sin líneas `kc:` funciona exactamente como antes.

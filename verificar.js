@@ -11,8 +11,8 @@
  *   verificar.cmd --headed           (abre el navegador visible)
  *   verificar.cmd --solo=oraculo     (bloques, separados por coma:
  *                                     fuente, capturas, oraculo, monitor,
- *                                     adaptativo, kc, barajado, buscar,
- *                                     perfil, robustez)
+ *                                     matematica, adaptativo, kc, barajado,
+ *                                     buscar, perfil, robustez, supabase)
  *
  * Requisitos ya verificados del entorno:
  *   - playwright 1.61.1 instalado GLOBALMENTE, se resuelve via NODE_PATH.
@@ -478,10 +478,15 @@ function fnAuditoria(opciones) {
   });
 
   // -- tipografia -----------------------------------------------------------
+  // Recorre tambien los nodos MathML (mi, mn, mo, mtext...): estan en
+  // querySelectorAll('*') y llevan su texto directo. Se cuentan aparte para que
+  // el bloque matematica compruebe que de verdad se miraron.
   const tipografia = [];
+  let tipografiaMathml = 0;
   visibles.forEach(function (el) {
     const esCampo = /^(INPUT|TEXTAREA|SELECT|BUTTON|OPTION)$/.test(el.tagName);
     if (!esCampo && !tieneTextoDirecto(el)) return;
+    if (el.namespaceURI === 'http://www.w3.org/1998/Math/MathML') tipografiaMathml += 1;
     const cs = getComputedStyle(el);
     const px = parseFloat(cs.fontSize);
     if (!Number.isNaN(px) && px < 13.995) {
@@ -591,6 +596,7 @@ function fnAuditoria(opciones) {
       return malos;
     })(),
     tipografia: tipografia,
+    tipografiaMathml: tipografiaMathml,
     pie: { encontrado: pieEncontrado, selector: pieElemento },
     comision: comision,
     contraste: contrasteFallas,
@@ -963,7 +969,15 @@ async function preparar(page, base, opciones) {
 // 8. Lectura de la pregunta en pantalla y emparejamiento con los datos
 // ---------------------------------------------------------------------------
 
+// Texto de un elemento tal como esta en el contenido: data-fuente (lo pone
+// ponerMate en index.html) antes que textContent, que con formulas trae el
+// texto de los nodos MathML y ya no se parece al fuente.
 function fnLeerPregunta(sel) {
+  function fuenteDe(el) {
+    if (!el) return null;
+    const f = el.dataset && el.dataset.fuente !== undefined ? el.dataset.fuente : el.textContent;
+    return (f || '').replace(/\s+/g, ' ').trim();
+  }
   const e = document.querySelector(sel.enunciado);
   const c = document.querySelector(sel.opciones);
   if (!e) return { error: 'falta el elemento ' + sel.enunciado };
@@ -973,8 +987,10 @@ function fnLeerPregunta(sel) {
   if (!nodos.length) nodos = Array.prototype.slice.call(c.children);
   const opciones = nodos.map(function (n, i) {
     const k = n.querySelector('.key');
+    const conFuente = n.querySelector('[data-fuente]');
     let t = n.textContent || '';
     if (k && k.textContent) t = t.replace(k.textContent, '');
+    if (conFuente) t = conFuente.dataset.fuente;
     return {
       i: i,
       letra: k ? (k.textContent || '').trim().toUpperCase().replace(/[^A-Z]/g, '') : '',
@@ -984,9 +1000,9 @@ function fnLeerPregunta(sel) {
   const topic = document.querySelector(sel.topic);
   const cont = document.querySelector(sel.contador);
   return {
-    enunciado: (e.textContent || '').replace(/\s+/g, ' ').trim(),
+    enunciado: fuenteDe(e),
     opciones: opciones,
-    topic: topic ? (topic.textContent || '').replace(/\s+/g, ' ').trim() : null,
+    topic: topic ? fuenteDe(topic) : null,
     contador: cont ? (cont.textContent || '').replace(/\s+/g, ' ').trim() : null,
   };
 }
@@ -1131,6 +1147,12 @@ const ESTRATEGIAS = {
 
 async function leerDiagnostico(page) {
   const d = await page.evaluate(() => {
+    // data-fuente antes que textContent: el nombre del subtema y el error
+    // pueden traer formulas (ver fnLeerPregunta).
+    function fuenteDe(el) {
+      const f = el.dataset && el.dataset.fuente !== undefined ? el.dataset.fuente : el.textContent;
+      return (f || '').replace(/\s+/g, ' ').trim();
+    }
     const cont = document.querySelector('#diag-barras');
     if (!cont) return { fallo: 'falta el elemento #diag-barras que exige el contrato' };
     const filas = Array.prototype.slice.call(cont.querySelectorAll('li'));
@@ -1138,7 +1160,7 @@ async function leerDiagnostico(page) {
       const n = li.querySelector('.bar-name');
       const p = li.querySelector('.bar-pct');
       return {
-        nombre: n ? n.textContent.trim() : (li.textContent || '').trim(),
+        nombre: n ? fuenteDe(n) : (li.textContent || '').trim(),
         pct: p ? parseInt(String(p.textContent).replace(/[^0-9]/g, ''), 10) : null,
         crudo: li.getAttribute('data-pct-crudo'),
         subtema: li.getAttribute('data-subtema'),
@@ -1149,8 +1171,8 @@ async function leerDiagnostico(page) {
     const e = document.querySelector('#diag-debil-error');
     return {
       barras,
-      titulo: t ? t.textContent.replace(/\s+/g, ' ').trim() : null,
-      error: e ? e.textContent.replace(/\s+/g, ' ').trim() : null,
+      titulo: t ? fuenteDe(t) : null,
+      error: e ? fuenteDe(e) : null,
       faltaTitulo: !t,
       faltaError: !e,
     };
@@ -1648,6 +1670,306 @@ async function bloqueCapturas(page, base, materia) {
     await capturar(page, DIR_EST, 'e-12-buscar.png', 'B1 · Buscar monitores (sin filtros)');
   } else {
     registrar('B1 · capturas de #buscar', false, 'la pantalla #s-buscar no se mostro al abrir #buscar en frio');
+  }
+
+  // ---------------- E2 con formulas (captura) ----------------
+  // Una pregunta con fraccion e integral con limites, dibujadas con MathML.
+  contexto = 'E2 pregunta con formulas';
+  const quitar = await abrirPreguntaConMate(page, base, materia);
+  try {
+    await auditarPantalla(page, 'e-02m-pregunta-matematica');
+    await capturar(page, DIR_EST, 'e-02m-pregunta-matematica.png', 'E2 · Pregunta con formulas');
+  } finally {
+    await quitar();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 12b. Bloque: matematicas ($...$ del contenido dibujado con MathML)
+// ---------------------------------------------------------------------------
+
+const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
+// Al 20 de septiembre hay 163 textos marcados con $...$ en contenido/*.md.
+const MINIMO_TEXTOS_CON_MATE = 100;
+const RUTA_CASOS_TEXTO_PLANO = path.join(RAIZ, 'supabase', 'functions', 'enviar-correo', 'textoPlano.test.ts');
+const RUTA_TEXTO_PLANO_TS = path.join(RAIZ, 'supabase', 'functions', 'enviar-correo', 'textoPlano.ts');
+
+// Pregunta de prueba con una fraccion y una integral con limites. Toma el
+// subtema y los kcs de la primera pregunta del banco para que el motor la trate
+// como una mas.
+function preguntaConMate(materia) {
+  const base = materia.preguntas[0];
+  return {
+    id: 'mate-arnes',
+    subtema: base.subtema,
+    dificultad: 2,
+    kcs: (base.kcs || []).slice(),
+    enunciado: 'Si $V = \\frac{4}{3}\\pi r^3$ con $r = 1$, ¿cuánto vale $V \\cdot \\int_0^{\\pi/2} \\sen^2 x \\cos x\\,dx$?',
+    opciones: [
+      { letra: 'A', texto: '$\\frac{4\\pi}{9}$', correcta: true },
+      { letra: 'B', texto: '$\\frac{2\\pi}{3}$', correcta: false, error: 'tomas $\\int_0^{\\pi/2} \\sen^2 x \\cos x\\,dx$ como $\\frac{1}{2}$' },
+      { letra: 'C', texto: '$\\frac{4\\pi}{3}$', correcta: false, error: 'tomas la integral como 1' },
+      { letra: 'D', texto: '$0$', correcta: false, error: 'con $u = \\sen x$ no cambias los límites de 0 a 1' },
+    ],
+  };
+}
+
+// Abre E2 en modo demo con la pregunta de formulas en el primer lugar del
+// banco (orden fijo). Devuelve la funcion que deja de servir la copia demo.
+async function abrirPreguntaConMate(page, base, materia) {
+  const quitar = await servirSinCredenciales(page, base);
+  try {
+    await preparar(page, base, { prueba: CFG_FIJA, certificacion: CFG_FIJA, materia: materia.id });
+    const r = await page.evaluate(({ mid, p }) => {
+      const src = window.MATERIAS || window.__calibraMaterias;
+      const m = src && src.find((x) => x.id === mid);
+      if (!m) return { error: 'no existe la materia ' + mid };
+      for (let i = m.preguntas.length - 1; i >= 0; i -= 1) if (m.preguntas[i].id === p.id) m.preguntas.splice(i, 1);
+      m.preguntas.unshift(p);
+      return { ok: true };
+    }, { mid: materia.id, p: preguntaConMate(materia) });
+    if (r.error) throw new Error('no pude meter la pregunta con formulas: ' + r.error);
+    await entrarAPrueba(page, materia);
+    // La fuente matematica viene de Google Fonts: se espera antes de medir.
+    await page.evaluate(() => (document.fonts ? document.fonts.ready.then(() => true) : true)).catch(() => {});
+  } catch (e) {
+    await quitar();
+    throw e;
+  }
+  return quitar;
+}
+
+// Lee los arreglos [entrada, esperado] de textoPlano.test.ts (CASOS, REGLAS,
+// ROBUSTEZ...). Son literales de JS con alguna anotacion de tipo, que se quita.
+function leerCasosTextoPlano() {
+  const fuente = fs.readFileSync(RUTA_CASOS_TEXTO_PLANO, 'utf8').replace(/\r\n/g, '\n');
+  const re = /export const (\w+)\s*:\s*\[string, string\]\[\]\s*=\s*(\[[\s\S]*?\n\]);/g;
+  const arreglos = {};
+  let m;
+  while ((m = re.exec(fuente))) {
+    // eslint-disable-next-line no-new-func
+    arreglos[m[1]] = new Function('return ' + m[2])();
+  }
+  return arreglos;
+}
+
+// Carga textoPlano.ts en Node (22.18 o mas nuevo quita los tipos solo). Si no
+// se puede, devuelve null y el bloque solo compara contra los casos del test.
+async function cargarTextoPlanoTs() {
+  const avisar = process.emitWarning;
+  process.emitWarning = () => {};
+  try {
+    const mod = await import(require('url').pathToFileURL(RUTA_TEXTO_PLANO_TS).href);
+    return typeof mod.textoPlano === 'function' ? mod.textoPlano : null;
+  } catch (e) {
+    return null;
+  } finally {
+    process.emitWarning = avisar;
+  }
+}
+
+async function bloqueMatematica(page, base, materia) {
+  abrirBloque('Matematicas (MathML)');
+
+  // -- 1. Todas las formulas del contenido se entienden ----------------------
+  contexto = 'matematica · contenido';
+  const quitarDemo = await servirSinCredenciales(page, base);
+  let campos;
+  try {
+    await preparar(page, base, {});
+    campos = await page.evaluate(() => {
+      const M = window.__calibraMate;
+      if (!M || typeof M.matematica !== 'function' || typeof M.textoPlano !== 'function') {
+        return { falta: true };
+      }
+      const src = window.MATERIAS || window.__calibraMaterias || [];
+      const lista = [];
+      const poner = (donde, t) => { if (typeof t === 'string' && t) lista.push({ donde, t }); };
+      src.forEach((m) => {
+        Object.keys(m.subtemas || {}).forEach((k) => poner(m.id + ' · subtema ' + k, m.subtemas[k]));
+        Object.keys(m.kcs || {}).forEach((k) => poner(m.id + ' · kc ' + k, m.kcs[k] && m.kcs[k].nombre));
+        Object.keys(m.misconcepciones || {}).forEach((k) => poner(m.id + ' · misconcepcion ' + k, m.misconcepciones[k] && m.misconcepciones[k].texto));
+        (m.preguntas || []).forEach((p) => {
+          poner(m.id + ' · ' + p.id + ' enunciado', p.enunciado);
+          poner(m.id + ' · ' + p.id + ' explicacion', p.explicacion);
+          (p.opciones || []).forEach((o) => {
+            poner(m.id + ' · ' + p.id + ' opcion ' + o.letra, o.texto);
+            poner(m.id + ' · ' + p.id + ' error ' + o.letra, o.error);
+          });
+        });
+      });
+      window.__calibraMateErrores = [];
+      const errores = [];
+      let conMate = 0;
+      lista.forEach((c) => {
+        const antes = window.__calibraMateErrores.length;
+        const frag = M.matematica(c.t);
+        if (frag.querySelector('math')) conMate += 1;
+        window.__calibraMateErrores.slice(antes).forEach((e) => errores.push({ donde: c.donde, fuente: e.fuente, error: e.error }));
+        c.error = window.__calibraMateErrores.length > antes;
+        try { c.plano = M.textoPlano(c.t); } catch (e) { c.plano = null; c.lanzo = String(e && e.message); }
+      });
+      return { lista, conMate, errores, total: window.__calibraMateErrores.length };
+    });
+  } finally {
+    await quitarDemo();
+  }
+  if (campos.falta) {
+    registrar('matematica · index.html expone window.__calibraMate', false,
+      'falta window.__calibraMate = { matematica, textoPlano, ponerMate } (bloque 4a de index.html)');
+    return;
+  }
+  registrar(
+    'matematica · todas las formulas del contenido se entienden (' + campos.lista.length + ' textos, ' + campos.conMate + ' con formulas)',
+    campos.errores.length === 0 && campos.total === 0,
+    campos.errores.slice(0, 4).map((e) => e.donde + ': "$' + e.fuente.slice(0, 50) + '$" (' + e.error + ')').join(' | '),
+    campos.errores
+  );
+  // Sin este piso el bloque pasaria en vacio si la pagina cargara contenido
+  // sin formulas (por ejemplo, una base de Supabase atrasada).
+  registrar(
+    'matematica · el contenido del archivo trae formulas (' + campos.conMate + ' textos, minimo ' + MINIMO_TEXTOS_CON_MATE + ')',
+    campos.conMate >= MINIMO_TEXTOS_CON_MATE,
+    campos.conMate >= MINIMO_TEXTOS_CON_MATE ? '' : 'solo ' + campos.conMate + ' textos con $...$: la pagina no esta usando el MATERIAS de index.html'
+  );
+  const lanzaron = campos.lista.filter((c) => c.plano === null);
+  const conTex = campos.lista.filter((c) => !c.error && c.plano !== null && /\\[A-Za-z]/.test(c.plano) && c.t.indexOf('$') !== -1);
+  registrar(
+    'matematica · textoPlano aplana todo el contenido sin lanzar ni dejar comandos TeX',
+    lanzaron.length === 0 && conTex.length === 0,
+    lanzaron.concat(conTex).slice(0, 3).map((c) => c.donde + ' -> ' + (c.lanzo || '"' + c.plano.slice(0, 50) + '"')).join(' | ')
+  );
+
+  // -- 2. Paridad de textoPlano con la Edge Function -------------------------
+  contexto = 'matematica · paridad';
+  let arreglos = {};
+  try {
+    arreglos = leerCasosTextoPlano();
+  } catch (e) {
+    registrar('matematica · se leen los casos de textoPlano.test.ts', false, e.message);
+  }
+  const nCasos = (arreglos.CASOS || []).length;
+  registrar('matematica · textoPlano.test.ts trae los casos obligatorios (CASOS >= 7)', nCasos >= 7,
+    nCasos >= 7 ? Object.keys(arreglos).map((k) => k + '=' + arreglos[k].length).join(', ') : 'CASOS tiene ' + nCasos);
+  const todos = [];
+  Object.keys(arreglos).forEach((k) => arreglos[k].forEach((c) => todos.push({ grupo: k, entrada: c[0], esperado: c[1] })));
+  const salidasNav = await page.evaluate((lista) => lista.map((c) => {
+    try { return window.__calibraMate.textoPlano(c.entrada); } catch (e) { return 'LANZO: ' + (e && e.message); }
+  }), todos);
+  Object.keys(arreglos).forEach((grupo) => {
+    const malos = todos
+      .map((c, i) => Object.assign({ obtenido: salidasNav[i] }, c))
+      .filter((c) => c.grupo === grupo && c.obtenido !== c.esperado);
+    registrar(
+      'matematica · textoPlano del navegador da lo que espera textoPlano.test.ts (' + grupo + ', ' + arreglos[grupo].length + ' casos)',
+      malos.length === 0,
+      malos.slice(0, 3).map((c) => JSON.stringify(c.entrada.slice(0, 40)) + ' -> ' + JSON.stringify(c.obtenido.slice(0, 40)) + ' (test: ' + JSON.stringify(c.esperado.slice(0, 40)) + ')').join(' | ')
+    );
+  });
+  const planoTs = await cargarTextoPlanoTs();
+  if (planoTs) {
+    const distintos = campos.lista.filter((c) => {
+      let t;
+      try { t = planoTs(c.t); } catch (e) { t = 'LANZO'; }
+      c.planoTs = t;
+      return t !== c.plano;
+    });
+    registrar(
+      'matematica · textoPlano.ts da lo mismo que index.html en todo el contenido (' + campos.lista.length + ' textos)',
+      distintos.length === 0,
+      distintos.slice(0, 3).map((c) => c.donde + ': navegador ' + JSON.stringify(c.plano) + ' vs Edge ' + JSON.stringify(c.planoTs)).join(' | ')
+    );
+  } else {
+    anotar('matematica: no se pudo cargar textoPlano.ts en este Node (hace falta 22.18+); la paridad se comprobo solo con los casos del test.');
+  }
+
+  // -- 3. Una pregunta con formulas en E2 ------------------------------------
+  contexto = 'matematica · E2';
+  const pregunta = preguntaConMate(materia);
+  const quitar = await abrirPreguntaConMate(page, base, materia);
+  try {
+    const r = await page.evaluate((ns) => {
+      const e = document.querySelector('#prueba-enunciado');
+      if (!e) return { falta: '#prueba-enunciado' };
+      const vw = window.innerWidth;
+      const maths = Array.prototype.slice.call(e.querySelectorAll('math'));
+      const visible = maths.some((m) => {
+        const b = m.getBoundingClientRect();
+        return b.width > 0 && b.height > 0 && getComputedStyle(m).visibility !== 'hidden';
+      });
+      const pequenos = [];
+      const fuera = [];
+      let medidos = 0;
+      document.querySelectorAll('#s-prueba math, #s-prueba math *').forEach((el) => {
+        if (el.namespaceURI !== ns) return;
+        medidos += 1;
+        const px = parseFloat(getComputedStyle(el).fontSize);
+        if (px < 13.995) pequenos.push(el.localName + ' ' + Math.round(px * 100) / 100 + 'px "' + (el.textContent || '').slice(0, 20) + '"');
+        const b = el.getBoundingClientRect();
+        if (b.width > 0 && (b.right > vw + 1 || b.left < -1)) fuera.push(el.localName + ' [' + Math.round(b.left) + '..' + Math.round(b.right) + ']');
+      });
+      const opciones = Array.prototype.slice.call(document.querySelectorAll('#prueba-opciones label.opt')).map((l) => {
+        const f = l.querySelector('[data-fuente]');
+        return {
+          alto: Math.round(l.getBoundingClientRect().height * 10) / 10,
+          fuente: f ? f.dataset.fuente : null,
+          conMath: !!l.querySelector('math'),
+        };
+      });
+      return {
+        fuente: e.dataset.fuente,
+        nMath: maths.length,
+        visible,
+        mfrac: !!e.querySelector('mfrac'),
+        msubsup: !!e.querySelector('msubsup'),
+        errores: document.querySelectorAll('#s-prueba .mate-error').length,
+        medidos,
+        pequenos,
+        fuera,
+        sw: document.documentElement.scrollWidth,
+        cw: document.documentElement.clientWidth,
+        opciones,
+      };
+    }, MATHML_NS);
+    if (r.falta) throw new Error('falta ' + r.falta + ' en E2');
+
+    registrar('matematica · E2 dibuja un <math> visible en el enunciado', r.nMath > 0 && r.visible,
+      r.nMath > 0 && r.visible ? r.nMath + ' formula(s)' : 'formulas: ' + r.nMath + ', visible: ' + r.visible);
+    registrar('matematica · \\frac sale como <mfrac> y la integral con limites como <msubsup>', r.mfrac && r.msubsup,
+      r.mfrac && r.msubsup ? '' : 'mfrac: ' + r.mfrac + ', msubsup: ' + r.msubsup);
+    registrar('matematica · data-fuente del enunciado es el texto del contenido', r.fuente === pregunta.enunciado,
+      r.fuente === pregunta.enunciado ? '' : 'data-fuente "' + String(r.fuente).slice(0, 60) + '"');
+    const fuentesOpc = r.opciones.map((o) => o.fuente);
+    const fuentesOk = pregunta.opciones.every((o, i) => fuentesOpc[i] === o.texto) && r.opciones.every((o) => o.conMath);
+    registrar('matematica · cada opcion lleva su formula y su data-fuente', fuentesOk,
+      fuentesOk ? '' : 'opciones: ' + JSON.stringify(r.opciones).slice(0, 160));
+    registrar('matematica · ningun nodo dentro de <math> baja de 14px (' + r.medidos + ' nodos)', r.medidos > 0 && r.pequenos.length === 0,
+      r.pequenos.slice(0, 4).join('; ') || (r.medidos ? '' : 'no hubo nodos MathML que medir'));
+    registrar('matematica · sin desborde horizontal a 390px', r.sw <= r.cw + 1 && r.fuera.length === 0,
+      r.sw <= r.cw + 1 && r.fuera.length === 0 ? '' : 'scrollWidth ' + r.sw + ' / clientWidth ' + r.cw + ' ' + r.fuera.slice(0, 3).join('; '));
+    const bajas = r.opciones.filter((o) => o.alto < 43.5);
+    registrar('matematica · las opciones con fraccion siguen midiendo 44px o mas', r.opciones.length > 0 && bajas.length === 0,
+      bajas.map((o) => o.fuente + ' ' + o.alto + 'px').join('; '));
+    registrar('matematica · sin <span class="mate-error"> en E2', r.errores === 0, r.errores ? r.errores + ' formula(s) sin entender' : '');
+
+    // Los lectores del arnes comparan fuente contra fuente.
+    let lectura = '';
+    try {
+      const dom = await leerPreguntaActual(page, SEL_PRUEBA);
+      const hallada = localizarPregunta({ id: materia.id, preguntas: [pregunta] }, dom.enunciado);
+      const mapa = emparejarOpciones(hallada, dom.opciones);
+      const distintas = new Set(mapa.map((x) => x.idxDatos)).size;
+      if (distintas !== pregunta.opciones.length) lectura = 'dos opciones del DOM cayeron en la misma opcion de los datos';
+    } catch (e) {
+      lectura = e.message;
+    }
+    registrar('matematica · el arnes lee data-fuente y empareja enunciado y opciones con formulas', !lectura, lectura);
+
+    const aud = await auditarPantalla(page, 'matematica-e2');
+    registrar('matematica · la auditoria de tipografia recorre los nodos MathML', aud.tipografiaMathml > 0,
+      aud.tipografiaMathml > 0 ? aud.tipografiaMathml + ' nodo(s) MathML con texto revisados' : 'la auditoria no vio ningun nodo MathML');
+  } finally {
+    await quitar();
   }
 }
 
@@ -2290,10 +2612,14 @@ async function describirFiltro(page, clave) {
     if (radios.length) {
       return {
         tipo: 'grupo',
-        opciones: radios.map((r, i) => ({
-          valor: r.value || String(i),
-          etiqueta: ((r.closest('label') || r).textContent || '').replace(/\s+/g, ' ').trim(),
-        })),
+        opciones: radios.map((r, i) => {
+          const lbl = r.closest('label') || r;
+          const f = lbl.querySelector && lbl.querySelector('[data-fuente]');
+          return {
+            valor: r.value || String(i),
+            etiqueta: ((f ? f.dataset.fuente : lbl.textContent) || '').replace(/\s+/g, ' ').trim(),
+          };
+        }),
       };
     }
     return { tipo: tag };
@@ -3575,7 +3901,7 @@ async function bloqueSupabase(navegador, base) {
   }
 }
 
-const ALIAS_BLOQUE = { logica: 'oraculo', oraculo: 'oraculo', 'crear-perfil': 'perfil', buscar: 'buscar' };
+const ALIAS_BLOQUE = { logica: 'oraculo', oraculo: 'oraculo', 'crear-perfil': 'perfil', buscar: 'buscar', mate: 'matematica', mathml: 'matematica' };
 
 function quiere(bloque) {
   if (!SOLO) return true;
@@ -3683,6 +4009,20 @@ async function main() {
     let materia = null;
     try {
       await page.goto(base, { waitUntil: 'domcontentloaded' });
+      // Con credenciales reales la app pinta lo que lee de Supabase, que puede
+      // ir detras de contenido/*.md (por ejemplo, antes de volver a correr
+      // convertir.js --supabase). Se espera a que termine esa lectura para que
+      // el arnes compare contra el mismo contenido que se ve en pantalla.
+      if (CREDENCIALES_REALES) {
+        await page.waitForFunction(
+          () => typeof window.__calibraSupabaseEstado === 'string' && window.__calibraSupabaseEstado !== 'cargando',
+          null,
+          { timeout: 12000 }
+        ).catch(() => {});
+        const origen = await page.evaluate(() => window.__calibraSupabaseEstado).catch(() => '?');
+        linea('  AVISO contenido leido con Supabase en estado "' + origen + '"' +
+          (origen === 'conectado' ? ': los bloques comparan contra la base, no contra contenido/*.md' : ''));
+      }
       materias = await leerMaterias(page);
       registrar('window.MATERIAS es legible', true, materias.length + ' materia(s): ' + materias.map((m) => m.id).join(', '));
       materia = buscarMateria(materias, MATERIA_DEMO);
@@ -3762,6 +4102,14 @@ async function main() {
           await bloqueCapturas(page, base, materia);
         } catch (e) {
           registrar('recorrido de capturas', false, e.message);
+        }
+      }
+
+      if (quiere('matematica')) {
+        try {
+          await bloqueMatematica(page, base, materia);
+        } catch (e) {
+          registrar('matematicas con MathML', false, e.message);
         }
       }
 

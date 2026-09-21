@@ -3,6 +3,18 @@
 Manda el correo de confirmación al estudiante: la hora agendada, cómo paga, su
 diagnóstico y el contacto del monitor.
 
+El correo es texto plano. El subtema, el error detectado y las misconcepciones
+pueden traer matemática como `$...$` (TeX); antes de entrar al cuerpo pasan por
+`textoPlano` (`textoPlano.ts`), que la aplana a Unicode (`$\frac{4}{3}\pi r^3$`
+sale `4/3 πr³`). `index.html` tiene una copia de la misma función: si se toca
+una, se toca la otra y se corren los casos:
+
+```bash
+deno test supabase/functions/enviar-correo/textoPlano.test.ts
+# o, sin Deno (Node 22.18 o más nuevo):
+node supabase/functions/enviar-correo/textoPlano.test.ts
+```
+
 Está fuera de `index.html` porque tiene que estarlo. La llave que viaja en el
 HTML es anónima y RLS no le da lectura sobre `leads` ni sobre
 `resultados_diagnostico`, así que el navegador no puede leer ni el correo, ni el
