@@ -43,7 +43,8 @@
   --r:14px;
 
   --col:430px;              /* ancho maximo de la columna de contenido */
-  --pie-h:52px;             /* alto de la barra fija inferior */
+  --pie-h:0px;              /* ya no hay barra inferior: queda en 0 para las reglas que lo suman */
+  --marca-h:60px;           /* franja de arriba donde va el logo, que es el boton de inicio */
   --pad-x:20px;
 }
 
@@ -79,7 +80,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  padding-block-start:max(28px,env(safe-area-inset-top));
+  padding-block-start:calc(var(--marca-h) + max(8px,env(safe-area-inset-top)));
   padding-block-end:calc(var(--pie-h) + 10px + env(safe-area-inset-bottom));
   padding-inline:max(var(--pad-x),env(safe-area-inset-left)) max(var(--pad-x),env(safe-area-inset-right));
 }
@@ -465,48 +466,37 @@ math mroot>:last-child,math mfrac>*{font-size:max(14px,.8em)}
   font-size:15px;font-weight:600;color:var(--success-text);
 }
 
-/* ---------- 19. Pie global y boton de reinicio ---------- */
-.pie-prototipo{
-  position:fixed;
-  inset-inline:0;
-  inset-block-end:0;
-  z-index:20;
-  display:flex;align-items:center;justify-content:center;
-  min-block-size:var(--pie-h);
-  padding-inline:max(var(--pad-x),calc(50% - (var(--col) / 2) + var(--pad-x)));
-  padding-block-end:env(safe-area-inset-bottom);
-  background:var(--bg);
-  border-block-start:1px solid var(--border);
-  color:var(--muted);
-  font-size:14px;line-height:1.3;
-  pointer-events:none;
-}
-/* Si el boton de reinicio cuelga de <body> comparte franja con el pie:
-   el pie se alinea a la izquierda para que nunca se solapen, ni a 360px. */
-body:has(>.btn-reiniciar) .pie-prototipo{justify-content:flex-start}
-
+/* ---------- 19. Logo global: vuelve al inicio ----------
+   El logo de arriba a la izquierda es el boton de reinicio (#btn-reiniciar):
+   limpia el estado y lleva a la pantalla de inicio. Reemplaza al pie
+   "Prototipo · datos de ejemplo" y al pill "Empezar de nuevo" de abajo. */
 .btn-reiniciar{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-block-size:44px;min-inline-size:44px;padding:10px 16px;
-  background:var(--surface);
-  color:var(--muted);
-  border:1px solid var(--border);border-radius:999px;
-  font-family:inherit;font-size:14px;font-weight:600;
+  display:inline-flex;align-items:center;gap:10px;
+  min-block-size:44px;min-inline-size:44px;padding:6px 8px 6px 0;
+  background:transparent;border:0;border-radius:10px;
+  color:var(--primary);
+  font-family:inherit;font-size:22px;font-weight:700;letter-spacing:-.01em;
   text-decoration:none;white-space:nowrap;
   cursor:pointer;
-  transition:border-color 150ms ease,color 150ms ease;
 }
+.btn-reiniciar svg{inline-size:36px;block-size:36px;flex:0 0 auto;display:block}
+.btn-reiniciar:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 /* Colocacion global: solo si cuelga directamente de <body>. */
 body>.btn-reiniciar{
   position:fixed;
   z-index:21;
-  inset-block-end:calc(env(safe-area-inset-bottom) + 4px);
-  inset-inline-end:max(var(--pad-x),calc(50vw - (var(--col) / 2) + var(--pad-x)));
+  inset-block-start:max(8px,env(safe-area-inset-top));
+  inset-inline-start:max(var(--pad-x),calc(50vw - (var(--col) / 2) + var(--pad-x)));
 }
+/* El logo global ya dice "Calibra": el de la cabecera de cada pantalla sobra.
+   En s-monitor el texto "Calibra para monitores" si informa y se queda. */
+#s-inicio>header>.marca-logo,
+#s-buscar>header>.marca-logo{display:none}
+#s-monitor>header>.marca-logo svg{display:none}
 
 /* ---------- 20. Ajustes por alto y por ancho ---------- */
 @media (max-height:700px){
-  .screen{padding-block-start:max(18px,env(safe-area-inset-top))}
+  .screen{padding-block-start:calc(var(--marca-h) + max(4px,env(safe-area-inset-top)))}
   .topic{margin-block-start:20px}
   .options{margin-block-start:18px;gap:10px}
   .opt{min-block-size:60px}
@@ -1202,9 +1192,9 @@ textarea.visualmente-oculto,button.visualmente-oculto{
    recorta el gasto vertical de cabecera, pie y tarjetas. Ningun area tactil
    baja de 44 px ni ningun texto de 14, que es el contrato. */
 @media (max-height:560px){
-  :root{--pie-h:44px}
+  :root{--pie-h:0px;--marca-h:52px}
   .screen{
-    padding-block-start:max(10px,env(safe-area-inset-top));
+    padding-block-start:calc(var(--marca-h) + max(4px,env(safe-area-inset-top)));
     padding-block-end:calc(var(--pie-h) + 6px + env(safe-area-inset-bottom));
   }
   .title{font-size:20px;line-height:1.2}
@@ -1254,18 +1244,6 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   #perfil-contenido .note{margin-block-start:10px}
 }
 
-/* 38.6 · El pill "Empezar de nuevo" tapaba el pie del prototipo. Medido: el
-   texto pide 186 px y el pill ocupa 159, asi que se pisan a 320, 360 y 375, y
-   ya no a 390. El corte va en 380 para no partir en dos lineas un pie que a
-   390 cabe entero. */
-@media (max-width:380px){
-  .pie-prototipo{
-    justify-content:flex-start;
-    text-align:start;
-    line-height:1.25;
-    padding-inline-end:calc(var(--pad-x) + 168px);
-  }
-}
 /* El carril no existe fuera del escritorio. Apagado con display:none, que es
    la unica forma que no rompe el chequeo "desbordes" del arnes: un carril
    aparcado con transform:translateX(-100%) deja rect.left en negativo y falla
@@ -1329,12 +1307,15 @@ textarea.visualmente-oculto,button.visualmente-oculto{
      hoja por abajo con la regla de 1 px que ya cruzaba de lado a lado, y la
      pantalla de carga tambien, para que los 6 s de espera de Supabase no
      ensenen un flash de otro color. */
-  .pie-prototipo{
-    padding-inline:calc(var(--banda) + var(--margen-hoja) + var(--pad-x))
-                   calc(var(--margen-hoja) + var(--pad-x));
+  /* En escritorio el logo global se sienta donde estaba la marca del carril,
+     y la hoja recupera el aire de arriba que en el telefono ocupa el logo. */
+  body>.btn-reiniciar{
+    inset-block-start:max(20px,env(safe-area-inset-top));
+    inset-inline-start:max(var(--hueco),env(safe-area-inset-left));
   }
-  body>.btn-reiniciar{inset-inline-end:calc(var(--margen-hoja) + var(--pad-x))}
-  .pie-prototipo,.cargando{background:var(--escritorio)}
+  #carril>.marca-logo{visibility:hidden}
+  .screen{padding-block-start:max(28px,env(safe-area-inset-top))}
+  .cargando{background:var(--escritorio)}
 
   /* 39.1 · El carril. Fijo y no pegajoso: html,body llevan overflow-x:hidden
      (52) y position:sticky no pega dentro de un contenedor de desplazamiento.
@@ -1615,10 +1596,8 @@ textarea.visualmente-oculto,button.visualmente-oculto{
      pantalla, a 208 px de distancia. En s-inicio y s-buscar el eyebrow dice
      solo "Calibra", asi que sobra entero. En s-monitor dice "Calibra para
      monitores", que si informa: se queda el texto y se va el simbolo, que es
-     lo unico que duplica al carril. */
-  #s-inicio>header>.marca-logo,
-  #s-buscar>header>.marca-logo{display:none}
-  #s-monitor>header>.marca-logo svg{display:none}
+     lo unico que duplica al carril. Desde que el logo global es el boton de
+     inicio, esas reglas valen en todos los tamanos y viven en la seccion 19. */
 
   /* 41.2 · Los botones del pie nacieron inline-size:100% para un telefono de
      390. En una hoja de 880 eso da un boton de 784 px de ancho para la palabra
@@ -2232,8 +2211,7 @@ textarea.visualmente-oculto,button.visualmente-oculto{
   <p class="nota-carril">Prototipo del curso de Dise&ntilde;o de Productos, Universidad de los Andes.</p>
 </aside>
 
-<p class="pie-prototipo">Prototipo &middot; datos de ejemplo</p>
-<button type="button" class="btn-reiniciar" id="btn-reiniciar">Empezar de nuevo</button>
+<button type="button" class="btn-reiniciar" id="btn-reiniciar" aria-label="Calibra, volver al inicio"><svg viewBox="0 0 2084 2084" aria-hidden="true" focusable="false"><use href="#marca-calibra"/></svg><span>Calibra</span></button>
 
 <script>
 /* ==================== CONTENIDO EDITABLE ==================== */
@@ -3431,6 +3409,116 @@ const MATERIAS = [
   },
 
   {
+    id: 'introduccion-programacion',
+    codigo: 'ISIS-1221',
+    nombre: 'Introducción a la Programación',
+    activa: true,
+    contexto: 'antes del examen escrito de nivel 2',
+    libro: 'Wentworth, Elkner, Downey y Meyers, How to Think Like a Computer Scientist (Python 3), 2018. Material del curso por niveles.',
+    subtemas: { tipos: 'Tipos, operadores y conversión', funciones: 'Funciones, return y variables locales', condicionales: 'Booleanos y condicionales', 'cadenas-diccionarios': 'Cadenas y diccionarios' },
+    preguntas: [
+      { id: 'p1', subtema: 'tipos', dificultad: 1,
+        enunciado: '¿Qué imprime print(17 % 5)?',
+        opciones: [
+          { letra: 'A', texto: '2', correcta: true },
+          { letra: 'B', texto: '3', correcta: false, error: 'confundes % (el residuo) con // (el cociente de la división entera)' },
+          { letra: 'C', texto: '3.4', correcta: false, error: 'confundes % con la división normal /' },
+          { letra: 'D', texto: '0.85', correcta: false, error: 'crees que % calcula un porcentaje, el 17 % de 5' },
+        ] },
+      { id: 'p2', subtema: 'tipos', dificultad: 2,
+        enunciado: '¿Qué imprime este programa? x = "3" | y = 4 | print(x * 2 + str(y))',
+        opciones: [
+          { letra: 'A', texto: '334', correcta: true },
+          { letra: 'B', texto: '10', correcta: false, error: 'tratas "3" como el número 3 aunque está entre comillas' },
+          { letra: 'C', texto: '64', correcta: false, error: 'multiplicas "3" como número pero después concatenas el 4 como texto' },
+          { letra: 'D', texto: 'TypeError', correcta: false, error: 'crees que un str no se puede multiplicar por un int, cuando eso lo repite' },
+        ] },
+      { id: 'p3', subtema: 'tipos', dificultad: 2,
+        enunciado: 'El programa es n = input("Edad: ") | print(n + 1), y el usuario escribe 20. ¿Qué pasa?',
+        opciones: [
+          { letra: 'A', texto: 'Sale un TypeError, porque no se puede sumar un str con un int', correcta: true },
+          { letra: 'B', texto: 'Imprime 21', correcta: false, error: 'olvidas que input() siempre devuelve un str, aunque el usuario escriba un número' },
+          { letra: 'C', texto: 'Imprime 201', correcta: false, error: 'crees que Python convierte el 1 en texto por su cuenta para concatenar' },
+          { letra: 'D', texto: 'Imprime 20 1', correcta: false, error: 'confundes el + con la coma de print, que separa valores con un espacio' },
+        ] },
+      { id: 'p4', subtema: 'funciones', dificultad: 2,
+        enunciado: '¿Qué imprime este programa? def doble(x): print(x * 2) | r = doble(5) | print(r)',
+        opciones: [
+          { letra: 'A', texto: '10 y luego None', correcta: true },
+          { letra: 'B', texto: '10 y luego 10', correcta: false, error: 'crees que print dentro de la función también devuelve el valor' },
+          { letra: 'C', texto: 'Solo None', correcta: false, error: 'crees que la función no imprime nada cuando su resultado se guarda en una variable' },
+          { letra: 'D', texto: 'Un error, porque doble no tiene return', correcta: false, error: 'crees que una función sin return no se puede asignar a una variable' },
+        ] },
+      { id: 'p5', subtema: 'funciones', dificultad: 2,
+        enunciado: '¿Qué imprime este programa? x = 5 | def cambiar(): x = 10 | cambiar() | print(x)',
+        opciones: [
+          { letra: 'A', texto: '5', correcta: true },
+          { letra: 'B', texto: '10', correcta: false, error: 'crees que asignar x dentro de la función cambia la x de afuera, cuando crea una variable local' },
+          { letra: 'C', texto: 'None', correcta: false, error: 'confundes el valor de x con lo que devuelve cambiar(), que no tiene return' },
+          { letra: 'D', texto: 'Un error, porque x no está definida dentro de la función', correcta: false, error: 'crees que una función no puede crear una variable con el mismo nombre de una de afuera' },
+        ] },
+      { id: 'p6', subtema: 'funciones', dificultad: 3,
+        enunciado: '¿Qué imprime este programa? def dividir(a, b): return a // b | x = 3 | y = 12 | print(dividir(y, x))',
+        opciones: [
+          { letra: 'A', texto: '4', correcta: true },
+          { letra: 'B', texto: '0', correcta: false, error: 'crees que x va con a y y va con b porque x se definió primero, cuando manda la posición en la llamada' },
+          { letra: 'C', texto: '4.0', correcta: false, error: 'crees que // siempre devuelve un float' },
+          { letra: 'D', texto: '0.25', correcta: false, error: 'divides x entre y y además usas la división normal' },
+        ] },
+      { id: 'p7', subtema: 'condicionales', dificultad: 2,
+        enunciado: '¿Cuál expresión es equivalente a not (a and b)?',
+        opciones: [
+          { letra: 'A', texto: 'not a or not b', correcta: true },
+          { letra: 'B', texto: 'not a and not b', correcta: false, error: 'niegas cada parte pero dejas el and, cuando De Morgan lo cambia por or' },
+          { letra: 'C', texto: 'a or b', correcta: false, error: 'cambias el and por or pero te olvidas de negar cada parte' },
+          { letra: 'D', texto: 'not a and b', correcta: false, error: 'aplicas el not solo al primer término' },
+        ] },
+      { id: 'p8', subtema: 'condicionales', dificultad: 2,
+        enunciado: '¿Qué imprime este programa? nota = 4.5 | if nota >= 3: print("aprobó") | elif nota >= 4: print("excelente") | else: print("reprobó")',
+        opciones: [
+          { letra: 'A', texto: 'aprobó', correcta: true },
+          { letra: 'B', texto: 'excelente', correcta: false, error: 'crees que Python escoge la condición más específica, cuando ejecuta la primera que sea verdadera' },
+          { letra: 'C', texto: 'aprobó y luego excelente', correcta: false, error: 'crees que un if/elif ejecuta todas las ramas cuya condición es verdadera' },
+          { letra: 'D', texto: 'Un error, porque dos condiciones son verdaderas a la vez', correcta: false, error: 'crees que las condiciones de un if/elif tienen que ser excluyentes' },
+        ] },
+      { id: 'p9', subtema: 'condicionales', dificultad: 3,
+        enunciado: '¿Qué imprime este programa? color = "rojo" | if color == "azul" or "verde": print("frío") | else: print("cálido")',
+        opciones: [
+          { letra: 'A', texto: 'frío', correcta: true },
+          { letra: 'B', texto: 'cálido', correcta: false, error: 'crees que or compara color con cada valor, cuando "verde" por sí solo ya cuenta como verdadero' },
+          { letra: 'C', texto: 'Un error de sintaxis', correcta: false, error: 'crees que no se puede poner un str suelto en una condición' },
+          { letra: 'D', texto: 'No imprime nada', correcta: false, error: 'crees que si la primera comparación es falsa el if se salta también el else' },
+        ] },
+      { id: 'p10', subtema: 'cadenas-diccionarios', dificultad: 2,
+        enunciado: '¿Qué imprime este programa? s = "Python" | print(s[1:4])',
+        opciones: [
+          { letra: 'A', texto: 'yth', correcta: true },
+          { letra: 'B', texto: 'Pyt', correcta: false, error: 'cuentas las posiciones desde 1 en vez de desde 0' },
+          { letra: 'C', texto: 'ytho', correcta: false, error: 'incluyes el índice final del corte, cuando el corte se detiene antes de él' },
+          { letra: 'D', texto: 'Pyth', correcta: false, error: 'cuentas desde 1 y además incluyes el índice final' },
+        ] },
+      { id: 'p11', subtema: 'cadenas-diccionarios', dificultad: 2,
+        enunciado: '¿Qué imprime este programa? s = "hola" | s.upper() | print(s)',
+        opciones: [
+          { letra: 'A', texto: 'hola', correcta: true },
+          { letra: 'B', texto: 'HOLA', correcta: false, error: 'crees que upper() cambia el string original, cuando devuelve uno nuevo que aquí nadie guarda' },
+          { letra: 'C', texto: 'Hola', correcta: false, error: 'confundes upper() con capitalize(), que solo pone en mayúscula la primera letra' },
+          { letra: 'D', texto: 'None', correcta: false, error: 'crees que upper() deja la variable vacía después de usarla' },
+        ] },
+      { id: 'p12', subtema: 'cadenas-diccionarios', dificultad: 3,
+        enunciado: '¿Qué imprime este programa? sala = {"vendidas": 0} | def vender(d, n): d["vendidas"] += n | vender(sala, 5) | print(sala["vendidas"])',
+        opciones: [
+          { letra: 'A', texto: '5', correcta: true },
+          { letra: 'B', texto: '0', correcta: false, error: 'crees que la función trabaja sobre una copia del diccionario, cuando recibe el mismo diccionario y lo modifica' },
+          { letra: 'C', texto: 'None', correcta: false, error: 'confundes el valor de la llave con lo que devuelve vender(), que no tiene return' },
+          { letra: 'D', texto: '{\'vendidas\': 5}', correcta: false, error: 'confundes el valor de una llave con el diccionario completo' },
+        ] },
+    ],
+    prueba:        { longitud: 12, adaptativa: true,  barajarOpciones: true },
+    certificacion: { longitud: 3, minimoAciertos: 2, adaptativa: false, barajarOpciones: false },
+  },
+
+  {
     id: 'probabilidad-estadistica',
     codigo: 'IIND-2106',
     nombre: 'Probabilidad y Estadística',
@@ -3892,6 +3980,26 @@ const HORARIOS_POR_MONITOR = {
     'Jueves 11:00–18:00',
     'Viernes 14:00–18:00',
   ],
+  // David Varela. Horario dado por el monitor el 21 de septiembre de 2026.
+  'c8e25968-38e0-4a33-b2f6-f32ade33901e': [
+    'Lunes 19:00–21:00',
+    'Martes 19:00–21:00',
+    'Miércoles 19:00–21:00',
+    'Jueves 19:00–21:00',
+    'Viernes 19:00–21:00',
+    'Sábado 19:00–21:00',
+    'Domingo 19:00–21:00',
+  ],
+};
+
+/*
+  Materias en las que NO sale un monitor que no declara materia (y que por eso
+  sale en todas). Tambien por la clave publica del perfil. Las claves son los
+  id de materia de la seccion 3.
+*/
+const MATERIAS_EXCLUIDAS_POR_MONITOR = {
+  // Santiago Vargas no da Introducción a la Programación (21 de septiembre de 2026).
+  'cc1c2030-0a1a-4597-b75f-191ffb9edda2': ['introduccion-programacion'],
 };
 
 
@@ -4145,6 +4253,7 @@ var CONTENIDO = {
   monitores:   leerContenido(function () { return MONITORES; }, []),
   horarios:    leerContenido(function () { return HORARIOS; }, []),
   horariosPorMonitor: leerContenido(function () { return HORARIOS_POR_MONITOR; }, {}),
+  materiasExcluidas: leerContenido(function () { return MATERIAS_EXCLUIDAS_POR_MONITOR; }, {}),
   precios:     leerContenido(function () { return PRECIOS_FILTRO; }, [20000, 25000, 30000, 40000]),
   niveles:     leerContenido(function () { return NIVELES_FILTRO; }, [1, 2, 3]),
   mapaPct:     leerContenido(function () { return MAPA_PORCENTAJE; }, { 0: 34, 50: 61, 100: 82 }),
@@ -6179,10 +6288,19 @@ function cubreTodasLasMaterias(m) {
   return !m.materia;
 }
 
+/* Salvo las materias que el equipo le quita a mano (MATERIAS_EXCLUIDAS_POR_MONITOR). */
+function excluidoDe(m, idMateria) {
+  var mapa = CONTENIDO.materiasExcluidas || {};
+  var lista = m.clave && Object.prototype.hasOwnProperty.call(mapa, m.clave) ? mapa[m.clave] : null;
+  return Array.isArray(lista) && lista.indexOf(idMateria) !== -1;
+}
+
 function monitoresDe(idMateria) {
   var lista = Array.isArray(CONTENIDO.monitores) ? CONTENIDO.monitores : [];
   if (!idMateria) return lista.slice();
-  return lista.filter(function (m) { return cubreTodasLasMaterias(m) || m.materia === idMateria; });
+  return lista.filter(function (m) {
+    return (cubreTodasLasMaterias(m) && !excluidoDe(m, idMateria)) || m.materia === idMateria;
+  });
 }
 
 /* E4: las tarjetas de monitor del subtema debil. La recomendada va primera. */
@@ -6411,6 +6529,7 @@ function pasaFiltros(m) {
   // la declara solo pasa con la suya: un perfil certificado en una materia no
   // puede colarse en las demas.
   if (f.materia && !cubreTodasLasMaterias(m) && m.materia !== f.materia) return false;
+  if (f.materia && excluidoDe(m, f.materia)) return false;
   if (f.subtema) {
     var suyos = Array.isArray(m.subtemas) ? m.subtemas : [];
     // Sin subtemas declarados no se filtra, igual que con la materia arriba: la

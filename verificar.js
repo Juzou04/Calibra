@@ -498,16 +498,45 @@ function fnAuditoria(opciones) {
     }
   });
 
-  // -- pie del prototipo ----------------------------------------------------
+  // -- logo de inicio (arriba a la izquierda, reemplaza al pie) --------------
+  // Tiene que verse, medir 44 px o mas, estar en la franja de arriba, no quedar
+  // tapado y no pisar ningun texto de la pantalla. El pie viejo ya no debe salir.
   const textoVisible = (document.body.innerText || '').replace(/\u00a0/g, ' ');
   const pieNormal = TXT_PIE.replace(/\s+/g, ' ');
-  const pieEncontrado = textoVisible.replace(/\s+/g, ' ').indexOf(pieNormal) !== -1;
-  let pieElemento = null;
-  visibles.forEach(function (el) {
-    if (pieElemento) return;
-    if (!tieneTextoDirecto(el)) return;
-    if ((el.textContent || '').replace(/\s+/g, ' ').indexOf(pieNormal) !== -1) pieElemento = ruta(el);
-  });
+  const pieSigue = textoVisible.replace(/\s+/g, ' ').indexOf(pieNormal) !== -1;
+  const logo = document.getElementById('btn-reiniciar');
+  const logoProblemas = [];
+  if (!logo) logoProblemas.push('no existe #btn-reiniciar');
+  else {
+    const rl = logo.getBoundingClientRect();
+    const csl = getComputedStyle(logo);
+    if (csl.display === 'none' || csl.visibility === 'hidden' || rl.width === 0) logoProblemas.push('no se ve');
+    if (rl.width < 44 || rl.height < 44) logoProblemas.push('mide ' + Math.round(rl.width) + 'x' + Math.round(rl.height));
+    if (rl.top > 40 || rl.left > window.innerWidth / 2) logoProblemas.push('no esta arriba a la izquierda (' + Math.round(rl.left) + ',' + Math.round(rl.top) + ')');
+    const encima = document.elementFromPoint(rl.left + rl.width / 2, rl.top + rl.height / 2);
+    if (encima && !logo.contains(encima)) logoProblemas.push('lo tapa ' + ruta(encima));
+    // Se mide la parte VISIBLE de cada elemento: lo que un contenedor con
+    // scroll recorta (una tarjeta que subio dentro de .body) no se ve y no cuenta.
+    function rectoVisible(el) {
+      const r = el.getBoundingClientRect();
+      let v = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const cs = getComputedStyle(a);
+        if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+        const c = a.getBoundingClientRect();
+        v = { left: Math.max(v.left, c.left), top: Math.max(v.top, c.top),
+              right: Math.min(v.right, c.right), bottom: Math.min(v.bottom, c.bottom) };
+      }
+      return v;
+    }
+    visibles.forEach(function (el) {
+      if (logo.contains(el) || el.contains(logo) || !tieneTextoDirecto(el)) return;
+      const r = rectoVisible(el);
+      if (r.right <= r.left || r.bottom <= r.top) return;
+      if (r.right > rl.left && r.left < rl.right && r.bottom > rl.top && r.top < rl.bottom) logoProblemas.push('pisa ' + ruta(el));
+    });
+  }
+  if (pieSigue) logoProblemas.push('todavia sale el pie "' + TXT_PIE + '"');
 
   // -- sin comision ---------------------------------------------------------
   const llano = textoVisible.replace(/\s+/g, ' ');
@@ -597,7 +626,7 @@ function fnAuditoria(opciones) {
     })(),
     tipografia: tipografia,
     tipografiaMathml: tipografiaMathml,
-    pie: { encontrado: pieEncontrado, selector: pieElemento },
+    logo: { problemas: logoProblemas.slice(0, 3) },
     comision: comision,
     contraste: contrasteFallas,
     seccionesVisibles: seccionesVisibles,
@@ -652,10 +681,10 @@ async function auditarPantalla(page, etiqueta) {
   );
 
   registrar(
-    etiqueta + ' · pieProtitipo',
-    r.pie.encontrado,
-    r.pie.encontrado ? r.pie.selector || '' : 'no aparece visible el texto "' + TXT_PIE + '"',
-    r.pie
+    etiqueta + ' · logoInicio',
+    r.logo.problemas.length === 0,
+    r.logo.problemas.join(' | '),
+    r.logo
   );
 
   registrar(
