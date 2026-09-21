@@ -11,7 +11,7 @@
  *   verificar.cmd --headed           (abre el navegador visible)
  *   verificar.cmd --solo=oraculo     (bloques, separados por coma:
  *                                     fuente, capturas, oraculo, monitor,
- *                                     matematica, adaptativo, kc, barajado,
+ *                                     matematica, codigo, adaptativo, kc, barajado,
  *                                     buscar, perfil, robustez, supabase)
  *
  * Requisitos ya verificados del entorno:
@@ -1043,10 +1043,17 @@ async function leerPreguntaActual(page, sel) {
   return r;
 }
 
+// Un enunciado con codigo trae cercas (```) y saltos de linea: normalizarEspacios
+// ya junta los saltos; las cercas se quitan para que el texto de pantalla y el
+// del banco se parezcan aunque uno solo traiga la prosa y el codigo.
+function sinCercas(s) {
+  return String(s == null ? '' : s).replace(/```/g, ' ');
+}
+
 function localizarPregunta(materia, enunciadoDom) {
-  const objetivo = normalizarMatematicas(enunciadoDom).toLowerCase();
+  const objetivo = normalizarMatematicas(sinCercas(enunciadoDom)).toLowerCase();
   const p = materia.preguntas.find((q) => {
-    const e = normalizarMatematicas(q.enunciado).toLowerCase();
+    const e = normalizarMatematicas(sinCercas(q.enunciado)).toLowerCase();
     return e === objetivo || objetivo.indexOf(e) !== -1 || e.indexOf(objetivo) !== -1;
   });
   if (!p) {
@@ -1086,7 +1093,7 @@ function emparejarOpciones(pregunta, domOpciones) {
  *   decidir({ paso, pregunta, mapa }) -> indice DOM de la opcion a pulsar.
  * Devuelve la traza: un objeto por pregunta respondida.
  */
-async function recorrer(page, sel, materia, decidir) {
+async function recorrer(page, sel, materia, decidir, inspeccionar) {
   const traza = [];
   const MAX = 40;
   for (let paso = 0; paso < MAX; paso += 1) {
@@ -1094,6 +1101,8 @@ async function recorrer(page, sel, materia, decidir) {
     const dom = await leerPreguntaActual(page, sel);
     const pregunta = localizarPregunta(materia, dom.enunciado);
     const mapa = emparejarOpciones(pregunta, dom.opciones);
+    // Gancho opcional: mira la pregunta ya pintada antes de responderla.
+    if (inspeccionar) await inspeccionar({ paso, pregunta, dom });
     const idxDom = decidir({ paso, pregunta, mapa, dom, materia });
     if (typeof idxDom !== 'number' || idxDom < 0 || idxDom >= mapa.length) {
       throw new Error('[' + sel.etiqueta + '] la estrategia devolvio un indice invalido: ' + idxDom);
@@ -1287,7 +1296,7 @@ async function pasarDeM2aCertificacion(page, retratar) {
 }
 
 async function entrarACertificacion(page, base, materia, cfg) {
-  await preparar(page, base, { certificacion: cfg || CFG_FIJA });
+  await preparar(page, base, { certificacion: cfg || CFG_FIJA, materia: materia.id });
   await clic(page, '#s-inicio [data-ir="monitor"]', 'enlace Soy monitor (E1)');
   await esperarPantalla(page, 's-monitor', 'M1');
   await clic(page, '#s-monitor [data-ir="monitor-materia"]', 'boton de M1 hacia M2');
@@ -3930,6 +3939,286 @@ async function bloqueSupabase(navegador, base) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 22. Bloque: codigo en los enunciados (<pre><code>)
+// ---------------------------------------------------------------------------
+//
+// Contrato con index.html: un enunciado puede llevar bloques de codigo entre
+// cercas (una linea que solo dice ```), con "\n" como salto de linea. Cada
+// bloque se dibuja como <pre class="codigo"><code> dentro de #prueba-enunciado
+// o #cert-enunciado (un <div role="heading" aria-level="1">); la prosa va en
+// <p class="enunciado-texto">. Sin cercas el enunciado se pinta como siempre.
+
+const ID_MATERIA_CODIGO = 'introduccion-programacion';
+
+// Parte un enunciado del contenido en prosa y bloques de codigo. Lo de adentro
+// de una cerca se conserva tal cual, con su sangria.
+function partirCercas(texto) {
+  const prosa = [];
+  const codigos = [];
+  let actual = null;
+  String(texto == null ? '' : texto).split('\n').forEach((l) => {
+    if (l.trim() === '```') {
+      if (actual === null) actual = [];
+      else { codigos.push(actual.join('\n')); actual = null; }
+      return;
+    }
+    if (actual !== null) actual.push(l); else prosa.push(l);
+  });
+  return { prosa: prosa.join(' ').replace(/\s+/g, ' ').trim(), codigos, abierta: actual !== null };
+}
+
+function sinSaltosFinales(s) {
+  return String(s == null ? '' : s).replace(/\n+$/, '');
+}
+
+// Pregunta hecha por el arnes: prosa con formula, codigo con sangria, una
+// linea que no cabe en 390px y un codigo que parece formula y HTML.
+function preguntaConCodigo(materia) {
+  const base = materia.preguntas[0];
+  return {
+    id: 'codigo-arnes',
+    subtema: base.subtema,
+    dificultad: 2,
+    kcs: (base.kcs || []).slice(),
+    enunciado: 'Con $n = 3$, ¿qué imprime este programa?\n```\n' +
+      'def f(n):\n' +
+      '    if n > 2:\n' +
+      '        return "$x$ <b>grande</b>"\n' +
+      '    return "chico"\n' +
+      'print(f(3), "una linea de codigo muy larga que no cabe en un telefono de 390 pixeles")\n' +
+      '```\nElige la salida.',
+    opciones: [
+      { letra: 'A', texto: 'A', correcta: true },
+      { letra: 'B', texto: 'B', correcta: false, error: 'error B' },
+      { letra: 'C', texto: 'C', correcta: false, error: 'error C' },
+      { letra: 'D', texto: 'D', correcta: false, error: 'error D' },
+    ],
+  };
+}
+
+// Mide el enunciado en pantalla. Corre DENTRO de la pagina.
+function fnMedirEnunciado(selector) {
+  const e = document.querySelector(selector);
+  if (!e) return { falta: selector };
+  const lienzo = document.createElement('canvas').getContext('2d');
+  const parrafos = Array.prototype.slice.call(e.querySelectorAll('p.enunciado-texto'));
+  const pres = Array.prototype.slice.call(e.querySelectorAll('pre')).map(function (pre) {
+    const cs = getComputedStyle(pre);
+    const code = pre.querySelector('code');
+    const cc = code ? getComputedStyle(code) : cs;
+    lienzo.font = cc.fontStyle + ' ' + cc.fontWeight + ' ' + cc.fontSize + ' ' + cc.fontFamily;
+    const b = pre.getBoundingClientRect();
+    return {
+      texto: code ? code.textContent : null,
+      dentroDeCode: !!code,
+      whiteSpace: cs.whiteSpace,
+      fontSize: parseFloat(cc.fontSize),
+      overflowX: cs.overflowX,
+      tabindex: pre.getAttribute('tabindex'),
+      role: pre.getAttribute('role'),
+      ariaLabel: pre.getAttribute('aria-label'),
+      // monoespaciada de verdad: 10 emes ocupan lo mismo que 10 ies
+      monoespaciada: Math.abs(lienzo.measureText('iiiiiiiiii').width - lienzo.measureText('mmmmmmmmmm').width) < 0.01,
+      familia: cc.fontFamily,
+      izq: b.left,
+      der: b.right,
+      dentroDeTexto: !!pre.closest('p, h1, h2, h3, h4, h5, h6'),
+      elementosAdentro: pre.querySelectorAll('*').length - (code ? 1 : 0),
+      mathAdentro: pre.querySelectorAll('math').length,
+      scrollInterno: pre.scrollWidth > pre.clientWidth + 1,
+    };
+  });
+  const pre0 = e.querySelector('pre');
+  const SIGUE = Node.DOCUMENT_POSITION_FOLLOWING;
+  return {
+    etiqueta: e.tagName.toLowerCase(),
+    role: e.getAttribute('role'),
+    ariaLevel: e.getAttribute('aria-level'),
+    fuente: e.dataset.fuente,
+    texto: e.textContent || '',
+    pres: pres,
+    nParrafos: parrafos.length,
+    mathEnProsa: parrafos.reduce(function (n, p) { return n + p.querySelectorAll('math').length; }, 0),
+    nMath: e.querySelectorAll('math').length,
+    prosaAntes: !!(pre0 && parrafos.length && (parrafos[0].compareDocumentPosition(pre0) & SIGUE)),
+    prosaDespues: !!(pre0 && parrafos.length && (pre0.compareDocumentPosition(parrafos[parrafos.length - 1]) & SIGUE)),
+    vw: window.innerWidth,
+    sw: document.documentElement.scrollWidth,
+    cw: document.documentElement.clientWidth,
+  };
+}
+
+// medidas: [{ id, enunciado (del banco), esperado (partirCercas), dom (fnMedirEnunciado) }]
+// opts: exigirCerca / exigirSangria fuerzan que el contenido traiga codigo (con
+// sangria) para que la prueba no pase en vacio.
+function comprobarCodigoPantalla(etiqueta, medidas, opts) {
+  const o = opts || {};
+  const ids = (lista) => lista.map((m) => m.id).join(', ');
+  const conCerca = medidas.filter((m) => m.esperado.codigos.length > 0);
+  const sinCerca = medidas.filter((m) => m.esperado.codigos.length === 0);
+  const pres = [];
+  medidas.forEach((m) => m.dom.pres.forEach((p, i) => pres.push({ id: m.id + ' bloque ' + (i + 1), p })));
+
+  if (o.exigirCerca) {
+    registrar(etiqueta + ' · el contenido trae preguntas con codigo (' + conCerca.length + ' de ' + medidas.length + ')',
+      conCerca.length > 0, conCerca.length ? '' : 'ninguna pregunta vista lleva cercas ```: la prueba no demostraria nada');
+  }
+  if (conCerca.length) {
+    const sinPre = conCerca.filter((m) => m.dom.pres.length !== m.esperado.codigos.length || m.dom.pres.some((p) => !p.dentroDeCode));
+    registrar(etiqueta + ' · cada cerca del contenido se dibuja como <pre><code>', sinPre.length === 0,
+      sinPre.map((m) => m.id + ' (' + m.dom.pres.length + ' pre, esperados ' + m.esperado.codigos.length + ')').join('; '));
+
+    const distintos = [];
+    conCerca.forEach((m) => m.esperado.codigos.forEach((c, i) => {
+      const p = m.dom.pres[i];
+      if (!p || sinSaltosFinales(p.texto) !== sinSaltosFinales(c)) distintos.push(m.id + ' bloque ' + (i + 1));
+    }));
+    registrar(etiqueta + ' · el texto del <code> es el del contenido, linea por linea', distintos.length === 0, distintos.join('; '));
+
+    const conSangria = conCerca.filter((m) => m.esperado.codigos.some((c) => /\n {4}\S/.test(c)));
+    if (o.exigirSangria) {
+      registrar(etiqueta + ' · el contenido trae codigo con sangria de 4 espacios (' + conSangria.length + ' pregunta(s))',
+        conSangria.length > 0, conSangria.length ? '' : 'ningun bloque tiene lineas sangradas');
+    }
+    if (conSangria.length) {
+      const perdida = conSangria.filter((m) => !m.dom.pres.some((p) => /\n {4}\S/.test(p.texto || '')));
+      registrar(etiqueta + ' · la sangria y los saltos de linea llegan a pantalla', perdida.length === 0, ids(perdida));
+    }
+  }
+  if (sinCerca.length) {
+    const conPre = sinCerca.filter((m) => m.dom.pres.length > 0);
+    registrar(etiqueta + ' · un enunciado sin cercas no dibuja <pre>', conPre.length === 0, ids(conPre));
+  }
+
+  if (pres.length) {
+    const malos = (f) => pres.filter((x) => !f(x.p)).map((x) => x.id).join('; ');
+    const ws = malos((p) => p.whiteSpace === 'pre');
+    registrar(etiqueta + ' · el <pre> conserva espacios y saltos (white-space: pre)', ws === '', ws);
+    const fs14 = malos((p) => p.fontSize >= 13.995);
+    registrar(etiqueta + ' · el codigo mide 14px o mas', fs14 === '', fs14 || pres.map((x) => x.p.fontSize).join(', ') + ' px');
+    const mono = malos((p) => p.monoespaciada);
+    registrar(etiqueta + ' · la fuente del codigo es monoespaciada', mono === '', mono || pres[0].p.familia);
+    const ov = malos((p) => p.overflowX === 'auto' || p.overflowX === 'scroll');
+    registrar(etiqueta + ' · una linea larga desplaza dentro del <pre> (overflow-x auto)', ov === '', ov);
+    const ti = malos((p) => p.tabindex === '0' && p.role === 'region' && !!p.ariaLabel);
+    registrar(etiqueta + ' · el <pre> se alcanza con teclado (tabindex 0, role region, aria-label)', ti === '', ti);
+    const raro = malos((p) => !p.dentroDeTexto && p.elementosAdentro === 0 && p.mathAdentro === 0);
+    registrar(etiqueta + ' · el codigo va como texto: sin <math> ni HTML adentro, y el <pre> no queda dentro de un <p> ni un encabezado', raro === '', raro);
+    const fuera = pres.filter((x) => x.p.izq < -1 || x.p.der > medidas[0].dom.vw + 1).map((x) => x.id);
+    registrar(etiqueta + ' · el <pre> cabe en el ancho de pantalla', fuera.length === 0, fuera.join('; '));
+  }
+
+  const desborde = medidas.filter((m) => m.dom.sw > m.dom.cw + 1).map((m) => m.id + ' (' + m.dom.sw + '/' + m.dom.cw + ')');
+  registrar(etiqueta + ' · la pagina no se desplaza en horizontal a 390px', desborde.length === 0, desborde.join('; '));
+  const estructura = medidas.filter((m) => m.dom.etiqueta !== 'div' || m.dom.role !== 'heading' || m.dom.ariaLevel !== '1').map((m) => m.id);
+  registrar(etiqueta + ' · el enunciado es un <div role="heading" aria-level="1">', estructura.length === 0, estructura.join(', '));
+  const fuente = medidas.filter((m) => m.dom.fuente !== m.enunciado).map((m) => m.id);
+  registrar(etiqueta + ' · data-fuente del enunciado es el texto del contenido, con cercas y saltos', fuente.length === 0,
+    fuente.map((id) => id + ' "' + String(medidas.find((m) => m.id === id).dom.fuente).slice(0, 50) + '"').join('; '));
+  const fugas = medidas.filter((m) => m.dom.texto.indexOf('```') !== -1).map((m) => m.id);
+  registrar(etiqueta + ' · las cercas ``` no se ven en pantalla', fugas.length === 0, fugas.join(', '));
+}
+
+async function bloqueCodigo(page, base, materia) {
+  abrirBloque('Codigo en los enunciados (<pre><code>)');
+
+  // -- 1. El renderizador, con una pregunta hecha por el arnes -----------------
+  contexto = 'codigo · pregunta del arnes';
+  const sintetica = preguntaConCodigo(materia);
+  const quitarSint = await servirSinCredenciales(page, base);
+  try {
+    await preparar(page, base, { prueba: CFG_FIJA, certificacion: CFG_FIJA, materia: materia.id });
+    await page.evaluate(({ mid, p }) => {
+      const m = window.MATERIAS.find((x) => x.id === mid);
+      for (let i = m.preguntas.length - 1; i >= 0; i -= 1) if (m.preguntas[i].id === p.id) m.preguntas.splice(i, 1);
+      m.preguntas.unshift(p);
+    }, { mid: materia.id, p: sintetica });
+    await entrarAPrueba(page, materia);
+    await page.evaluate(() => (document.fonts ? document.fonts.ready.then(() => true) : true)).catch(() => {});
+    const dom = await page.evaluate(fnMedirEnunciado, SEL_PRUEBA.enunciado);
+    if (dom.falta) throw new Error('falta ' + dom.falta + ' en E2');
+    const m = { id: sintetica.id, enunciado: sintetica.enunciado, esperado: partirCercas(sintetica.enunciado), dom };
+    comprobarCodigoPantalla('codigo · pregunta del arnes', [m], { exigirCerca: true, exigirSangria: true });
+    const orden = dom.nParrafos >= 2 && dom.prosaAntes && dom.prosaDespues;
+    registrar('codigo · la prosa va en <p class="enunciado-texto"> antes y despues del bloque', orden,
+      orden ? '' : 'parrafos ' + dom.nParrafos + ', antes ' + dom.prosaAntes + ', despues ' + dom.prosaDespues);
+    registrar('codigo · las formulas de la prosa siguen dibujandose como <math>', dom.mathEnProsa > 0,
+      dom.mathEnProsa > 0 ? '' : 'sin <math> en la prosa');
+    const p0 = dom.pres[0];
+    registrar('codigo · la linea larga hace scroll dentro del <pre>, no en la pagina', !!p0 && p0.scrollInterno && dom.sw <= dom.cw + 1,
+      p0 ? 'scrollInterno ' + p0.scrollInterno + ', pagina ' + dom.sw + '/' + dom.cw : 'no hay <pre>');
+  } catch (e) {
+    registrar('codigo · pregunta del arnes', false, e.message);
+  } finally {
+    await quitarSint();
+  }
+
+  // -- 2. Una pregunta sin cercas se pinta como antes --------------------------
+  contexto = 'codigo · pregunta sin cercas';
+  const quitarMate = await abrirPreguntaConMate(page, base, materia);
+  try {
+    const pregunta = preguntaConMate(materia);
+    const dom = await page.evaluate(fnMedirEnunciado, SEL_PRUEBA.enunciado);
+    if (dom.falta) throw new Error('falta ' + dom.falta + ' en E2');
+    comprobarCodigoPantalla('codigo · sin cercas (' + materia.nombre + ')',
+      [{ id: pregunta.id, enunciado: pregunta.enunciado, esperado: partirCercas(pregunta.enunciado), dom }]);
+    registrar('codigo · sin cercas: la formula sigue dibujandose como <math>', dom.nMath > 0, dom.nMath > 0 ? '' : 'sin <math>');
+  } catch (e) {
+    registrar('codigo · pregunta sin cercas', false, e.message);
+  } finally {
+    await quitarMate();
+  }
+
+  // -- 3. El contenido real de Introduccion a la Programacion -------------------
+  const quitar = await servirSinCredenciales(page, base);
+  try {
+    contexto = 'codigo · IP';
+    await preparar(page, base, { prueba: CFG_FIJA, certificacion: CFG_FIJA, materia: ID_MATERIA_CODIGO });
+    const ip = (await leerMaterias(page)).find((m) => m.id === ID_MATERIA_CODIGO);
+    if (!ip) {
+      registrar('codigo · existe la materia "' + ID_MATERIA_CODIGO + '"', false, 'no esta en MATERIAS');
+      return;
+    }
+    const banco = ip.preguntas.map((p) => ({ id: p.id, partes: partirCercas(p.enunciado) }));
+    const mal = banco.filter((q) => q.partes.abierta || q.partes.codigos.some((c) => !c.trim())).map((q) => q.id);
+    registrar('codigo · IP: las cercas del contenido estan cerradas y ninguna esta vacia', mal.length === 0, mal.join(', '));
+    const correcta = ({ mapa }) => mapa.findIndex((x) => !!x.datos.correcta);
+
+    contexto = 'codigo · IP E2';
+    await entrarAPrueba(page, ip);
+    const medidasE2 = [];
+    await recorrer(page, SEL_PRUEBA, ip, correcta, async ({ pregunta }) => {
+      medidasE2.push({
+        id: pregunta.id,
+        enunciado: pregunta.enunciado,
+        esperado: partirCercas(pregunta.enunciado),
+        dom: await page.evaluate(fnMedirEnunciado, SEL_PRUEBA.enunciado),
+      });
+    });
+    const sinVer = banco.filter((q) => q.partes.codigos.length && !medidasE2.some((m) => m.id === q.id)).map((q) => q.id);
+    registrar('codigo · IP E2: el recorrido paso por todas las preguntas con codigo del contenido', sinVer.length === 0, sinVer.length ? 'sin ver: ' + sinVer.join(', ') : '');
+    comprobarCodigoPantalla('codigo · IP E2', medidasE2, { exigirCerca: true, exigirSangria: true });
+
+    contexto = 'codigo · IP M3';
+    await entrarACertificacion(page, base, ip, CFG_FIJA);
+    const medidasM3 = [];
+    await recorrer(page, SEL_CERT, ip, correcta, async ({ pregunta }) => {
+      medidasM3.push({
+        id: pregunta.id,
+        enunciado: pregunta.enunciado,
+        esperado: partirCercas(pregunta.enunciado),
+        dom: await page.evaluate(fnMedirEnunciado, SEL_CERT.enunciado),
+      });
+    });
+    comprobarCodigoPantalla('codigo · IP M3', medidasM3, { exigirCerca: true });
+  } catch (e) {
+    registrar('codigo · contenido de Introduccion a la Programacion', false, e.message);
+  } finally {
+    await quitar();
+  }
+}
+
 const ALIAS_BLOQUE = { logica: 'oraculo', oraculo: 'oraculo', 'crear-perfil': 'perfil', buscar: 'buscar', mate: 'matematica', mathml: 'matematica' };
 
 function quiere(bloque) {
@@ -4139,6 +4428,14 @@ async function main() {
           await bloqueMatematica(page, base, materia);
         } catch (e) {
           registrar('matematicas con MathML', false, e.message);
+        }
+      }
+
+      if (quiere('codigo')) {
+        try {
+          await bloqueCodigo(page, base, materia);
+        } catch (e) {
+          registrar('codigo en los enunciados', false, e.message);
         }
       }
 

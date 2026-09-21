@@ -9,7 +9,7 @@ longitud: 12
 ---
 
 Subtemas tomados del material de los niveles 1 y 2 del curso (`recursos de cursos anteriores/ip`): tipos y operadores, funciones, booleanos y condicionales, cadenas y diccionarios. El proyecto de nivel 2 es Cinema, que usa diccionarios de diccionarios.
-El examen de cada nivel es escrito y en papel, así que todas las preguntas son de rastrear código a mano: leer un programa corto y decir qué imprime. En el enunciado, " | " separa las líneas del programa.
+El examen de cada nivel es escrito y en papel, así que todas las preguntas son de rastrear código a mano: leer un programa corto y decir qué imprime. En el enunciado, el programa va en un bloque cercado con ```, con la sangría real de Python.
 Cada respuesta se comprobó ejecutando el código en Python 3.12. El código ISIS-1221 no está confirmado contra el programa oficial.
 
 ## tipos · Tipos, operadores y conversión
@@ -17,7 +17,10 @@ Cada respuesta se comprobó ejecutando el código en Python 3.12. El código ISI
 Errores que vale la pena cazar: confundir `//`, `/` y `%`, creer que un texto con dígitos se comporta como número, y olvidar que `input()` siempre devuelve un str.
 
 ### P1 · dificultad 1
-¿Qué imprime print(17 % 5)?
+¿Qué imprime este programa?
+```
+print(17 % 5)
+```
 
 - A) 2 · CORRECTA
 - B) 3 · confundes % (el residuo) con // (el cociente de la división entera)
@@ -25,7 +28,12 @@ Errores que vale la pena cazar: confundir `//`, `/` y `%`, creer que un texto co
 - D) 0.85 · crees que % calcula un porcentaje, el 17 % de 5
 
 ### P2 · dificultad 2
-¿Qué imprime este programa? x = "3" | y = 4 | print(x * 2 + str(y))
+¿Qué imprime este programa?
+```
+x = "3"
+y = 4
+print(x * 2 + str(y))
+```
 
 - A) 334 · CORRECTA
 - B) 10 · tratas "3" como el número 3 aunque está entre comillas
@@ -33,7 +41,12 @@ Errores que vale la pena cazar: confundir `//`, `/` y `%`, creer que un texto co
 - D) TypeError · crees que un str no se puede multiplicar por un int, cuando eso lo repite
 
 ### P3 · dificultad 2
-El programa es n = input("Edad: ") | print(n + 1), y el usuario escribe 20. ¿Qué pasa?
+El programa es:
+```
+n = input("Edad: ")
+print(n + 1)
+```
+y el usuario escribe 20. ¿Qué pasa?
 
 - A) Sale un TypeError, porque no se puede sumar un str con un int · CORRECTA
 - B) Imprime 21 · olvidas que input() siempre devuelve un str, aunque el usuario escriba un número
@@ -45,7 +58,13 @@ El programa es n = input("Edad: ") | print(n + 1), y el usuario escribe 20. ¿Qu
 Errores que vale la pena cazar: confundir `print` con `return`, creer que asignar una variable dentro de una función cambia la de afuera, y emparejar argumentos por el nombre de la variable en vez de por la posición.
 
 ### P4 · dificultad 2
-¿Qué imprime este programa? def doble(x): print(x * 2) | r = doble(5) | print(r)
+¿Qué imprime este programa?
+```
+def doble(x):
+    print(x * 2)
+r = doble(5)
+print(r)
+```
 
 - A) 10 y luego None · CORRECTA
 - B) 10 y luego 10 · crees que print dentro de la función también devuelve el valor
@@ -53,7 +72,14 @@ Errores que vale la pena cazar: confundir `print` con `return`, creer que asigna
 - D) Un error, porque doble no tiene return · crees que una función sin return no se puede asignar a una variable
 
 ### P5 · dificultad 2
-¿Qué imprime este programa? x = 5 | def cambiar(): x = 10 | cambiar() | print(x)
+¿Qué imprime este programa?
+```
+x = 5
+def cambiar():
+    x = 10
+cambiar()
+print(x)
+```
 
 - A) 5 · CORRECTA
 - B) 10 · crees que asignar x dentro de la función cambia la x de afuera, cuando crea una variable local
@@ -61,7 +87,14 @@ Errores que vale la pena cazar: confundir `print` con `return`, creer que asigna
 - D) Un error, porque x no está definida dentro de la función · crees que una función no puede crear una variable con el mismo nombre de una de afuera
 
 ### P6 · dificultad 3
-¿Qué imprime este programa? def dividir(a, b): return a // b | x = 3 | y = 12 | print(dividir(y, x))
+¿Qué imprime este programa?
+```
+def dividir(a, b):
+    return a // b
+x = 3
+y = 12
+print(dividir(y, x))
+```
 
 - A) 4 · CORRECTA
 - B) 0 · crees que x va con a y y va con b porque x se definió primero, cuando manda la posición en la llamada
@@ -81,7 +114,16 @@ Errores que vale la pena cazar: aplicar mal las leyes de De Morgan, creer que un
 - D) not a and b · aplicas el not solo al primer término
 
 ### P8 · dificultad 2
-¿Qué imprime este programa? nota = 4.5 | if nota >= 3: print("aprobó") | elif nota >= 4: print("excelente") | else: print("reprobó")
+¿Qué imprime este programa?
+```
+nota = 4.5
+if nota >= 3:
+    print("aprobó")
+elif nota >= 4:
+    print("excelente")
+else:
+    print("reprobó")
+```
 
 - A) aprobó · CORRECTA
 - B) excelente · crees que Python escoge la condición más específica, cuando ejecuta la primera que sea verdadera
@@ -89,7 +131,14 @@ Errores que vale la pena cazar: aplicar mal las leyes de De Morgan, creer que un
 - D) Un error, porque dos condiciones son verdaderas a la vez · crees que las condiciones de un if/elif tienen que ser excluyentes
 
 ### P9 · dificultad 3
-¿Qué imprime este programa? color = "rojo" | if color == "azul" or "verde": print("frío") | else: print("cálido")
+¿Qué imprime este programa?
+```
+color = "rojo"
+if color == "azul" or "verde":
+    print("frío")
+else:
+    print("cálido")
+```
 
 - A) frío · CORRECTA
 - B) cálido · crees que or compara color con cada valor, cuando "verde" por sí solo ya cuenta como verdadero
@@ -101,7 +150,11 @@ Errores que vale la pena cazar: aplicar mal las leyes de De Morgan, creer que un
 Errores que vale la pena cazar: contar los índices desde 1, incluir el índice final en un corte, creer que un método de str modifica el texto original, y creer que una función recibe una copia del diccionario.
 
 ### P10 · dificultad 2
-¿Qué imprime este programa? s = "Python" | print(s[1:4])
+¿Qué imprime este programa?
+```
+s = "Python"
+print(s[1:4])
+```
 
 - A) yth · CORRECTA
 - B) Pyt · cuentas las posiciones desde 1 en vez de desde 0
@@ -109,7 +162,12 @@ Errores que vale la pena cazar: contar los índices desde 1, incluir el índice 
 - D) Pyth · cuentas desde 1 y además incluyes el índice final
 
 ### P11 · dificultad 2
-¿Qué imprime este programa? s = "hola" | s.upper() | print(s)
+¿Qué imprime este programa?
+```
+s = "hola"
+s.upper()
+print(s)
+```
 
 - A) hola · CORRECTA
 - B) HOLA · crees que upper() cambia el string original, cuando devuelve uno nuevo que aquí nadie guarda
@@ -117,7 +175,14 @@ Errores que vale la pena cazar: contar los índices desde 1, incluir el índice 
 - D) None · crees que upper() deja la variable vacía después de usarla
 
 ### P12 · dificultad 3
-¿Qué imprime este programa? sala = {"vendidas": 0} | def vender(d, n): d["vendidas"] += n | vender(sala, 5) | print(sala["vendidas"])
+¿Qué imprime este programa?
+```
+sala = {"vendidas": 0}
+def vender(d, n):
+    d["vendidas"] += n
+vender(sala, 5)
+print(sala["vendidas"])
+```
 
 - A) 5 · CORRECTA
 - B) 0 · crees que la función trabaja sobre una copia del diccionario, cuando recibe el mismo diccionario y lo modifica
