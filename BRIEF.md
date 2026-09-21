@@ -1,5 +1,7 @@
 # Calibra — Brief para construir el MVP
 
+> **Documento histórico.** Especificación original del MVP: su valor es ser el punto de partida y la fuente de textos de pantalla. Varias decisiones ya cambiaron: el pie "Prototipo · datos de ejemplo" se quitó (el logo reinicia), hoy hay Supabase y una Edge Function (no "sin backend"), 8 materias activas, prueba de 12 preguntas y agenda de citas. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 > Documento de contexto y especificación. Guárdalo en la raíz del repositorio como `BRIEF.md`.
 > Todo lo que necesitas para construir está aquí: no hace falta preguntar por el negocio.
 

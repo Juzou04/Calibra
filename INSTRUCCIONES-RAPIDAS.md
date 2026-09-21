@@ -1,5 +1,7 @@
 # Instrucciones Rápidas - Demo Mañana
 
+> **Documento histórico.** Guion de la demo del 16 de septiembre de 2026. Está desactualizado para grabar el video de la entrega: la prueba ahora tiene 12 preguntas (no 4), hay 8 materias, el logo de arriba a la izquierda reinicia (ya no hay botón "Empezar de nuevo" abajo) y hay agenda con reserva de horas. **No repitas la cifra de comisión que menciona**: está sin validar y la regla del producto es no mostrarla. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 ## ⚡ Abrir el prototipo
 
 ### Opción 1: Local (recomendado)

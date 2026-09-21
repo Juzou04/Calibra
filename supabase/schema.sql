@@ -4,19 +4,27 @@
 -- Contrato definido en esquema.md (raíz del repo). Ejecuta este archivo en el
 -- editor SQL de Supabase para recrear la base completa desde cero.
 --
--- 10 tablas:
+-- 13 tablas:
 --   Contenido (escribe convertir.js con service_role):
 --     materias, subtemas, preguntas, opciones
 --     knowledge_components, misconcepciones, pregunta_kc  (diagnóstico por kc;
 --     solo tienen filas las materias cuyo .md declara "kc:")
 --   Escritura pública desde el frontend (anon key):
 --     monitores, resultados_diagnostico, leads
+--   Agenda (equivale a la migración 004; el público solo entra por funciones):
+--     estudiantes, franjas, citas
+--     + reservar_franja() y publicar_franjas() (security definer)
+--     + la vista brief_cita (solo service_role)
+--
+-- "sesion_id" en leads y resultados_diagnostico es el id del NAVEGADOR, no una
+-- cita. La sesión de tutoría es una fila de citas.
 --
 -- RLS:
---   - SELECT público en las 7 tablas de contenido y en monitores
+--   - SELECT público en las 7 tablas de contenido, en monitores y en franjas
 --   - INSERT público solo en monitores, resultados_diagnostico y leads
 --   - Sin UPDATE/DELETE público en ninguna tabla
---   - Sin SELECT público en leads (protege los correos capturados)
+--   - Sin SELECT público en leads, estudiantes ni citas (protege correos y teléfonos)
+--   - franjas se escribe con publicar_franjas() y se reserva con reservar_franja()
 --
 -- El acceso de escritura de contenido y cualquier lectura de leads se hace con
 -- la service_role key, que ignora RLS. Esa llave NUNCA va al repo ni al front.
@@ -26,8 +34,12 @@
 -- El orden respeta las dependencias de llaves foráneas (padres primero al crear,
 -- hijos primero al borrar).
 
+drop view  if exists public.brief_cita;
+drop table if exists public.citas cascade;
+drop table if exists public.franjas cascade;
 drop table if exists public.resultados_diagnostico cascade;
 drop table if exists public.leads cascade;
+drop table if exists public.estudiantes cascade;
 drop table if exists public.monitores cascade;
 drop table if exists public.opciones cascade;
 drop table if exists public.pregunta_kc cascade;
@@ -132,6 +144,21 @@ create table public.monitores (
     creado_en              timestamptz not null default now()
 );
 
+-- estudiantes: una fila por correo. Se llena en reservar_franja(); el público no
+-- la lee ni la escribe. Va antes de resultados_diagnostico porque esta la
+-- referencia.
+create table public.estudiantes (
+    id        bigint      generated always as identity primary key,
+    -- Se guarda en minúscula y sin espacios en los bordes.
+    correo    text        not null,
+    telefono  text,
+    creado_en timestamptz not null default now()
+);
+
+-- Un correo, una fila, sin importar mayúsculas ni espacios de más.
+create unique index estudiantes_correo_norm_idx
+    on public.estudiantes (lower(btrim(correo)));
+
 -- resultados_diagnostico: se inserta al terminar la prueba del estudiante.
 create table public.resultados_diagnostico (
     id                    bigint generated always as identity primary key,
@@ -145,6 +172,9 @@ create table public.resultados_diagnostico (
     -- Sesión del navegador que hizo la prueba. Lo único que ata este
     -- diagnóstico con el correo que la misma persona deja después en leads.
     sesion_id             text,
+    -- Quién hizo la prueba. Un estudiante tiene muchos diagnósticos. Nulo al
+    -- insertar: lo llena reservar_franja() cuando la misma persona reserva.
+    estudiante_id         bigint      references public.estudiantes (id) on delete set null,
     creado_en             timestamptz not null default now()
 );
 
@@ -176,6 +206,47 @@ create index leads_monitor_id_idx      on public.leads (monitor_id);
 create index leads_sesion_id_idx       on public.leads (sesion_id);
 create index resultados_sesion_id_idx  on public.resultados_diagnostico (sesion_id);
 create index monitores_clave_idx       on public.monitores (clave);
+create index resultados_estudiante_id_idx on public.resultados_diagnostico (estudiante_id);
+
+-- ----------------------------------------------------------------------------
+-- Agenda: franjas y citas
+-- ----------------------------------------------------------------------------
+
+-- franjas: horas concretas en las que un monitor atiende. Un monitor tiene
+-- muchas. Lectura pública; se escribe con publicar_franjas() y se reserva con
+-- reservar_franja().
+create table public.franjas (
+    id           bigint      generated always as identity primary key,
+    monitor_id   bigint      not null references public.monitores (id) on delete cascade,
+    inicia_en    timestamptz not null,
+    duracion_min integer     not null default 60 check (duracion_min > 0),
+    -- La cambia solo reservar_franja(). El público no tiene UPDATE.
+    reservada    boolean     not null default false,
+    creado_en    timestamptz not null default now(),
+    unique (monitor_id, inicia_en)
+);
+
+create index franjas_monitor_inicia_idx on public.franjas (monitor_id, inicia_en);
+
+-- citas: la sesión de tutoría. franja_id es UNIQUE: una franja, una cita.
+create table public.citas (
+    id                bigint      generated always as identity primary key,
+    franja_id         bigint      not null unique references public.franjas (id),
+    monitor_id        bigint      not null references public.monitores (id),
+    estudiante_id     bigint      not null references public.estudiantes (id),
+    -- El diagnóstico más reciente de ese navegador al reservar. Nulo si el
+    -- estudiante reservó sin hacer la prueba.
+    diagnostico_id    bigint      references public.resultados_diagnostico (id) on delete set null,
+    materia_id        bigint      references public.materias (id) on delete set null,
+    estado            text        not null default 'confirmada'
+                                  check (estado in ('confirmada', 'cancelada', 'realizada')),
+    -- Lo escribe la Edge Function del correo para no mandarlo dos veces.
+    correo_enviado_en timestamptz,
+    creado_en         timestamptz not null default now()
+);
+
+create index citas_monitor_id_idx    on public.citas (monitor_id);
+create index citas_estudiante_id_idx on public.citas (estudiante_id);
 
 -- ----------------------------------------------------------------------------
 -- Row Level Security
@@ -193,6 +264,9 @@ alter table public.pregunta_kc            enable row level security;
 alter table public.monitores              enable row level security;
 alter table public.resultados_diagnostico enable row level security;
 alter table public.leads                  enable row level security;
+alter table public.estudiantes            enable row level security;
+alter table public.franjas                enable row level security;
+alter table public.citas                  enable row level security;
 
 -- SELECT público (anon + authenticated) en las 4 tablas de contenido.
 create policy "materias_select_publico" on public.materias
@@ -231,6 +305,12 @@ create policy "resultados_insert_publico" on public.resultados_diagnostico
 create policy "leads_insert_publico" on public.leads
     for insert to anon, authenticated with check (true);
 
+-- franjas: solo SELECT público, para pintar las horas libres de cada monitor.
+-- estudiantes y citas: cero políticas. Solo service_role y las funciones
+-- security definer de más abajo las tocan.
+create policy "franjas_select_publico" on public.franjas
+    for select to anon, authenticated using (true);
+
 -- No se crea ninguna política de UPDATE ni DELETE: quedan denegadas al público
 -- en las 7 tablas. La escritura de contenido y la lectura de leads se hacen con
 -- la service_role key, que omite RLS por diseño.
@@ -258,6 +338,9 @@ revoke all on public.pregunta_kc            from anon, authenticated;
 revoke all on public.monitores              from anon, authenticated;
 revoke all on public.resultados_diagnostico from anon, authenticated;
 revoke all on public.leads                  from anon, authenticated;
+revoke all on public.estudiantes            from anon, authenticated;
+revoke all on public.franjas                from anon, authenticated;
+revoke all on public.citas                  from anon, authenticated;
 
 -- Lectura pública: las 7 tablas de contenido y monitores.
 grant select on public.materias             to anon, authenticated;
@@ -268,6 +351,7 @@ grant select on public.knowledge_components to anon, authenticated;
 grant select on public.misconcepciones      to anon, authenticated;
 grant select on public.pregunta_kc          to anon, authenticated;
 grant select on public.monitores to anon, authenticated;
+grant select on public.franjas   to anon, authenticated;
 
 -- Escritura pública: solo las 3 tablas que la aceptan.
 grant insert on public.monitores              to anon, authenticated;
@@ -276,3 +360,252 @@ grant insert on public.leads                  to anon, authenticated;
 
 -- Nota: las llaves primarias usan `generated always as identity`, que no
 -- requiere conceder privilegios sobre secuencias aparte (a diferencia de serial).
+
+-- ----------------------------------------------------------------------------
+-- Funciones y vista de la agenda (idénticas a las de la migración 004)
+-- ----------------------------------------------------------------------------
+-- El público no toca estudiantes ni citas: entra por estas dos funciones, que
+-- corren como dueño (security definer). PostgREST las expone como /rpc/.
+--
+-- reservar_franja
+-- ----------------------------------------------------------------------------
+-- security definer: corre como dueño de las tablas, así que puede escribir en
+-- estudiantes y citas aunque anon no tenga ni un privilegio sobre ellas. Devuelve
+-- siempre un jsonb; nunca la lista de estudiantes ni de citas.
+--
+-- Concurrencia: `select ... for update` toma el candado de la fila de la franja.
+-- Si dos estudiantes confirman a la vez, el segundo espera al primero, vuelve a
+-- leer la fila y ve reservada = true: recibe 'ocupada'. Detrás de eso, citas.
+-- franja_id UNIQUE es la red de seguridad.
+create or replace function public.reservar_franja(
+    p_franja_id bigint,
+    p_correo    text,
+    p_telefono  text,
+    p_sesion_id text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $func$
+declare
+    v_correo  text;
+    v_tel     text;
+    v_sesion  text;
+    v_franja  public.franjas;
+    v_filas   integer;
+    v_est     bigint;
+    v_diag    bigint;
+    v_materia bigint;
+    v_cita    bigint;
+begin
+    -- 1. Formato mínimo del correo. El formato fino lo valida el front.
+    v_correo := lower(btrim(coalesce(p_correo, '')));
+    if length(v_correo) > 254 or v_correo !~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$' then
+        return jsonb_build_object('ok', false, 'motivo', 'correo');
+    end if;
+    v_tel    := left(nullif(btrim(coalesce(p_telefono, '')), ''), 40);
+    v_sesion := nullif(btrim(coalesce(p_sesion_id, '')), '');
+
+    -- 2. La franja existe, no ha pasado y sigue libre. El for update es el bloqueo.
+    select * into v_franja
+    from public.franjas
+    where id = p_franja_id
+    for update;
+
+    if v_franja.id is null then
+        return jsonb_build_object('ok', false, 'motivo', 'no_existe');
+    end if;
+    if v_franja.inicia_en <= now() then
+        return jsonb_build_object('ok', false, 'motivo', 'pasada');
+    end if;
+    if v_franja.reservada then
+        return jsonb_build_object('ok', false, 'motivo', 'ocupada');
+    end if;
+
+    -- El resto va en un sub-bloque: si otra transacción se adelantó y la
+    -- restricción UNIQUE de citas.franja_id salta, se deshace todo lo de aquí
+    -- (incluido el update de la franja) y se responde 'ocupada' en vez de un 500.
+    begin
+        -- 3. Marca la franja. Condicional: si no afecta ninguna fila, alguien la tomó.
+        update public.franjas
+           set reservada = true
+         where id = v_franja.id
+           and not reservada;
+        get diagnostics v_filas = row_count;
+        if v_filas = 0 then
+            return jsonb_build_object('ok', false, 'motivo', 'ocupada');
+        end if;
+
+        -- 4. El estudiante: uno por correo. Un teléfono nuevo pisa al anterior;
+        --    uno vacío no borra el que ya había.
+        insert into public.estudiantes (correo, telefono)
+             values (v_correo, v_tel)
+        on conflict ((lower(btrim(correo)))) do update
+            set telefono = coalesce(excluded.telefono, public.estudiantes.telefono)
+        returning id into v_est;
+
+        -- 5. Sus diagnósticos. Todos los del navegador que aún no tenían dueño
+        --    pasan a ser suyos, y la cita apunta al más reciente.
+        if v_sesion is not null then
+            update public.resultados_diagnostico
+               set estudiante_id = v_est
+             where sesion_id = v_sesion
+               and estudiante_id is null;
+
+            select id, materia_id into v_diag, v_materia
+            from public.resultados_diagnostico
+            where sesion_id = v_sesion
+            order by creado_en desc, id desc
+            limit 1;
+        end if;
+
+        -- Sin diagnóstico, la materia de la cita es la del monitor: el brief
+        -- siempre dice de qué materia es la sesión.
+        if v_materia is null then
+            select materia_certificada_id into v_materia
+            from public.monitores
+            where id = v_franja.monitor_id;
+        end if;
+
+        -- 6. La cita.
+        insert into public.citas (franja_id, monitor_id, estudiante_id, diagnostico_id, materia_id)
+             values (v_franja.id, v_franja.monitor_id, v_est, v_diag, v_materia)
+        returning id into v_cita;
+    exception when unique_violation then
+        return jsonb_build_object('ok', false, 'motivo', 'ocupada');
+    end;
+
+    return jsonb_build_object(
+        'ok',         true,
+        'cita_id',    v_cita,
+        'franja_id',  v_franja.id,
+        'monitor_id', v_franja.monitor_id,
+        'inicia_en',  v_franja.inicia_en);
+end;
+$func$;
+
+comment on function public.reservar_franja(bigint, text, text, text) is
+    'Reserva una franja de forma atómica y crea la cita. Devuelve ok o motivo: correo, no_existe, pasada, ocupada.';
+
+revoke all on function public.reservar_franja(bigint, text, text, text) from public;
+grant execute on function public.reservar_franja(bigint, text, text, text) to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- publicar_franjas
+-- ----------------------------------------------------------------------------
+-- p_franjas es un arreglo JSON de textos ISO 8601:
+--   ["2026-10-01T16:00:00-05:00", "2026-10-02T09:00:00-05:00"]
+-- Ignora las que ya pasaron, las repetidas y las que no se pueden leer como
+-- fecha. Máximo 20 por llamada. La clave es la de monitores.clave; si varios
+-- monitores comparten clave, gana el más reciente.
+create or replace function public.publicar_franjas(
+    p_clave   text,
+    p_franjas jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $func$
+declare
+    v_monitor bigint;
+    v_txt     text;
+    v_ts      timestamptz;
+    v_filas   integer;
+    v_creadas integer := 0;
+begin
+    if p_clave is null or btrim(p_clave) = '' then
+        return jsonb_build_object('ok', false, 'motivo', 'monitor_no_existe');
+    end if;
+
+    select id into v_monitor
+    from public.monitores
+    where clave = p_clave
+    order by creado_en desc, id desc
+    limit 1;
+
+    if v_monitor is null then
+        return jsonb_build_object('ok', false, 'motivo', 'monitor_no_existe');
+    end if;
+
+    if p_franjas is null or jsonb_typeof(p_franjas) <> 'array' then
+        return jsonb_build_object('ok', false, 'motivo', 'formato');
+    end if;
+    if jsonb_array_length(p_franjas) > 20 then
+        return jsonb_build_object('ok', false, 'motivo', 'demasiadas');
+    end if;
+
+    for v_txt in select jsonb_array_elements_text(p_franjas) loop
+        begin
+            v_ts := v_txt::timestamptz;
+        exception when others then
+            continue;   -- un valor ilegible no tumba a los demás
+        end;
+        if v_ts <= now() then
+            continue;
+        end if;
+
+        insert into public.franjas (monitor_id, inicia_en)
+             values (v_monitor, v_ts)
+        on conflict (monitor_id, inicia_en) do nothing;
+        get diagnostics v_filas = row_count;
+        v_creadas := v_creadas + v_filas;
+    end loop;
+
+    return jsonb_build_object('ok', true, 'monitor_id', v_monitor, 'creadas', v_creadas);
+end;
+$func$;
+
+comment on function public.publicar_franjas(text, jsonb) is
+    'El monitor agrega franjas con la clave de su perfil. Máximo 20 por llamada; ignora pasadas y repetidas.';
+
+revoke all on function public.publicar_franjas(text, jsonb) from public;
+grant execute on function public.publicar_franjas(text, jsonb) to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- brief_cita
+-- ----------------------------------------------------------------------------
+-- Lo que necesita saber el monitor (y la Edge Function que le escribe) de una
+-- cita. security_invoker: la vista se ejecuta con los permisos de quien la
+-- consulta, no con los de su dueño; como anon no tiene privilegios sobre las
+-- tablas de abajo, tampoco puede leerla por este camino.
+create or replace view public.brief_cita
+with (security_invoker = true) as
+select c.id                     as cita_id,
+       c.estado                 as estado,
+       c.creado_en              as creado_en,
+       c.correo_enviado_en      as correo_enviado_en,
+       f.inicia_en              as inicia_en,
+       f.duracion_min           as duracion_min,
+       m.id                     as monitor_id,
+       m.nombre                 as monitor_nombre,
+       m.clave                  as monitor_clave,
+       m.precio_hora            as precio_hora,
+       e.id                     as estudiante_id,
+       e.correo                 as estudiante_correo,
+       e.telefono               as estudiante_telefono,
+       d.id                     as diagnostico_id,
+       ma.id                    as materia_id,
+       ma.nombre                as materia_nombre,
+       st.nombre                as subtema_debil,
+       d.error_detectado_texto  as error_detectado_texto,
+       d.kcs                    as kcs,
+       d.respuestas             as respuestas
+from public.citas c
+join public.franjas     f  on f.id  = c.franja_id
+join public.monitores   m  on m.id  = c.monitor_id
+join public.estudiantes e  on e.id  = c.estudiante_id
+left join public.resultados_diagnostico d on d.id = c.diagnostico_id
+left join public.materias  ma on ma.id = c.materia_id
+left join public.subtemas  st on st.id = d.subtema_debil_id;
+
+comment on view public.brief_cita is
+    'Brief de cada cita para el monitor. Solo service_role: trae correos y teléfonos.';
+
+revoke all on public.brief_cita from anon, authenticated;
+grant select on public.brief_cita to service_role;
+
+-- PostgREST cachea el esquema: las tablas y funciones nuevas no aparecen hasta
+-- que recarga.
+notify pgrst, 'reload schema';

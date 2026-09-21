@@ -1,5 +1,7 @@
 # Calibra — Parte 2: Pipeline de contenido (convertir.js → Supabase)
 
+> **Documento histórico.** Encargo de una etapa ya cumplida (16 y 17 de septiembre de 2026), escrito como instrucciones para quien arranca de cero. **No lo ejecutes tal cual:** por ejemplo, correr `supabase/schema.sql` sobre el proyecto actual borraría los datos. Hoy hay 13 tablas, la base ya existe y las migraciones aditivas están en `supabase/migraciones/`. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 **Sugerido para:** Juan David Acevedo (cualquiera puede tomarla, es intercambiable con las otras 3)
 
 ## Cómo trabajar esta tarea con tu agente de IA

@@ -1,5 +1,7 @@
 # Calibra - Rama juzouy
 
+> **Documento histórico.** Registro de lo que hizo la rama `juzouy` el 15 de septiembre de 2026 (hoy `juzou`, ya fusionada en `main`). Las cifras (3 materias, 174 de 195) y los pendientes (las materias sin contenido) son de esa fecha. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 ## Cambios implementados para la presentación
 
 Esta rama expande Calibra con material de cursos anteriores, enfocándose en preguntas trampa calibradas para detectar debilidades conceptuales específicas de los estudiantes.

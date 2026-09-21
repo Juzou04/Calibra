@@ -1,5 +1,7 @@
 # README para el Equipo - Rama juzouy
 
+> **Documento histórico.** Escrito el 15 de septiembre de 2026 para la presentación del 16, con los datos de entonces (3 materias, 36 preguntas, 174 de 195 comprobaciones). La rama `juzouy` se renombró a `juzou` y `origin/juzouy` ya no existe: **no sigas los `git checkout juzouy` de abajo**. Hoy hay 8 materias, 12 preguntas por materia y Supabase como base. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 > **Contexto rápido**: Expandimos Calibra de 1 materia con 4 preguntas a 3 materias con 36 preguntas calibradas, usando material real de cursos de Uniandes.
 
 ---

@@ -8,8 +8,9 @@ y lo verifica.
 
 | Archivo | Para qué |
 | --- | --- |
-| [`schema.sql`](./schema.sql) | DDL completo: las 7 tablas, RLS, políticas y privilegios. Es lo único que hay que ejecutar para crear la base. |
-| [`verificar.sql`](./verificar.sql) | Reporte de 38 comprobaciones del esquema. Se ejecuta en el editor SQL de Supabase, no modifica nada. |
+| [`schema.sql`](./schema.sql) | DDL completo: las 13 tablas, la vista `brief_cita`, las funciones de la agenda, RLS, políticas y privilegios. Es lo único que hay que ejecutar para crear la base desde cero. |
+| [`migraciones/`](./migraciones/) | Cambios aditivos para un proyecto que ya tiene datos: 001 teléfonos y correo, 002 presentación del monitor, 003 puerta de monitores aprobados, 004 estudiantes, franjas y citas. |
+| [`verificar.sql`](./verificar.sql) | Reporte de comprobaciones del esquema (74 filas). Se ejecuta en el editor SQL de Supabase, no modifica nada. |
 | [`validar-esquema.mjs`](./validar-esquema.mjs) | Valida el DDL en local, sin proyecto Supabase, sobre un Postgres real en memoria. Opcional. |
 | `package.json` | Solo para el validador local. **No afecta al frontend:** `index.html` sigue sin build ni dependencias. |
 
@@ -74,8 +75,8 @@ API → Reset service_role key** y reparte la nueva.
    que agrega los teléfonos y lo que necesita el correo de confirmación **sin
    borrar nada**.
 5. Pega [`verificar.sql`](./verificar.sql) en una consulta nueva y ejecútalo:
-   deben salir 53 filas y **todas** con `estado = OK`. (Decía 38: ese número era
-   de cuando el esquema tenía 7 tablas; hoy tiene 10.)
+   deben salir 74 filas y **todas** con `estado = OK`. (Eran 53 con 10 tablas;
+   con las 3 de la agenda y sus comprobaciones son 74.)
 6. En **Project Settings → API** copia la `Project URL` y la `publishable key` a
    la sección de arriba de este archivo, y guarda la llave secreta por fuera
    del repo.
@@ -100,20 +101,62 @@ Lo que puede hacer el público (rol `anon`, la llave que va en el frontend):
 | `monitores` | sí | sí | no |
 | `resultados_diagnostico` | no | sí | no |
 | `leads` | no | sí | no |
+| `franjas` | sí | no (usa `publicar_franjas()`) | no (la cambia `reservar_franja()`) |
+| `estudiantes` | no | no (lo llena `reservar_franja()`) | no |
+| `citas` | no | no (las crea `reservar_franja()`) | no |
 
-El contenido (las 7 primeras tablas) lo escribe `convertir.js` con la
-`service_role key`.
+El contenido (las 7 tablas de contenido: `materias`, `subtemas`, `preguntas`,
+`opciones`, `knowledge_components`, `misconcepciones` y `pregunta_kc`) lo escribe
+`convertir.js` con la `service_role key`.
 
-### Diagnóstico por knowledge components (rama `prueba-cuestionario`)
+### Agenda: franjas, citas y estudiantes (migración 004)
+
+Antes el horario de un monitor era texto suelto en `index.html` y la sesión que
+elegía el estudiante nunca llegaba a la base. Ahora:
+
+- **`franjas`**: las horas concretas en las que un monitor atiende (`inicia_en` +
+  `duracion_min`). Un monitor tiene muchas. Lectura pública, para pintar las
+  libres.
+- **`citas`**: la sesión de tutoría. Une una franja, un monitor, un estudiante y
+  el diagnóstico que el monitor necesita ver. Un estudiante tiene muchas citas y
+  un monitor también. `franja_id` es `UNIQUE`: una franja no puede tener dos
+  citas.
+- **`estudiantes`**: una fila por correo. Los diagnósticos
+  (`resultados_diagnostico.estudiante_id`) se atan a él al reservar.
+- **`reservar_franja(franja_id, correo, telefono, sesion_id)`**: la única puerta
+  para reservar. Corre como dueño (`security definer`), bloquea la fila de la
+  franja con `select ... for update`, crea al estudiante, ata sus diagnósticos y
+  crea la cita en una sola transacción. Devuelve `{"ok": true, ...}` o
+  `{"ok": false, "motivo": ...}` con `correo`, `no_existe`, `pasada` u
+  `ocupada`. Si dos personas confirman a la vez, la segunda recibe `ocupada`.
+- **`publicar_franjas(clave, franjas)`**: el monitor agrega sus franjas con la
+  `clave` de su perfil (arreglo JSON de fechas ISO, máximo 20 por llamada).
+- **`brief_cita`**: vista con lo que el monitor necesita de cada cita (estudiante,
+  franja, subtema débil, error detectado). Solo la lee `service_role`.
+
+**Ojo con el nombre:** `sesion_id` en `leads` y `resultados_diagnostico` es el id
+del **navegador**, no una cita. La sesión de tutoría es una fila de `citas`.
+
+**Límite conocido:** `monitores.clave` es de lectura pública, así que quien la lea
+puede publicar franjas de ese monitor. Sin autenticación no hay cómo evitarlo;
+ya hoy cualquiera puede insertar monitores.
+
+**Para un proyecto que ya está vivo**, corre `migraciones/004-citas-y-franjas.sql`
+(no borra nada) **antes** de publicar el `index.html` que lee las franjas. Después
+de correrla, `notify pgrst, 'reload schema'` ya va incluido; si el primer intento
+responde 404 o `PGRST202`, reinicia la API en *Settings → API*.
+
+### Diagnóstico por knowledge components
 
 `knowledge_components`, `misconcepciones` y `pregunta_kc`, más las columnas
 `opciones.misconcepcion_id` y `resultados_diagnostico.kcs`, soportan el
-diagnóstico por habilidad (ver `contenido/README.md`). Solo tienen filas las
-materias cuyo `.md` declara `kc:`; hoy, el piloto de Cálculo Integral. Son
-cambios aditivos, pero un proyecto creado con el `schema.sql` anterior **no**
-las tiene: antes de correr `convertir.js --supabase` desde esta rama hay que
-volver a ejecutar `schema.sql` (borra los datos) o agregarlas a mano. La lectura de `leads` y `resultados_diagnostico` también
-requiere `service_role`, porque esa llave omite RLS.
+diagnóstico por habilidad (ver `contenido/README.md`). Ya forman parte de
+`schema.sql` (13 tablas) y de la base del proyecto, y solo tienen filas las
+materias cuyo `.md` declara `kc:`; hoy, Cálculo Integral. No hay nada que
+migrar: **no vuelvas a ejecutar `schema.sql` para activarlo**, porque borra los
+datos. Para llenarlas basta `convertir.js --supabase` (con `--borradores` si la
+base ya tiene los borradores). La lectura de `leads` y `resultados_diagnostico`
+también requiere `service_role`, porque esa llave omite RLS.
 
 ### Dos capas, no una
 
@@ -142,14 +185,22 @@ npm run validar
 ```
 
 Levanta un Postgres real (PGlite, Postgres compilado a WebAssembly) en memoria,
-replica los roles de Supabase, ejecuta `schema.sql` y corre 55 comprobaciones,
+replica los roles de Supabase, ejecuta `schema.sql` y corre 139 comprobaciones,
 incluido el comportamiento efectivo de `anon` haciendo `select`, `insert`,
-`update` y `delete` en cada tabla. No toca el proyecto real.
+`update` y `delete` en cada tabla, y la agenda de punta a punta: publicar
+franjas, reservar, reservar dos veces la misma, una franja pasada, un correo
+inválido y un estudiante con varias citas y diagnósticos. La reserva se prueba
+con un dueño que no es superusuario, como en Supabase. No toca el proyecto real.
+
+PGlite tiene una sola conexión, así que las dos reservas "simultáneas" se
+atienden una tras otra: la prueba confirma que solo gana una, pero el candado de
+fila (`for update`) no llega a disputarse de verdad. Esa garantía la da Postgres.
 
 ## Limitación conocida del MVP
 
 Sin autenticación, con `insert` público en `monitores`, `resultados_diagnostico` y
-`leads`, cualquiera puede crear perfiles de monitor falsos o enviar resultados de
+`leads` (y con `monitores.clave` legible por todos, que es lo que autoriza publicar
+franjas), cualquiera puede crear perfiles de monitor falsos o enviar resultados de
 diagnóstico falsos. Es una decisión aceptada para esta iteración y así está
 documentada en los riesgos de [`../esquema.md`](../esquema.md); conviene
 declararla en la entrega como limitación conocida, no dejarla como descuido.

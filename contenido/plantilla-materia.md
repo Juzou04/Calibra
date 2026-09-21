@@ -8,7 +8,7 @@ activa: false
 ---
 
 Copia este archivo, renómbralo con el id de la materia y bórrale estas dos líneas.
-Si algo del formato no queda claro, mira `probabilidad-estadistica.md`, que ya tiene dos preguntas escritas.
+Si algo del formato no queda claro, mira `probabilidad-estadistica.md`, que ya tiene doce preguntas escritas.
 
 ## clave · Nombre visible del subtema
 

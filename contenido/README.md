@@ -18,7 +18,7 @@ Tres fuentes, en orden de utilidad:
 
 ## Cómo llenar un archivo
 
-Copia `plantilla-materia.md`, renómbralo con el id de la materia y llénalo. Mira `calculo-integral.md`, que está completo, o `probabilidad-estadistica.md`, que tiene dos preguntas de referencia.
+Copia `plantilla-materia.md`, renómbralo con el id de la materia y llénalo. Mira `calculo-integral.md`, que está completo, o `probabilidad-estadistica.md`, que tiene 12 preguntas de referencia.
 
 ```
 ## clave-del-subtema · Nombre visible del subtema
@@ -134,6 +134,8 @@ node contenido/convertir.js --cobertura                # cuántas preguntas tien
 node contenido/convertir.js --escribir --borradores    # incluye los borradores en index.html
 ```
 
+**Ojo con `--borradores`:** el índice y la base de este proyecto incluyen hoy las 39 preguntas en borrador de Cálculo Integral. Correr `--escribir` **sin** `--borradores` las quita del `index.html`, y `--supabase` sin la bandera no las actualiza. Usa la misma bandera en los dos destinos.
+
 ## Cuántas preguntas
 
 Con 3 preguntas por subtema la prueba ya puede adaptarse: pregunta una, y si fallas profundiza en ese subtema en vez de seguir de largo. Con 1 por subtema solo alcanza para recorrer.
@@ -144,18 +146,20 @@ Para activar una materia, cambia `activa: false` a `activa: true` en su frontmat
 
 ## Estado
 
-| Materia | Código | Subtemas | Preguntas | Quién |
+Al 21 de septiembre las 8 materias están activas, con 12 preguntas completas cada una y un mínimo de una por subtema. Cálculo Integral además tiene 39 en borrador (51 en total, con `--borradores`).
+
+| Materia | Código | Subtemas | Preguntas | Nota |
 |---|---|---|---|---|
-| Cálculo Integral | MATE-1214 | 3 | 4, completa y activa | viene del brief |
-| Probabilidad y Estadística | IIND-2106 | 4 | 2 de 12 | |
-| Álgebra Lineal | MATE-1105 | 4 | 0 de 12 | |
-| Cálculo Vectorial | MATE-1207 | 4 | 0 de 12 | |
-| Física I | sin código | 4 | 0 de 12 | |
-| Cálculo Diferencial | sin código | 4 | 0 de 12 | falta el temario |
+| Cálculo Integral | MATE-1214 | 6 | 12 (51 con borradores) | tiene `kc:` y `mc:` |
+| Probabilidad y Estadística | IIND-2106 | 5 | 12 | |
+| Álgebra Lineal | MATE-1105 | 4 | 12 | |
+| Cálculo Vectorial | MATE-1207 | 4 | 12 | |
+| Cálculo Diferencial | MATE-1203 | 4 | 12 | código sin confirmar |
+| Física I | FISI-1018 | 4 | 12 | código sin confirmar |
+| Física II | FISI-1019 | 4 | 12 | código sin confirmar |
+| Introducción a la Programación | ISIS-1221 | 4 | 12 | enunciados con bloques de código; código sin confirmar |
 
-Probabilidad es la que más cerca está: sus 16 objetivos de aprendizaje ya están escritos como capacidades verificables y hay 6 pares de enunciado y solución en el disco. Álgebra Lineal va después: la guía del parcial 1 ya trae la lista de habilidades del curso, así que solo faltan los errores.
-
-De Cálculo Diferencial no hay un solo archivo. Sus subtemas son los estándar y hay que confirmarlos con el programa real. De Física I tampoco hay programa; sus subtemas salieron de los talleres y los laboratorios.
+Los códigos sin confirmar no están contrastados con un programa oficial del curso.
 
 ## Convertir
 
@@ -173,7 +177,7 @@ Aplica el cambio al `index.html` y deja una copia previa en `index.html.bak.conv
 
 ## Subir a Supabase
 
-El mismo script llena las tablas `materias`, `subtemas`, `preguntas` y `opciones` del proyecto Supabase (esquema en [`../supabase/schema.sql`](../supabase/schema.sql)). Solo la primera vez, instala el cliente:
+El mismo script llena las tablas `materias`, `subtemas`, `preguntas` y `opciones` (y, para las materias con `kc:`, `knowledge_components`, `misconcepciones` y `pregunta_kc`) del proyecto Supabase (esquema en [`../supabase/schema.sql`](../supabase/schema.sql)). Solo la primera vez, instala el cliente:
 
 ```bash
 cd contenido && npm install && cd ..
@@ -188,8 +192,10 @@ node contenido/convertir.js --supabase --dry-run
 Para subirlas de verdad, copia `.env.example` a `.env` en la raíz del repo y llena `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`. La `service_role key` se pide por un canal privado del equipo: **nunca** va al repo ni al chat, y `.env` ya está en `.gitignore`. Luego:
 
 ```bash
-node --env-file=.env contenido/convertir.js --supabase
+node --env-file=.env contenido/convertir.js --supabase --borradores
 ```
+
+(`--borradores` porque la base ya tiene los de Cálculo Integral; ver el aviso más arriba.)
 
 - `--supabase` solo escribe en Supabase y no toca `index.html`. Con `--supabase --escribir` hace las dos cosas.
 - Se puede correr las veces que quieras: cada fila se reconoce por su llave natural (código de la materia, clave del subtema, número de la pregunta, letra de la opción), así que lo que ya está igual no se toca, lo que cambió se actualiza y lo nuevo se inserta. Nunca duplica.

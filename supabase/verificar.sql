@@ -2,7 +2,8 @@
 -- Calibra — Verificación del esquema
 -- ----------------------------------------------------------------------------
 -- Ejecuta este archivo en el editor SQL de Supabase DESPUÉS de correr schema.sql.
--- Devuelve una tabla de comprobaciones contra el contrato de esquema.md.
+-- Devuelve una tabla de comprobaciones contra el contrato de esquema.md y la
+-- migración 004 (agenda: estudiantes, franjas, citas).
 -- Todas las filas deben decir OK en la columna `estado`.
 --
 -- No modifica nada: solo lee catálogos del sistema.
@@ -20,11 +21,16 @@ esperado_columnas (tabla, columnas) as (
         ('misconcepciones',        array['clave','id','kc_id','texto']),
         ('pregunta_kc',            array['kc_id','pregunta_id']),
         ('monitores',              array['calificacion','carrera','clave','creado_en','encaje_texto','id',
-                                         'materia_certificada_id','nivel','nombre','precio_hora','semestre']),
-        ('resultados_diagnostico', array['creado_en','error_detectado_texto','id','kcs','materia_id',
-                                         'respuestas','sesion_id','subtema_debil_id']),
+                                         'materia_certificada_id','nivel','nombre','precio_hora',
+                                         'presentacion','semestre']),
+        ('resultados_diagnostico', array['creado_en','error_detectado_texto','estudiante_id','id','kcs',
+                                         'materia_id','respuestas','sesion_id','subtema_debil_id']),
         ('leads',                  array['correo','correo_enviado_en','creado_en','id','materia_interes',
-                                         'monitor_id','rol','sesion_id','telefono'])
+                                         'monitor_id','rol','sesion_id','telefono']),
+        ('estudiantes',            array['correo','creado_en','id','telefono']),
+        ('franjas',                array['creado_en','duracion_min','id','inicia_en','monitor_id','reservada']),
+        ('citas',                  array['correo_enviado_en','creado_en','diagnostico_id','estado',
+                                         'estudiante_id','franja_id','id','materia_id','monitor_id'])
 ),
 -- Comandos con política pública esperada por tabla.
 esperado_politicas (tabla, comandos) as (
@@ -38,7 +44,10 @@ esperado_politicas (tabla, comandos) as (
         ('pregunta_kc',            array['SELECT']),
         ('monitores',              array['INSERT','SELECT']),
         ('resultados_diagnostico', array['INSERT']),
-        ('leads',                  array['INSERT'])
+        ('leads',                  array['INSERT']),
+        ('estudiantes',            array[]::text[]),
+        ('franjas',                array['SELECT']),
+        ('citas',                  array[]::text[])
 ),
 -- Privilegios esperados del rol anon por tabla.
 esperado_privilegios (tabla, privilegios) as (
@@ -52,10 +61,13 @@ esperado_privilegios (tabla, privilegios) as (
         ('pregunta_kc',            array['SELECT']),
         ('monitores',              array['INSERT','SELECT']),
         ('resultados_diagnostico', array['INSERT']),
-        ('leads',                  array['INSERT'])
+        ('leads',                  array['INSERT']),
+        ('estudiantes',            array[]::text[]),
+        ('franjas',                array['SELECT']),
+        ('citas',                  array[]::text[])
 ),
 
--- 1. Existencia de las 10 tablas.
+-- 1. Existencia de las 13 tablas.
 chk_tablas as (
     select
         1 as orden,
@@ -86,12 +98,13 @@ chk_columnas as (
         'columnas de ' || e.tabla                          as chequeo,
         array_to_string(e.columnas, ', ')                   as esperado,
         coalesce(array_to_string(r.columnas, ', '), 'AUSENTE') as encontrado,
-        case when r.columnas = e.columnas then 'OK' else 'FALLA' end as estado
+        case when r.columnas @> e.columnas and r.columnas <@ e.columnas
+             then 'OK' else 'FALLA' end as estado
     from esperado_columnas e
     left join reales_columnas r on r.tabla = e.tabla
 ),
 
--- 3. RLS activo en las 10 tablas.
+-- 3. RLS activo en las 13 tablas.
 chk_rls as (
     select
         3 as orden,
@@ -123,9 +136,10 @@ chk_politicas as (
     select
         4 as orden,
         'políticas de ' || e.tabla                            as chequeo,
-        array_to_string(e.comandos, ', ')                     as esperado,
+        coalesce(nullif(array_to_string(e.comandos, ', '), ''), 'NINGUNA') as esperado,
         coalesce(array_to_string(r.comandos, ', '), 'NINGUNA') as encontrado,
-        case when r.comandos = e.comandos then 'OK' else 'FALLA' end as estado
+        case when coalesce(r.comandos, array[]::text[]) = e.comandos
+             then 'OK' else 'FALLA' end as estado
     from esperado_politicas e
     left join reales_politicas r on r.tabla = e.tabla
 ),
@@ -162,7 +176,7 @@ chk_privilegios as (
     select
         6 as orden,
         'privilegios de anon en ' || e.tabla                     as chequeo,
-        array_to_string(e.privilegios, ', ')                      as esperado,
+        coalesce(nullif(array_to_string(e.privilegios, ', '), ''), 'ninguno') as esperado,
         coalesce(array_to_string(r.privilegios, ', '), 'ninguno')  as encontrado,
         case when coalesce(r.privilegios, array[]::text[]) = e.privilegios
              then 'OK' else 'FALLA' end as estado
@@ -170,7 +184,8 @@ chk_privilegios as (
     left join reales_privilegios r on r.tabla = e.tabla
 ),
 
--- 7. anon no debe poder leer leads ni resultados_diagnostico.
+-- 7. anon no debe poder leer leads, resultados_diagnostico, estudiantes, citas
+--    ni la vista brief_cita (correos y teléfonos).
 chk_leads as (
     select
         7 as orden,
@@ -180,7 +195,55 @@ chk_leads as (
              then 'TIENE SELECT' else 'sin privilegio' end as encontrado,
         case when has_table_privilege('anon', 'public.' || t, 'SELECT')
              then 'FALLA' else 'OK' end as estado
-    from (values ('leads'), ('resultados_diagnostico')) as x(t)
+    from (values ('leads'), ('resultados_diagnostico'), ('estudiantes'), ('citas'),
+                 ('brief_cita')) as x(t)
+),
+
+-- 8. Las dos funciones de la agenda: existen, son security definer (corren como
+--    dueño) y anon puede ejecutarlas. Sin esto último el front no puede reservar.
+chk_funciones as (
+    select
+        8 as orden,
+        'función ' || f.nombre || ' (security definer, anon ejecuta)' as chequeo,
+        'security definer + execute' as esperado,
+        case
+            when p.oid is null then 'AUSENTE'
+            when p.prosecdef and has_function_privilege('anon', p.oid, 'EXECUTE')
+                 then 'security definer + execute'
+            else 'MAL CONFIGURADA'
+        end as encontrado,
+        case when coalesce(p.prosecdef, false)
+                  and coalesce(has_function_privilege('anon', p.oid, 'EXECUTE'), false)
+             then 'OK' else 'FALLA' end as estado
+    from (values ('reservar_franja'), ('publicar_franjas')) as f(nombre)
+    left join pg_proc p
+           on p.proname::text = f.nombre
+          and p.pronamespace = 'public'::regnamespace
+),
+
+-- 9. Una franja, una cita: citas.franja_id tiene que ser UNIQUE. Es lo que
+--    impide la doble reserva aunque falle cualquier otra capa.
+chk_unico as (
+    select
+        9 as orden,
+        'citas.franja_id es UNIQUE' as chequeo,
+        'índice único' as esperado,
+        case when exists (
+            select 1
+            from pg_index i
+            join pg_attribute a on a.attrelid = i.indrelid and a.attnum = i.indkey[0]
+            where i.indrelid = to_regclass('public.citas')
+              and i.indisunique and i.indnatts = 1
+              and a.attname::text = 'franja_id')
+             then 'índice único' else 'AUSENTE' end as encontrado,
+        case when exists (
+            select 1
+            from pg_index i
+            join pg_attribute a on a.attrelid = i.indrelid and a.attnum = i.indkey[0]
+            where i.indrelid = to_regclass('public.citas')
+              and i.indisunique and i.indnatts = 1
+              and a.attname::text = 'franja_id')
+             then 'OK' else 'FALLA' end as estado
 )
 
 select chequeo, esperado, encontrado, estado
@@ -192,5 +255,7 @@ from (
     union all select * from chk_sin_escritura
     union all select * from chk_privilegios
     union all select * from chk_leads
+    union all select * from chk_funciones
+    union all select * from chk_unico
 ) reporte
 order by orden, chequeo;

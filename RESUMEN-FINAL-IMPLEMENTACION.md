@@ -1,5 +1,7 @@
 # Resumen Final - Implementación Completa Calibra
 
+> **Documento histórico.** Informe fechado el 16 de septiembre de 2026 sobre la rama `juzouy` (hoy `juzou`). Las cifras (7 materias, 84 preguntas, 18 de 19 pruebas) y los próximos pasos son de esa fecha: hoy hay 8 materias, Supabase, agenda de citas y 522 comprobaciones. Lo vigente está en `CLAUDE.md`, `esquema.md` y `tareas/integracion-final.md`.
+
 ## ✅ Tareas Completadas
 
 **Fecha**: 2026-09-16  
