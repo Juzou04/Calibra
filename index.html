@@ -35,6 +35,7 @@
   --surface:#FFFFFF;
   --primary:#005EFF;
   --alert:#E5484D;          /* solo RELLENO: barra, fondo de chip */
+  --warn:#C98A00;           /* ambar, solo RELLENO: barra de nivel medio */
   --success:#0F9D58;        /* solo RELLENO */
   --alert-text:#C62A2F;     /* rojo para TEXTO, 5,46:1 sobre --bg */
   --success-text:#0B7A44;   /* verde para TEXTO, 5,31:1 sobre --bg */
@@ -219,9 +220,13 @@ math mroot>:last-child,math mfrac>*{font-size:max(14px,.8em)}
 .bar-name{font-size:16px;font-weight:500;letter-spacing:-.01em;min-inline-size:0}
 .bar-pct{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .bars .track{margin-block-start:10px;block-size:12px}
-/* Punto debil: TEXTO en --alert-text (AA), RELLENO en --alert */
+/* Punto debil: solo TEXTO, en --alert-text (AA). El relleno de la barra lo
+   decide el nivel (.nivel-bajo/.nivel-medio/.nivel-alto), no is-weak. */
 .is-weak .bar-name,.is-weak .bar-pct{color:var(--alert-text);font-weight:600}
-.is-weak .track>span{background:var(--alert)}
+/* Relleno gradual segun el nivel de dominio de cada barra. */
+.bars .nivel-bajo .track>span{background:var(--alert)}
+.bars .nivel-medio .track>span{background:var(--warn)}
+.bars .nivel-alto .track>span{background:var(--primary)}
 
 /* ---------- 8. Tarjeta destacada ---------- */
 .callout{
@@ -1732,8 +1737,9 @@ textarea.visualmente-oculto,button.visualmente-oculto{
 
   <div class="body">
     <!-- El motor pinta aqu&iacute; una barra por subtema:
-         <li> o <li class="is-weak"> con .bar-head (.bar-name + .bar-pct)
-         y un .track con role="progressbar" -->
+         <li class="nivel-bajo|nivel-medio|nivel-alto"> (mas "is-weak" si es
+         el punto debil) con .bar-head (.bar-name + .bar-pct) y un .track
+         con role="progressbar" -->
     <ul class="bars" id="diag-barras"></ul>
 
     <div class="callout" role="group" aria-labelledby="diag-debil-titulo">
@@ -5637,6 +5643,15 @@ function porcentajeMostrado(crudo) {
   return mapa[mejor];
 }
 
+/* Porcentaje mostrado -> nivel de color de la barra (rojo/amarillo/azul).
+   Umbrales con margen a cada lado de los 3 escalones de MAPA_PORCENTAJE
+   (34, 61, 82), para no acoplarse a esos valores exactos. */
+function nivelDeBarra(pct) {
+  if (pct < 50) return 'nivel-bajo';
+  if (pct < 70) return 'nivel-medio';
+  return 'nivel-alto';
+}
+
 /* Las preguntas del estudiante en el orden en que se le presentaron. */
 function ordenRespondido(materia, respuestas) {
   var lista = [];
@@ -6297,11 +6312,13 @@ function pintarDiagnostico() {
     vaciar(barras);
     diag.barras.forEach(function (b) {
       var esDebil = diag.debil && b.subtema === diag.debil.subtema;
+      var nivel = nivelDeBarra(b.pct);
       var li = document.createElement('li');
-      if (esDebil) li.className = 'is-weak';
+      li.className = nivel + (esDebil ? ' is-weak' : '');
       // El porcentaje real queda aqui por si alguien quiere depurar el mapa.
       li.setAttribute('data-subtema', b.subtema);
       li.setAttribute('data-pct-crudo', String(b.crudo));
+      li.setAttribute('data-nivel', nivel);
 
       var head = crear('div', 'bar-head');
       head.appendChild(crearMate('span', 'bar-name', b.nombre));
